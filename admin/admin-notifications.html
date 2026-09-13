@@ -1,0 +1,1774 @@
+<!DOCTYPE html>
+
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+  <title>Notifications & Announcements - RankHub Admin</title>
+
+  <link rel="stylesheet" href="./admin.css">
+
+  <style>
+    /* =========================================================
+       NOTIFICATION FORM ACTIONS
+       Force Save + Cancel buttons to remain visible
+       ========================================================= */
+
+    .notification-form-actions {
+      display: flex !important;
+      justify-content: flex-end !important;
+      align-items: center !important;
+      gap: 12px !important;
+      width: 100% !important;
+      min-height: 72px !important;
+      padding: 16px 24px !important;
+      border-top: 1px solid #e5e7eb !important;
+      background: #ffffff !important;
+      box-sizing: border-box !important;
+      position: relative !important;
+      z-index: 10 !important;
+    }
+
+    .notification-form-actions button {
+      display: inline-flex !important;
+      align-items: center !important;
+      justify-content: center !important;
+      visibility: visible !important;
+      opacity: 1 !important;
+      min-width: 100px !important;
+      min-height: 42px !important;
+      padding: 10px 20px !important;
+      border-radius: 8px !important;
+      font-size: 14px !important;
+      font-weight: 600 !important;
+      cursor: pointer !important;
+      box-sizing: border-box !important;
+    }
+
+    .notification-form-actions .notification-cancel-btn {
+      background: #f1f5f9 !important;
+      color: #334155 !important;
+      border: 1px solid #cbd5e1 !important;
+    }
+
+    .notification-form-actions .notification-cancel-btn:hover {
+      background: #e2e8f0 !important;
+    }
+
+    .notification-form-actions .notification-save-btn {
+      background: #2563eb !important;
+      color: #ffffff !important;
+      border: 1px solid #2563eb !important;
+    }
+
+    .notification-form-actions .notification-save-btn:hover {
+      background: #1d4ed8 !important;
+    }
+
+    .notification-form-actions button:disabled {
+      opacity: 0.6 !important;
+      cursor: not-allowed !important;
+    }
+
+    /* Mobile */
+    @media (max-width: 600px) {
+
+      .notification-form-actions {
+        justify-content: stretch !important;
+      }
+
+      .notification-form-actions button {
+        flex: 1 !important;
+      }
+
+    }
+  </style>
+
+</head>
+
+<body>
+
+  <div class="admin-layout">
+
+
+<main class="admin-main">
+
+  <!-- ======================================================
+       ADMIN HEADER
+       ====================================================== -->
+
+  <header class="admin-header"></header>
+
+
+  <!-- ======================================================
+       MAIN CONTENT
+       ====================================================== -->
+
+  <div class="admin-content">
+
+    <!-- ====================================================
+         PAGE TOOLBAR
+         ==================================================== -->
+
+    <div class="page-toolbar">
+
+      <div class="page-toolbar-info">
+
+        <h1>Broadcast Notifications</h1>
+
+        <p>
+          Send instant announcements, test reminders,
+          and offers to registered candidates.
+        </p>
+
+      </div>
+
+
+      <div class="page-toolbar-actions">
+
+        <button
+          type="button"
+          class="btn btn-primary"
+          id="btn-open-send-notif"
+        >
+
+          <svg
+            width="16"
+            height="16"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2.5"
+            aria-hidden="true"
+          >
+
+            <line
+              x1="12"
+              y1="5"
+              x2="12"
+              y2="19"
+            />
+
+            <line
+              x1="5"
+              y1="12"
+              x2="19"
+              y2="12"
+            />
+
+          </svg>
+
+          Send New Broadcast
+
+        </button>
+
+      </div>
+
+    </div>
+
+
+    <!-- ====================================================
+         BROADCAST HISTORY
+         ==================================================== -->
+
+    <div class="card">
+
+      <div class="card-header">
+
+        <div>
+
+          <h3 class="card-title">
+            Broadcast History
+          </h3>
+
+          <p class="card-subtitle">
+            All push announcements dispatched across RankHub
+          </p>
+
+        </div>
+
+      </div>
+
+
+      <div class="table-responsive">
+
+        <table class="data-table">
+
+          <thead>
+
+            <tr>
+
+              <th>
+                Announcement
+              </th>
+
+              <th>
+                Target Audience
+              </th>
+
+              <th>
+                Target Exam
+              </th>
+
+              <th>
+                Sent Date
+              </th>
+
+              <th>
+                Status
+              </th>
+
+              <th style="text-align:right;">
+                Actions
+              </th>
+
+            </tr>
+
+          </thead>
+
+
+          <tbody id="notif-table-body">
+
+            <tr>
+
+              <td
+                colspan="6"
+                class="loading-state"
+              >
+
+                <div class="spinner"></div>
+
+                <p>
+                  Loading notification logs...
+                </p>
+
+              </td>
+
+            </tr>
+
+          </tbody>
+
+        </table>
+
+      </div>
+
+    </div>
+
+  </div>
+
+</main>
+
+
+  </div>
+
+  <!-- ========================================================
+       SEND NOTIFICATION MODAL
+       ======================================================== -->
+
+  <div
+    class="modal-backdrop"
+    id="notif-modal"
+  >
+
+
+<div class="modal-container modal-md">
+
+  <!-- ====================================================
+       MODAL HEADER
+       ==================================================== -->
+
+  <div class="modal-header">
+
+    <h3 class="modal-title">
+      Create Push Broadcast
+    </h3>
+
+
+    <button
+      type="button"
+      class="modal-close"
+      id="btn-close-notif-modal"
+      aria-label="Close"
+    >
+      ✕
+    </button>
+
+  </div>
+
+
+  <!-- ====================================================
+       NOTIFICATION FORM
+       ==================================================== -->
+
+  <form id="notif-form">
+
+    <div class="modal-body">
+
+      <!-- ==================================================
+           TARGET AUDIENCE
+           ================================================== -->
+
+      <div class="form-group">
+
+        <label
+          class="form-label"
+          for="notif-type"
+        >
+
+          Target Audience
+
+          <span class="required">
+            *
+          </span>
+
+        </label>
+
+
+        <select
+          id="notif-type"
+          class="form-control"
+          required
+        >
+
+          <option value="all">
+            All Registered Students (100% Broadcast)
+          </option>
+
+          <option value="premium">
+            Premium Pro Subscribers Only
+          </option>
+
+          <option value="exam">
+            Students Enrolled in a Specific Exam
+          </option>
+
+        </select>
+
+      </div>
+
+
+      <!-- ==================================================
+           TARGET EXAM
+           ================================================== -->
+
+      <div
+        class="form-group"
+        id="notif-exam-group"
+        style="display:none;"
+      >
+
+        <label
+          class="form-label"
+          for="notif-target-exam"
+        >
+
+          Select Target Exam
+
+          <span class="required">
+            *
+          </span>
+
+        </label>
+
+
+        <select
+          id="notif-target-exam"
+          class="form-control"
+        >
+
+          <option value="">
+            -- Choose Exam --
+          </option>
+
+        </select>
+
+      </div>
+
+
+      <!-- ==================================================
+           TITLE
+           ================================================== -->
+
+      <div class="form-group">
+
+        <label
+          class="form-label"
+          for="notif-title"
+        >
+
+          Notification Title
+
+          <span class="required">
+            *
+          </span>
+
+        </label>
+
+
+        <input
+          type="text"
+          id="notif-title"
+          class="form-control"
+          placeholder="e.g. 📢 All India Live Mock #01 is Now Live!"
+          maxlength="150"
+          required
+        >
+
+      </div>
+
+
+      <!-- ==================================================
+           MESSAGE
+           ================================================== -->
+
+      <div class="form-group">
+
+        <label
+          class="form-label"
+          for="notif-message"
+        >
+
+          Message Content
+
+          <span class="required">
+            *
+          </span>
+
+        </label>
+
+
+        <textarea
+          id="notif-message"
+          class="form-control"
+          rows="4"
+          maxlength="1000"
+          placeholder="Enter message text displayed on candidate notification bells and phones..."
+          required
+        ></textarea>
+
+      </div>
+
+
+      <!-- ==================================================
+           REDIRECTION URL
+           ================================================== -->
+
+      <div class="form-group">
+
+        <label
+          class="form-label"
+          for="notif-link"
+        >
+
+          Target Redirection URL
+
+          <span
+            style="
+              font-weight:400;
+              opacity:.7;
+            "
+          >
+            (Optional)
+          </span>
+
+        </label>
+
+
+        <input
+          type="text"
+          id="notif-link"
+          class="form-control"
+          placeholder="/test-series or /live-mock"
+          maxlength="500"
+        >
+
+
+        <small
+          style="
+            display:block;
+            margin-top:6px;
+            color:#64748b;
+            font-size:12px;
+          "
+        >
+          Optional page that opens when the candidate
+          taps the notification.
+        </small>
+
+      </div>
+
+    </div>
+
+
+    <!-- ====================================================
+         SAVE + CANCEL
+         ==================================================== -->
+
+    <div class="notification-form-actions">
+
+      <button
+        type="button"
+        id="btn-cancel-notif"
+        class="notification-cancel-btn"
+      >
+        Cancel
+      </button>
+
+
+      <button
+        type="submit"
+        id="btn-send-notif-submit"
+        class="notification-save-btn"
+      >
+        Save
+      </button>
+
+    </div>
+
+  </form>
+
+</div>
+
+
+  </div>
+
+  <!-- ========================================================
+       JAVASCRIPT
+       ======================================================== -->
+
+  <script type="module">
+
+    // ========================================================
+    // IMPORTS
+    // ========================================================
+
+    import {
+      initAdminLayout
+    } from './admin-sidebar.js';
+
+
+    import {
+      getFirestoreExams,
+      getFirestoreNotifications,
+      saveNotification,
+      deleteFirestoreNotification
+    } from './admin-db.js';
+
+
+    import {
+      ICONS,
+      formatDate,
+      escapeHtml,
+      showToast,
+      showConfirmDialog,
+      openModal,
+      closeModal
+    } from './admin.js';
+
+
+    // ========================================================
+    // STATE
+    // ========================================================
+
+    let allExams = [];
+
+    let allNotifs = [];
+
+    let isSaving = false;
+
+    window.addEventListener('rankhub:bulk-delete-complete', () => loadNotifications());
+
+
+    // ========================================================
+    // DOM READY
+    // ========================================================
+
+    document.addEventListener(
+      'DOMContentLoaded',
+      () => {
+
+        initAdminLayout(
+          'notifications',
+          'Notifications'
+        );
+
+
+        setupEvents();
+
+
+        initPage();
+
+      }
+    );
+
+
+    // ========================================================
+    // INITIALIZE PAGE
+    // ========================================================
+
+    async function initPage() {
+
+      try {
+
+        await loadExams();
+
+        await loadNotifications();
+
+      } catch (error) {
+
+        console.error(
+          '[Notifications] Initialization failed:',
+          error
+        );
+
+
+        showToast(
+          error?.message ||
+          'Failed to initialize notifications page.',
+          'error'
+        );
+
+      }
+
+    }
+
+
+    // ========================================================
+    // LOAD EXAMS
+    // ========================================================
+
+    async function loadExams() {
+
+      try {
+
+        const result =
+          await getFirestoreExams();
+
+
+        allExams =
+          Array.isArray(result)
+            ? result
+            : [];
+
+
+        populateExamSelect();
+
+      } catch (error) {
+
+        console.error(
+          '[Notifications] Failed to load exams:',
+          error
+        );
+
+
+        allExams = [];
+
+
+        populateExamSelect();
+
+
+        showToast(
+          'Failed to load exams.',
+          'error'
+        );
+
+      }
+
+    }
+
+
+    // ========================================================
+    // POPULATE EXAM SELECT
+    // ========================================================
+
+    function populateExamSelect() {
+
+      const examSelect =
+        document.getElementById(
+          'notif-target-exam'
+        );
+
+
+      if (!examSelect) return;
+
+
+      let options = `
+        <option value="">
+          -- Choose Exam --
+        </option>
+      `;
+
+
+      allExams
+        .filter(
+          exam =>
+            exam &&
+            exam.id
+        )
+        .forEach(
+          exam => {
+
+            const examName =
+              exam.name ||
+              exam.title ||
+              exam.examName ||
+              exam.id;
+
+
+            options += `
+              <option value="${escapeHtml(String(exam.id))}">
+                ${escapeHtml(String(examName))}
+              </option>
+            `;
+
+          }
+        );
+
+
+      examSelect.innerHTML =
+        options;
+
+    }
+
+
+    // ========================================================
+    // LOAD NOTIFICATIONS
+    // ========================================================
+
+    async function loadNotifications() {
+
+      const tbody =
+        document.getElementById(
+          'notif-table-body'
+        );
+
+
+      if (!tbody) return;
+
+
+      tbody.innerHTML = `
+        <tr>
+
+          <td
+            colspan="6"
+            class="loading-state"
+          >
+
+            <div class="spinner"></div>
+
+            <p>
+              Loading notifications from Firestore...
+            </p>
+
+          </td>
+
+        </tr>
+      `;
+
+
+      try {
+
+        const result =
+          await getFirestoreNotifications();
+
+
+        allNotifs =
+          Array.isArray(result)
+            ? result
+            : [];
+
+
+        renderTable();
+
+      } catch (error) {
+
+        console.error(
+          '[Notifications] Error loading notifications:',
+          error
+        );
+
+
+        showToast(
+          'Error loading notifications from Firestore.',
+          'error'
+        );
+
+
+        tbody.innerHTML = `
+          <tr>
+
+            <td
+              colspan="6"
+              class="empty-state"
+              style="color:var(--danger-text);"
+            >
+
+              <div class="empty-icon">
+                ${ICONS.alertCircle}
+              </div>
+
+              <h4 class="empty-title">
+                Failed to load notifications
+              </h4>
+
+              <p class="empty-desc">
+                Please check the server and Firebase connection.
+              </p>
+
+            </td>
+
+          </tr>
+        `;
+
+      }
+
+    }
+
+
+    // ========================================================
+    // STATUS
+    // ========================================================
+
+    function getStatusInfo(notification) {
+
+      const status =
+        String(
+          notification?.status ||
+          'saved'
+        ).toLowerCase();
+
+
+      switch (status) {
+
+        case 'sent':
+
+          return {
+            label: 'Sent',
+            className: 'badge-success'
+          };
+
+
+        case 'delivered':
+
+          return {
+            label: 'Delivered',
+            className: 'badge-success'
+          };
+
+
+        case 'partial':
+
+          return {
+            label: 'Partial',
+            className: 'badge-warning'
+          };
+
+
+        case 'failed':
+
+          return {
+            label: 'Failed',
+            className: 'badge-danger'
+          };
+
+
+        default:
+
+          return {
+            label: 'Saved',
+            className: 'badge-neutral'
+          };
+
+      }
+
+    }
+
+
+    // ========================================================
+    // AUDIENCE
+    // ========================================================
+
+    function getAudienceInfo(notification) {
+
+      const type =
+        notification?.type ||
+        'all';
+
+
+      if (type === 'premium') {
+
+        return {
+          label: '★ Pro Only',
+          className: 'badge-primary'
+        };
+
+      }
+
+
+      if (type === 'exam') {
+
+        return {
+          label: 'Exam Specific',
+          className: 'badge-neutral'
+        };
+
+      }
+
+
+      return {
+        label: 'All Students',
+        className: 'badge-neutral'
+      };
+
+    }
+
+
+    // ========================================================
+    // GET EXAM NAME
+    // ========================================================
+
+    function getExamName(notification) {
+
+      const examId =
+        notification?.targetExamId;
+
+
+      if (!examId) {
+
+        return 'All Exams';
+
+      }
+
+
+      const exam =
+        allExams.find(
+          item =>
+            String(item.id) ===
+            String(examId)
+        );
+
+
+      if (!exam) {
+
+        return escapeHtml(
+          String(examId)
+        );
+
+      }
+
+
+      return escapeHtml(
+        String(
+          exam.name ||
+          exam.title ||
+          exam.examName ||
+          exam.id
+        )
+      );
+
+    }
+
+
+    // ========================================================
+    // DATE
+    // ========================================================
+
+    function getNotificationDate(notification) {
+
+      try {
+
+        return formatDate(
+          notification?.sentAt ||
+          notification?.createdAt ||
+          notification?.updatedAt
+        );
+
+      } catch {
+
+        return '—';
+
+      }
+
+    }
+
+
+    // ========================================================
+    // RENDER TABLE
+    // ========================================================
+
+    function renderTable() {
+
+      const tbody =
+        document.getElementById(
+          'notif-table-body'
+        );
+
+
+      if (!tbody) return;
+
+
+      if (
+        !Array.isArray(allNotifs) ||
+        allNotifs.length === 0
+      ) {
+
+        tbody.innerHTML = `
+          <tr>
+
+            <td
+              colspan="6"
+              class="empty-state"
+            >
+
+              <div class="empty-icon">
+                ${ICONS.notifications}
+              </div>
+
+              <h4 class="empty-title">
+                No Notifications Saved
+              </h4>
+
+              <p class="empty-desc">
+                Create a notification using
+                "Send New Broadcast".
+              </p>
+
+            </td>
+
+          </tr>
+        `;
+
+        return;
+
+      }
+
+
+      tbody.innerHTML =
+        allNotifs
+          .map(
+            notification => {
+
+              const audience =
+                getAudienceInfo(
+                  notification
+                );
+
+
+              const status =
+                getStatusInfo(
+                  notification
+                );
+
+
+              const title =
+                escapeHtml(
+                  notification?.title ||
+                  'Untitled Notification'
+                );
+
+
+              const message =
+                escapeHtml(
+                  notification?.message ||
+                  ''
+                );
+
+
+              const id =
+                escapeHtml(
+                  String(
+                    notification?.id ||
+                    ''
+                  )
+                );
+
+
+              return `
+                <tr>
+
+                  <td>
+
+                    <strong>
+                      ${title}
+                    </strong>
+
+
+                    <div
+                      style="
+                        font-size:12px;
+                        color:#64748b;
+                        margin-top:3px;
+                        max-width:420px;
+                        white-space:normal;
+                        word-break:break-word;
+                      "
+                    >
+                      ${message}
+                    </div>
+
+                  </td>
+
+
+                  <td>
+
+                    <span
+                      class="badge ${audience.className}"
+                    >
+                      ${audience.label}
+                    </span>
+
+                  </td>
+
+
+                  <td
+                    style="
+                      font-size:13px;
+                      color:#475569;
+                    "
+                  >
+                    ${getExamName(notification)}
+                  </td>
+
+
+                  <td
+                    style="
+                      font-size:12px;
+                      color:#64748b;
+                    "
+                  >
+                    ${getNotificationDate(notification)}
+                  </td>
+
+
+                  <td>
+
+                    <span
+                      class="badge ${status.className}"
+                    >
+                      ${status.label}
+                    </span>
+
+                  </td>
+
+
+                  <td
+                    style="text-align:right;"
+                  >
+
+                    <button
+                      type="button"
+                      class="action-btn delete btn-delete-notif"
+                      data-id="${id}"
+                      title="Delete Record"
+                      aria-label="Delete notification"
+                    >
+                      ${ICONS.trash}
+                    </button>
+
+                  </td>
+
+                </tr>
+              `;
+
+            }
+          )
+          .join('');
+
+
+      bindDeleteButtons();
+
+    }
+
+
+    // ========================================================
+    // DELETE BUTTONS
+    // ========================================================
+
+    function bindDeleteButtons() {
+
+      document
+        .querySelectorAll(
+          '.btn-delete-notif'
+        )
+        .forEach(
+          button => {
+
+            button.onclick =
+              () => {
+
+                const id =
+                  button.getAttribute(
+                    'data-id'
+                  );
+
+
+                if (!id) {
+
+                  showToast(
+                    'Invalid notification ID.',
+                    'error'
+                  );
+
+                  return;
+
+                }
+
+
+                showConfirmDialog({
+
+                  title:
+                    'Delete Notification',
+
+                  message:
+                    'Are you sure you want to delete this notification record?',
+
+                  confirmText:
+                    'Delete',
+
+                  isDanger:
+                    true,
+
+                  onConfirm:
+                    async () => {
+
+                      try {
+
+                        button.disabled =
+                          true;
+
+
+                        await deleteFirestoreNotification(
+                          id
+                        );
+
+
+                        showToast(
+                          'Notification deleted successfully.'
+                        );
+
+
+                        await loadNotifications();
+
+                      } catch (error) {
+
+                        console.error(
+                          '[Notifications] Delete failed:',
+                          error
+                        );
+
+
+                        showToast(
+                          error?.message ||
+                          'Failed to delete notification.',
+                          'error'
+                        );
+
+
+                        button.disabled =
+                          false;
+
+                      }
+
+                    }
+
+                });
+
+              };
+
+          }
+        );
+
+    }
+
+
+    // ========================================================
+    // SETUP EVENTS
+    // ========================================================
+
+    function setupEvents() {
+
+      const typeSelect =
+        document.getElementById(
+          'notif-type'
+        );
+
+
+      const examGroup =
+        document.getElementById(
+          'notif-exam-group'
+        );
+
+
+      const examSelect =
+        document.getElementById(
+          'notif-target-exam'
+        );
+
+
+      const openButton =
+        document.getElementById(
+          'btn-open-send-notif'
+        );
+
+
+      const closeButton =
+        document.getElementById(
+          'btn-close-notif-modal'
+        );
+
+
+      const cancelButton =
+        document.getElementById(
+          'btn-cancel-notif'
+        );
+
+
+      const form =
+        document.getElementById(
+          'notif-form'
+        );
+
+
+      const saveButton =
+        document.getElementById(
+          'btn-send-notif-submit'
+        );
+
+
+      // ------------------------------------------------------
+      // AUDIENCE CHANGE
+      // ------------------------------------------------------
+
+      if (typeSelect) {
+
+        typeSelect.addEventListener(
+          'change',
+          () => {
+
+            const isExam =
+              typeSelect.value ===
+              'exam';
+
+
+            if (examGroup) {
+
+              examGroup.style.display =
+                isExam
+                  ? 'block'
+                  : 'none';
+
+            }
+
+
+            if (examSelect) {
+
+              examSelect.required =
+                isExam;
+
+            }
+
+          }
+        );
+
+      }
+
+
+      // ------------------------------------------------------
+      // OPEN MODAL
+      // ------------------------------------------------------
+
+      if (openButton) {
+
+        openButton.addEventListener(
+          'click',
+          () => {
+
+            resetNotificationForm();
+
+            openModal(
+              'notif-modal'
+            );
+
+          }
+        );
+
+      }
+
+
+      // ------------------------------------------------------
+      // CLOSE X
+      // ------------------------------------------------------
+
+      if (closeButton) {
+
+        closeButton.addEventListener(
+          'click',
+          () => {
+
+            if (isSaving) return;
+
+
+            closeModal(
+              'notif-modal'
+            );
+
+          }
+        );
+
+      }
+
+
+      // ------------------------------------------------------
+      // CANCEL
+      // ------------------------------------------------------
+
+      if (cancelButton) {
+
+        cancelButton.addEventListener(
+          'click',
+          () => {
+
+            if (isSaving) return;
+
+
+            resetNotificationForm();
+
+
+            closeModal(
+              'notif-modal'
+            );
+
+          }
+        );
+
+      }
+
+
+      // ------------------------------------------------------
+      // SAVE
+      // ------------------------------------------------------
+
+      if (form) {
+
+        form.addEventListener(
+          'submit',
+          async event => {
+
+            event.preventDefault();
+
+
+            if (isSaving) return;
+
+
+            await saveNotificationForm(
+              saveButton
+            );
+
+          }
+        );
+
+      }
+
+    }
+
+
+    // ========================================================
+    // RESET FORM
+    // ========================================================
+
+    function resetNotificationForm() {
+
+      const form =
+        document.getElementById(
+          'notif-form'
+        );
+
+
+      const typeSelect =
+        document.getElementById(
+          'notif-type'
+        );
+
+
+      const examGroup =
+        document.getElementById(
+          'notif-exam-group'
+        );
+
+
+      const examSelect =
+        document.getElementById(
+          'notif-target-exam'
+        );
+
+
+      if (form) {
+
+        form.reset();
+
+      }
+
+
+      if (typeSelect) {
+
+        typeSelect.value =
+          'all';
+
+      }
+
+
+      if (examGroup) {
+
+        examGroup.style.display =
+          'none';
+
+      }
+
+
+      if (examSelect) {
+
+        examSelect.required =
+          false;
+
+        examSelect.value =
+          '';
+
+      }
+
+    }
+
+
+    // ========================================================
+    // SAVE NOTIFICATION
+    // ========================================================
+
+    async function saveNotificationForm(
+      saveButton
+    ) {
+
+      const titleInput =
+        document.getElementById(
+          'notif-title'
+        );
+
+
+      const messageInput =
+        document.getElementById(
+          'notif-message'
+        );
+
+
+      const typeInput =
+        document.getElementById(
+          'notif-type'
+        );
+
+
+      const examInput =
+        document.getElementById(
+          'notif-target-exam'
+        );
+
+
+      const linkInput =
+        document.getElementById(
+          'notif-link'
+        );
+
+
+      const title =
+        titleInput?.value
+          ?.trim() ||
+        '';
+
+
+      const message =
+        messageInput?.value
+          ?.trim() ||
+        '';
+
+
+      const type =
+        typeInput?.value
+          ?.trim() ||
+        'all';
+
+
+      const targetExamId =
+        examInput?.value
+          ?.trim() ||
+        '';
+
+
+      const linkUrl =
+        linkInput?.value
+          ?.trim() ||
+        '';
+
+
+      // ------------------------------------------------------
+      // VALIDATION
+      // ------------------------------------------------------
+
+      if (!title) {
+
+        showToast(
+          'Notification title is required.',
+          'error'
+        );
+
+
+        titleInput?.focus();
+
+        return;
+
+      }
+
+
+      if (!message) {
+
+        showToast(
+          'Notification message is required.',
+          'error'
+        );
+
+
+        messageInput?.focus();
+
+        return;
+
+      }
+
+
+      if (
+        type === 'exam' &&
+        !targetExamId
+      ) {
+
+        showToast(
+          'Please select a target exam.',
+          'error'
+        );
+
+
+        examInput?.focus();
+
+        return;
+
+      }
+
+
+      // ------------------------------------------------------
+      // PAYLOAD
+      // ------------------------------------------------------
+
+      const payload = {
+
+        title,
+
+        message,
+
+        type,
+
+        targetExamId:
+          type === 'exam'
+            ? targetExamId
+            : '',
+
+        linkUrl
+
+      };
+
+
+      // ------------------------------------------------------
+      // SAVING STATE
+      // ------------------------------------------------------
+
+      isSaving = true;
+
+
+      if (saveButton) {
+
+        saveButton.disabled =
+          true;
+
+
+        saveButton.dataset.originalText =
+          saveButton.textContent;
+
+
+        saveButton.textContent =
+          'Saving...';
+
+      }
+
+
+      try {
+
+        const result =
+          await saveNotification(
+            payload
+          );
+
+
+        console.log(
+          '[Notifications] Saved successfully:',
+          result
+        );
+
+
+        closeModal(
+          'notif-modal'
+        );
+
+
+        resetNotificationForm();
+
+
+        showToast(
+          'Notification saved successfully.'
+        );
+
+
+        await loadNotifications();
+
+      } catch (error) {
+
+        console.error(
+          '[Notifications] Save failed:',
+          error
+        );
+
+
+        showToast(
+          error?.message ||
+          'Failed to save notification.',
+          'error'
+        );
+
+      } finally {
+
+        isSaving = false;
+
+
+        if (saveButton) {
+
+          saveButton.disabled =
+            false;
+
+
+          saveButton.textContent =
+            saveButton.dataset.originalText ||
+            'Save';
+
+        }
+
+      }
+
+    }
+
+  </script>
+
+</body>
+</html>

@@ -1,0 +1,319 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Student Results & Evaluation - RankHub Admin</title>
+  <link rel="stylesheet" href="./admin.css">
+</head>
+<body>
+  <div class="admin-layout">
+    <main class="admin-main">
+      <header class="admin-header"></header>
+
+      <div class="admin-content">
+        <div class="page-toolbar">
+          <div class="page-toolbar-info">
+            <h1>Student Test Submissions & Analytics</h1>
+            <p>Review real student attempts, calculate ranks, accuracy analytics, and export performance reports.</p>
+          </div>
+          <div class="page-toolbar-actions">
+            <button type="button" class="btn btn-secondary" id="btn-export-results">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" x2="12" y1="15" y2="3"/></svg>
+              Export Results (CSV)
+            </button>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="filter-bar">
+            <div class="search-input-wrapper">
+              <span class="search-icon">🔍</span>
+              <input type="text" id="result-search" placeholder="Search by student name or email...">
+            </div>
+            <select id="filter-exam" class="filter-select">
+              <option value="">All Exams</option>
+            </select>
+          </div>
+
+          <div class="table-responsive">
+            <table class="data-table">
+              <thead>
+                <tr>
+                  <th>Student Info</th>
+                  <th>Test & Exam</th>
+                  <th>Final Score</th>
+                  <th>Accuracy</th>
+                  <th>Correct / Wrong</th>
+                  <th>Time Taken</th>
+                  <th>Submitted At</th>
+                  <th style="text-align: right;">Actions</th>
+                </tr>
+              </thead>
+              <tbody id="results-table-body">
+                <tr>
+                  <td colspan="8" class="loading-state">
+                    <div class="spinner"></div>
+                    <p>Loading student test submissions from Firestore...</p>
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+
+          <div class="pagination-wrapper" id="results-pagination"></div>
+        </div>
+      </div>
+    </main>
+  </div>
+
+  <!-- Detailed Scorecard Modal -->
+  <div class="modal-backdrop" id="scorecard-modal">
+    <div class="modal-container modal-md">
+      <div class="modal-header">
+        <h3 class="modal-title">Candidate Evaluation Scorecard</h3>
+        <button type="button" class="modal-close" id="btn-close-scorecard">✕</button>
+      </div>
+      <div class="modal-body" id="scorecard-modal-content">
+        <!-- Rendered dynamically -->
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" id="btn-dismiss-scorecard">Close</button>
+      </div>
+    </div>
+  </div>
+
+  <script type="module">
+    import { initAdminLayout } from './admin-sidebar.js';
+    import { getFirestoreExams, getFirestoreResults, deleteFirestoreResult } from './admin-db.js';
+    import { ICONS, formatDate, escapeHtml, showToast, showConfirmDialog, openModal, closeModal, paginateArray, renderPaginationControls, exportToCsv, debounce } from './admin.js';
+
+    let allExams = [];
+    let allResults = [];
+    let filteredResults = [];
+    let currentPage = 1;
+    const PAGE_SIZE = 10;
+
+    window.addEventListener('rankhub:bulk-delete-complete', () => loadResults());
+
+    document.addEventListener('DOMContentLoaded', () => {
+      initAdminLayout('results', 'Student Results');
+      initPage();
+      setupEvents();
+    });
+
+    async function initPage() {
+      allExams = await getFirestoreExams();
+      const fExam = document.getElementById('filter-exam');
+      fExam.innerHTML = '<option value="">All Exams</option>' + allExams.map(e => `<option value="${e.id}">${escapeHtml(e.name)}</option>`).join('');
+
+      await loadResults();
+    }
+
+    async function loadResults() {
+      const tbody = document.getElementById('results-table-body');
+      tbody.innerHTML = `
+        <tr>
+          <td colspan="8" class="loading-state">
+            <div class="spinner"></div>
+            <p>Loading student mock test submissions from Firestore...</p>
+          </td>
+        </tr>
+      `;
+      try {
+        allResults = await getFirestoreResults();
+        applyFilters();
+      } catch (e) {
+        console.error('Error loading results:', e);
+        showToast('Error loading results from Firestore', 'error');
+        tbody.innerHTML = `
+          <tr>
+            <td colspan="8" class="empty-state" style="color:var(--danger-text);">
+              <div class="empty-icon">${ICONS.alertCircle}</div>
+              <h4 class="empty-title">Failed to load results</h4>
+              <p class="empty-desc">Check browser console for Firebase connection details.</p>
+            </td>
+          </tr>
+        `;
+      }
+    }
+
+    function applyFilters() {
+      const q = (document.getElementById('result-search').value || '').toLowerCase().trim();
+      const examId = document.getElementById('filter-exam').value;
+
+      filteredResults = allResults.filter(r => {
+        const matchesQ = !q || 
+          (r.userName && r.userName.toLowerCase().includes(q)) || 
+          (r.userEmail && r.userEmail.toLowerCase().includes(q)) ||
+          (r.testTitle && r.testTitle.toLowerCase().includes(q));
+
+        return matchesQ && (!examId || r.examId === examId);
+      });
+
+      currentPage = 1;
+      renderTable();
+    }
+
+    function renderTable() {
+      const tbody = document.getElementById('results-table-body');
+      const paginated = paginateArray(filteredResults, currentPage, PAGE_SIZE);
+
+      if (paginated.data.length === 0) {
+        tbody.innerHTML = `
+          <tr>
+            <td colspan="8" class="empty-state">
+              <div class="empty-icon">${ICONS.results}</div>
+              <h4 class="empty-title">No Student Submissions</h4>
+              <p class="empty-desc">Completed mock test attempts from the user portal will appear here.</p>
+            </td>
+          </tr>
+        `;
+        renderPaginationControls('results-pagination', paginated, (p) => { currentPage = p; renderTable(); });
+        return;
+      }
+
+      tbody.innerHTML = paginated.data.map(r => {
+        const timeMin = Math.floor((r.timeTakenSeconds || 0) / 60);
+        return `
+          <tr>
+            <td>
+              <strong>${escapeHtml(r.userName || 'Student')}</strong>
+              <div style="font-size:12px; color:#64748b;">${escapeHtml(r.userEmail || '-')}</div>
+            </td>
+            <td>
+              <strong>${escapeHtml(r.testTitle || 'Mock Test')}</strong>
+              <div style="font-size:12px; color:#94a3b8;">${escapeHtml(r.examName || '-')}</div>
+            </td>
+            <td>
+              <strong style="color:#e11d48; font-size:15px;">${r.score || 0}</strong>
+              <span style="font-size:12px; color:#64748b;">/ ${r.totalMarks || 100}</span>
+              <div style="font-size:11px; color:#64748b;">(${(r.percentage || 0).toFixed(1)}%)</div>
+            </td>
+            <td>
+              <span class="badge ${(r.accuracy || 0) >= 75 ? 'badge-success' : 'badge-warning'}">
+                ${(r.accuracy || 0).toFixed(1)}% Acc
+              </span>
+            </td>
+            <td>
+              <span style="color:#10b981; font-weight:600;">+${r.correctCount || 0}</span> / 
+              <span style="color:#ef4444; font-weight:600;">-${r.wrongCount || 0}</span>
+            </td>
+            <td style="font-size:13px; color:#475569;">
+              ⏱️ ${timeMin}m
+            </td>
+            <td style="font-size:12px; color:#64748b;">
+              ${formatDate(r.submittedAt)}
+            </td>
+            <td style="text-align: right;">
+              <div class="action-buttons" style="justify-content: flex-end;">
+                <button type="button" class="action-btn btn-view-scorecard" data-id="${r.id}" title="View Scorecard">
+                  ${ICONS.eye}
+                </button>
+                <button type="button" class="action-btn delete btn-delete-res" data-id="${r.id}" title="Delete Record">
+                  ${ICONS.trash}
+                </button>
+              </div>
+            </td>
+          </tr>
+        `;
+      }).join('');
+
+      renderPaginationControls('results-pagination', paginated, (p) => {
+        currentPage = p;
+        renderTable();
+      });
+
+      attachRowEvents();
+    }
+
+    function attachRowEvents() {
+      document.querySelectorAll('.btn-view-scorecard').forEach(btn => {
+        btn.onclick = () => {
+          const id = btn.getAttribute('data-id');
+          const r = allResults.find(x => x.id === id);
+          if (r) {
+            const timeMin = Math.floor((r.timeTakenSeconds || 0) / 60);
+            const timeSec = (r.timeTakenSeconds || 0) % 60;
+            document.getElementById('scorecard-modal-content').innerHTML = `
+              <div style="text-align: center; margin-bottom: 20px; border-bottom: 1px solid #f1f5f9; padding-bottom: 16px;">
+                <h4 style="font-size:18px; font-weight:700; color:#0f172a; margin-bottom: 4px;">${escapeHtml(r.testTitle)}</h4>
+                <p style="font-size:13px; color:#64748b;">Candidate: <strong>${escapeHtml(r.userName)}</strong> (${escapeHtml(r.userEmail)})</p>
+              </div>
+
+              <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px; margin-bottom: 20px;">
+                <div style="background: #f8fafc; padding: 14px; border-radius: 8px; text-align: center;">
+                  <span style="font-size: 11px; color:#64748b; font-weight:600; text-transform: uppercase;">Total Score</span>
+                  <div style="font-size: 22px; font-weight: 800; color: #e11d48; margin-top: 4px;">${r.score || 0} / ${r.totalMarks || 100}</div>
+                </div>
+                <div style="background: #f8fafc; padding: 14px; border-radius: 8px; text-align: center;">
+                  <span style="font-size: 11px; color:#64748b; font-weight:600; text-transform: uppercase;">Accuracy</span>
+                  <div style="font-size: 22px; font-weight: 800; color: #10b981; margin-top: 4px;">${(r.accuracy || 0).toFixed(1)}%</div>
+                </div>
+                <div style="background: #f8fafc; padding: 14px; border-radius: 8px; text-align: center;">
+                  <span style="font-size: 11px; color:#64748b; font-weight:600; text-transform: uppercase;">Questions Breakdown</span>
+                  <div style="font-size: 14px; font-weight: 700; margin-top: 6px;">
+                    <span style="color:#10b981;">${r.correctCount || 0} Correct</span> • 
+                    <span style="color:#ef4444;">${r.wrongCount || 0} Wrong</span>
+                  </div>
+                </div>
+                <div style="background: #f8fafc; padding: 14px; border-radius: 8px; text-align: center;">
+                  <span style="font-size: 11px; color:#64748b; font-weight:600; text-transform: uppercase;">Time Taken</span>
+                  <div style="font-size: 18px; font-weight: 700; color: #0f172a; margin-top: 4px;">${timeMin}m ${timeSec}s</div>
+                </div>
+              </div>
+
+              <div style="font-size: 12px; color: #94a3b8; text-align: center;">
+                Submitted on ${formatDate(r.submittedAt)}
+              </div>
+            `;
+            openModal('scorecard-modal');
+          }
+        };
+      });
+
+      document.querySelectorAll('.btn-delete-res').forEach(btn => {
+        btn.onclick = () => {
+          const id = btn.getAttribute('data-id');
+          showConfirmDialog({
+            title: 'Delete Result Submission',
+            message: 'Are you sure you want to delete this test result record?',
+            confirmText: 'Delete Result',
+            isDanger: true,
+            onConfirm: async () => {
+              await deleteFirestoreResult(id);
+              showToast('Result record removed');
+              await loadResults();
+            }
+          });
+        };
+      });
+    }
+
+    function setupEvents() {
+      document.getElementById('result-search').oninput = debounce(applyFilters, 250);
+      document.getElementById('btn-close-scorecard').onclick = () => closeModal('scorecard-modal');
+      document.getElementById('btn-dismiss-scorecard').onclick = () => closeModal('scorecard-modal');
+
+      document.getElementById('btn-export-results').onclick = () => {
+        const exportData = filteredResults.map(r => ({
+          ID: r.id,
+          StudentName: r.userName || '',
+          StudentEmail: r.userEmail || '',
+          Exam: r.examName || '',
+          Test: r.testTitle || '',
+          Score: r.score || 0,
+          TotalMarks: r.totalMarks || 100,
+          Percentage: r.percentage || 0,
+          Accuracy: r.accuracy || 0,
+          Correct: r.correctCount || 0,
+          Wrong: r.wrongCount || 0,
+          TimeSeconds: r.timeTakenSeconds || 0,
+          SubmittedAt: r.submittedAt || ''
+        }));
+        exportToCsv(exportData, 'rankhub_student_results.csv');
+      };
+    }
+  </script>
+</body>
+</html>

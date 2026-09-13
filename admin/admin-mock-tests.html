@@ -1,0 +1,3369 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+  <title>Mock Tests - RankHub Admin</title>
+
+  <link rel="stylesheet" href="./admin.css">
+
+  <style>
+    /* =========================================================
+       RANKHUB — MOCK TESTS PAGE
+       Safe replacement
+       ========================================================= */
+
+    .mock-page-note {
+      margin-top: 6px;
+      font-size: 13px;
+      color: #64748b;
+    }
+
+    .mock-type-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 5px 9px;
+      border-radius: 7px;
+      background: #eff6ff;
+      color: #1d4ed8;
+      border: 1px solid #dbeafe;
+      font-size: 11px;
+      font-weight: 800;
+      text-transform: uppercase;
+      letter-spacing: .04em;
+    }
+
+    .mock-title-cell {
+      min-width: 220px;
+    }
+
+    .mock-title-main {
+      font-weight: 700;
+      color: #0f172a;
+      line-height: 1.4;
+    }
+
+    .mock-title-sub {
+      margin-top: 4px;
+      color: #64748b;
+      font-size: 12px;
+    }
+
+    .mock-number {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      min-width: 30px;
+      height: 28px;
+      padding: 0 8px;
+      border-radius: 7px;
+      background: #f8fafc;
+      border: 1px solid #e2e8f0;
+      color: #334155;
+      font-weight: 800;
+      font-size: 12px;
+    }
+
+    .mock-meta {
+      display: flex;
+      flex-direction: column;
+      gap: 3px;
+    }
+
+    .mock-meta strong {
+      color: #0f172a;
+      font-size: 13px;
+    }
+
+    .mock-meta span {
+      color: #64748b;
+      font-size: 12px;
+    }
+
+    .mock-stage-badge {
+      display: inline-flex;
+      align-items: center;
+      padding: 5px 9px;
+      border-radius: 7px;
+      background: #f8fafc;
+      color: #475569;
+      border: 1px solid #e2e8f0;
+      font-size: 11px;
+      font-weight: 800;
+    }
+
+    .full-length-info {
+      display: flex;
+      align-items: flex-start;
+      gap: 10px;
+      padding: 13px 14px;
+      margin-bottom: 18px;
+      border: 1px solid #dbeafe;
+      background: #f8fbff;
+      border-radius: 9px;
+      color: #334155;
+      font-size: 13px;
+      line-height: 1.5;
+    }
+
+    .full-length-info strong {
+      color: #1e40af;
+    }
+
+    .field-help {
+      margin-top: 5px;
+      font-size: 11.5px;
+      color: #64748b;
+      line-height: 1.45;
+    }
+
+    .required {
+      color: #dc2626;
+    }
+
+    .modal-section-title {
+      margin: 20px 0 12px;
+      padding-bottom: 8px;
+      border-bottom: 1px solid #e2e8f0;
+      font-size: 13px;
+      font-weight: 800;
+      color: #0f172a;
+      text-transform: uppercase;
+      letter-spacing: .04em;
+    }
+
+    .modal-section-title:first-child {
+      margin-top: 0;
+    }
+
+    /* =========================================================
+       QUESTION SYNC
+       ========================================================= */
+
+    .question-sync-box {
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      gap: 14px;
+      padding: 14px;
+      border: 1px solid #e2e8f0;
+      background: #f8fafc;
+      border-radius: 9px;
+    }
+
+    .question-sync-info {
+      flex: 1;
+      min-width: 0;
+    }
+
+    .question-sync-title {
+      font-size: 13px;
+      font-weight: 800;
+      color: #0f172a;
+      margin-bottom: 4px;
+    }
+
+    .question-sync-text {
+      font-size: 12px;
+      line-height: 1.5;
+      color: #64748b;
+    }
+
+    .question-count-badge {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      min-width: 42px;
+      height: 28px;
+      padding: 0 9px;
+      border-radius: 7px;
+      background: #ecfdf5;
+      color: #047857;
+      border: 1px solid #a7f3d0;
+      font-size: 12px;
+      font-weight: 800;
+      margin-top: 7px;
+    }
+
+    .btn-sync-questions {
+      flex-shrink: 0;
+      white-space: nowrap;
+    }
+
+    .sync-status {
+      margin-top: 8px;
+      font-size: 12px;
+      color: #64748b;
+    }
+
+    @media (max-width: 700px) {
+
+      .question-sync-box {
+        flex-direction: column;
+      }
+
+      .btn-sync-questions {
+        width: 100%;
+      }
+
+    }
+
+    @media (max-width: 900px) {
+
+      .page-toolbar {
+        gap: 14px;
+      }
+
+      .page-toolbar-actions {
+        flex-wrap: wrap;
+      }
+
+    }
+  </style>
+</head>
+
+<body>
+
+  <div class="admin-layout">
+
+    <main class="admin-main">
+
+      <header class="admin-header"></header>
+
+      <div class="admin-content">
+
+        <!-- =====================================================
+             PAGE HEADER
+             ===================================================== -->
+
+        <div class="page-toolbar">
+
+          <div class="page-toolbar-info">
+
+            <h1>Mock Tests</h1>
+
+            <p>
+              Manage full-length exam-style mock tests for every RankHub exam.
+            </p>
+
+            <div class="mock-page-note">
+              Each mock test belongs to one exam and contains the complete
+              question paper for that test.
+            </div>
+
+          </div>
+
+          <div class="page-toolbar-actions">
+
+            <button
+              type="button"
+              class="btn btn-primary"
+              id="btn-open-add-mock"
+            >
+
+              <svg
+                width="16"
+                height="16"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2.5"
+              >
+                <line x1="12" y1="5" x2="12" y2="19"></line>
+                <line x1="5" y1="12" x2="19" y2="12"></line>
+              </svg>
+
+              Create Mock Test
+
+            </button>
+
+          </div>
+
+        </div>
+
+
+        <!-- =====================================================
+             FILTERS
+             ===================================================== -->
+
+        <div class="card">
+
+          <div class="filter-bar">
+
+            <div class="search-input-wrapper">
+
+              <span class="search-icon">🔍</span>
+
+              <input
+                type="text"
+                id="mock-search"
+                placeholder="Search mock tests..."
+                autocomplete="off"
+              >
+
+            </div>
+
+
+            <select
+              id="filter-exam"
+              class="filter-select"
+            >
+
+              <option value="">
+                All Exams
+              </option>
+
+            </select>
+
+
+            <select
+              id="filter-status"
+              class="filter-select"
+            >
+
+              <option value="">
+                All Statuses
+              </option>
+
+              <option value="published">
+                Published
+              </option>
+
+              <option value="draft">
+                Draft
+              </option>
+
+            </select>
+
+          </div>
+
+
+          <!-- ===================================================
+               TABLE
+               =================================================== -->
+
+          <div class="table-responsive">
+
+            <table class="data-table">
+
+              <thead>
+
+                <tr>
+
+                  <th>Mock Test</th>
+
+                  <th>Exam</th>
+
+                  <th>Stage / Tier</th>
+
+                  <th>Type</th>
+
+                  <th>Questions</th>
+
+                  <th>Duration</th>
+
+                  <th>Marks</th>
+
+                  <th>Access</th>
+
+                  <th>Status</th>
+
+                  <th style="text-align:right;">
+                    Actions
+                  </th>
+
+                </tr>
+
+              </thead>
+
+
+              <tbody id="mocks-table-body">
+
+                <tr>
+
+                  <td
+                    colspan="10"
+                    class="loading-state"
+                  >
+
+                    <div class="spinner"></div>
+
+                    <p>
+                      Loading mock tests from Firestore...
+                    </p>
+
+                  </td>
+
+                </tr>
+
+              </tbody>
+
+            </table>
+
+          </div>
+
+        </div>
+
+      </div>
+
+    </main>
+
+  </div>
+
+
+  <!-- =========================================================
+       CREATE / EDIT MOCK TEST MODAL
+       ========================================================= -->
+
+  <div
+    class="modal-backdrop"
+    id="mock-modal"
+  >
+
+    <div class="modal-container modal-lg">
+
+      <div class="modal-header">
+
+        <h3
+          class="modal-title"
+          id="mock-modal-title"
+        >
+          Create Full-Length Mock Test
+        </h3>
+
+        <button
+          type="button"
+          class="modal-close"
+          id="btn-close-mock-modal"
+          aria-label="Close"
+        >
+          ✕
+        </button>
+
+      </div>
+
+
+      <form id="mock-form">
+
+        <div class="modal-body">
+
+          <input
+            type="hidden"
+            id="mock-id"
+          >
+
+
+          <!-- =================================================
+               INFORMATION
+               ================================================= -->
+
+          <div class="full-length-info">
+
+            <div>📋</div>
+
+            <div>
+
+              <strong>Full-Length Exam Mock</strong><br>
+
+              Create the mock test first, then assign its questions
+              from the RankHub Question Bank.
+
+            </div>
+
+          </div>
+
+
+          <!-- =================================================
+               BASIC INFORMATION
+               ================================================= -->
+
+          <div class="modal-section-title">
+            Exam & Test Information
+          </div>
+
+
+          <div class="form-row">
+
+            <div class="form-group">
+
+              <label class="form-label">
+                Exam <span class="required">*</span>
+              </label>
+
+              <select
+                id="mock-exam-id"
+                class="form-control"
+                required
+              >
+
+                <option value="">
+                  -- Select Exam --
+                </option>
+
+              </select>
+
+              <div class="field-help">
+                Select the exam for which this full-length mock is created.
+              </div>
+
+            </div>
+
+
+            <div class="form-group">
+
+              <label class="form-label">
+                Stage / Tier
+              </label>
+
+              <select
+                id="mock-stage-id"
+                class="form-control"
+              >
+
+                <option value="">
+                  No Stage / Tier
+                </option>
+
+              </select>
+
+              <div class="field-help">
+                Only stages saved for the selected exam are available.
+              </div>
+
+            </div>
+
+
+            <div class="form-group">
+
+              <label class="form-label">
+                Mock Test Number
+              </label>
+
+              <input
+                type="number"
+                id="mock-number"
+                class="form-control"
+                value="1"
+                min="1"
+                step="1"
+              >
+
+              <div class="field-help">
+                Example: Mock Test 1, Mock Test 2, Mock Test 3.
+              </div>
+
+            </div>
+
+          </div>
+
+
+          <div class="form-group">
+
+            <label class="form-label">
+              Mock Test ID <span class="required">*</span>
+            </label>
+
+            <input
+              type="text"
+              id="mock-code"
+              class="form-control"
+                placeholder="Generated from Mock Test Title"
+              required
+                readonly
+            >
+
+            <div class="field-help">
+              Enter a unique ID/code for this mock test.
+              Example: bihar-police-01
+            </div>
+
+          </div>
+
+
+          <div class="form-group">
+
+            <label class="form-label">
+              Mock Test Title <span class="required">*</span>
+            </label>
+
+            <input
+              type="text"
+              id="mock-title"
+              class="form-control"
+              placeholder="Example: Bihar Police Full Length Mock Test 1"
+              required
+            >
+
+          </div>
+
+
+          <!-- =================================================
+               EXAM PATTERN
+               ================================================= -->
+
+          <div class="modal-section-title">
+            Full-Length Exam Pattern
+          </div>
+
+
+          <div class="form-row">
+
+            <div class="form-group">
+
+              <label class="form-label">
+                Total Questions <span class="required">*</span>
+              </label>
+
+              <input
+                type="number"
+                id="mock-total-questions"
+                class="form-control"
+                value="100"
+                min="1"
+                required
+              >
+
+            </div>
+
+
+            <div class="form-group">
+
+              <label class="form-label">
+                Duration (Minutes) <span class="required">*</span>
+              </label>
+
+              <input
+                type="number"
+                id="mock-duration"
+                class="form-control"
+                value="60"
+                min="1"
+                required
+              >
+
+            </div>
+
+
+            <div class="form-group">
+
+              <label class="form-label">
+                Total Marks <span class="required">*</span>
+              </label>
+
+              <input
+                type="number"
+                id="mock-total-marks"
+                class="form-control"
+                value="200"
+                min="1"
+                required
+              >
+
+            </div>
+
+          </div>
+
+
+          <div class="form-row">
+
+            <div class="form-group">
+
+              <label class="form-label">
+                Passing Marks
+              </label>
+
+              <input
+                type="number"
+                id="mock-passing-marks"
+                class="form-control"
+                value="60"
+                min="0"
+              >
+
+            </div>
+
+
+            <div class="form-group">
+
+              <label class="form-label">
+                Negative Marking
+              </label>
+
+              <input
+                type="number"
+                step="0.25"
+                id="mock-negative"
+                class="form-control"
+                value="0.5"
+                min="0"
+              >
+
+            </div>
+
+
+            <div class="form-group">
+
+              <label class="form-label">
+                Access
+              </label>
+
+              <select
+                id="mock-is-premium"
+                class="form-control"
+              >
+
+                <option value="false">
+                  Free
+                </option>
+
+                <option value="true">
+                  Premium
+                </option>
+
+              </select>
+
+            </div>
+
+          </div>
+
+
+          <!-- =================================================
+               QUESTION LINKING
+               ================================================= -->
+
+          <div class="modal-section-title">
+            Question Assignment
+          </div>
+
+
+          <div class="question-sync-box">
+
+            <div class="question-sync-info">
+
+              <div class="question-sync-title">
+                Questions linked to this Mock Test
+              </div>
+
+              <div class="question-sync-text">
+                Questions imported from the Question Bank can be linked
+                using this Mock Test ID / Code.
+                The system will preserve existing question IDs.
+              </div>
+
+              <div
+                class="question-count-badge"
+                id="mock-question-count"
+              >
+                0 Questions
+              </div>
+
+              <div
+                class="sync-status"
+                id="mock-sync-status"
+              >
+                Save the Mock Test first if this is a new test.
+              </div>
+
+            </div>
+
+
+            <button
+              type="button"
+              class="btn btn-secondary btn-sync-questions"
+              id="btn-sync-questions"
+            >
+              Sync Questions
+            </button>
+
+          </div>
+
+
+          <!-- =================================================
+               STATUS
+               ================================================= -->
+
+          <div class="modal-section-title">
+            Publishing
+          </div>
+
+
+          <div class="form-row">
+
+            <div class="form-group">
+
+              <label class="form-label">
+                Status
+              </label>
+
+              <select
+                id="mock-status"
+                class="form-control"
+              >
+
+                <option value="published">
+                  Published
+                </option>
+
+                <option value="draft">
+                  Draft
+                </option>
+
+              </select>
+
+            </div>
+
+          </div>
+
+
+          <div class="form-group">
+
+            <label class="form-label">
+              Test Instructions
+            </label>
+
+            <textarea
+              id="mock-instructions"
+              class="form-control"
+              rows="4"
+              placeholder="Enter instructions shown before the exam..."
+            ></textarea>
+
+          </div>
+
+        </div>
+
+
+        <!-- =====================================================
+             FOOTER
+             ===================================================== -->
+
+        <div class="modal-footer">
+
+          <button
+            type="button"
+            class="btn btn-secondary"
+            id="btn-cancel-mock"
+          >
+            Cancel
+          </button>
+
+          <button
+            type="submit"
+            class="btn btn-primary"
+            id="btn-save-mock"
+          >
+            Save Mock Test
+          </button>
+
+        </div>
+
+      </form>
+
+    </div>
+
+  </div>
+
+
+  <!-- =========================================================
+       JAVASCRIPT
+       ========================================================= -->
+
+  <script type="module">
+
+    import {
+      initAdminLayout
+    } from './admin-sidebar.js';
+
+
+    import {
+      getFirestoreExams,
+      getFirestoreMockTests,
+      getFirestoreQuestions,
+      saveMockTest,
+      deleteFirestoreMockTest
+    } from './admin-db.js';
+
+    import { generateIdFromName } from './id-utils.js';
+
+
+    import {
+      ICONS,
+      escapeHtml,
+      showToast,
+      showConfirmDialog,
+      openModal,
+      closeModal,
+      debounce
+    } from './admin.js';
+
+
+    /* =========================================================
+       STATE
+       ========================================================= */
+
+    let allExams = [];
+
+    let allMockTests = [];
+
+    let filteredMockTests = [];
+
+    window.addEventListener('rankhub:bulk-delete-complete', () => loadMockTests());
+
+    let currentQuestionIds = [];
+
+
+    /* =========================================================
+       URL PARAMETER
+       ========================================================= */
+
+    const urlParams =
+      new URLSearchParams(
+        window.location.search
+      );
+
+
+    const preselectedExamId =
+      urlParams.get('examId');
+
+
+    /* =========================================================
+       INIT
+       ========================================================= */
+
+    document.addEventListener(
+      'DOMContentLoaded',
+      async () => {
+
+        initAdminLayout(
+          'mock-tests',
+          'Mock Tests'
+        );
+
+        setupEvents();
+
+        await initPage();
+
+      }
+    );
+
+
+    /* =========================================================
+       PAGE INITIALIZATION
+       ========================================================= */
+
+    async function initPage() {
+
+      try {
+
+        allExams =
+          await getFirestoreExams();
+
+
+        if (!Array.isArray(allExams)) {
+
+          allExams = [];
+
+        }
+
+
+        populateExamDropdowns();
+
+
+        await loadMockTests();
+
+
+      } catch (error) {
+
+        console.error(
+          'Mock Tests initialization error:',
+          error
+        );
+
+
+        showToast(
+          error?.message ||
+          'Unable to load mock tests.',
+          'error'
+        );
+
+      }
+
+    }
+
+
+    /* =========================================================
+       EXAM DROPDOWNS
+       ========================================================= */
+
+    function populateExamDropdowns() {
+
+      const filterExam =
+        document.getElementById(
+          'filter-exam'
+        );
+
+
+      const mockExam =
+        document.getElementById(
+          'mock-exam-id'
+        );
+
+
+      const safeExams =
+        Array.isArray(allExams)
+          ? allExams
+          : [];
+
+
+      filterExam.innerHTML =
+        '<option value="">All Exams</option>' +
+        safeExams
+          .map(
+            exam => {
+
+              const name =
+                exam.name ||
+                exam.title ||
+                'Unnamed Exam';
+
+
+              return `
+                <option value="${escapeHtml(
+                  String(exam.id || '')
+                )}">
+                  ${escapeHtml(name)}
+                </option>
+              `;
+
+            }
+          )
+          .join('');
+
+
+      mockExam.innerHTML =
+        '<option value="">-- Select Exam --</option>' +
+        safeExams
+          .map(
+            exam => {
+
+              const name =
+                exam.name ||
+                exam.title ||
+                'Unnamed Exam';
+
+
+              return `
+                <option value="${escapeHtml(
+                  String(exam.id || '')
+                )}">
+                  ${escapeHtml(name)}
+                </option>
+              `;
+
+            }
+          )
+          .join('');
+
+
+      if (preselectedExamId) {
+
+        const exists =
+          safeExams.some(
+            exam =>
+              String(exam.id) ===
+              String(preselectedExamId)
+          );
+
+
+        if (exists) {
+
+          mockExam.value =
+            preselectedExamId;
+
+        }
+
+      }
+
+      populateStageDropdown(
+        mockExam.value
+      );
+
+    }
+
+
+    /* =========================================================
+       STAGE NORMALIZATION
+       ========================================================= */
+
+    function normalizeExamStages(exam) {
+
+      let rawStages = [];
+
+      if (Array.isArray(exam?.stages)) {
+        rawStages = exam.stages;
+      } else if (exam?.stages) {
+        rawStages = [exam.stages];
+      } else if (exam?.stage ?? exam?.stageName) {
+        rawStages = [
+          exam.stage ??
+          exam.stageName
+        ];
+      }
+
+      const normalized = [];
+
+      rawStages.forEach(
+        (rawStage, index) => {
+
+          const stage =
+            typeof rawStage === 'string'
+              ? { name: rawStage }
+              : rawStage && typeof rawStage === 'object'
+                ? rawStage
+                : null;
+
+          if (!stage) {
+            return;
+          }
+
+          const status =
+            stage.status ??
+            (stage.active === false
+              ? 'inactive'
+              : 'active');
+
+          if (
+            String(status).toLowerCase() ===
+            'inactive'
+          ) {
+            return;
+          }
+
+          const name = String(
+            stage.name ??
+            stage.title ??
+            stage.stage ??
+            stage.stageName ??
+            stage.label ??
+            ''
+          ).trim();
+
+          if (!name) {
+            return;
+          }
+
+          normalized.push({
+            id: String(
+              stage.id ??
+              stage.stageId ??
+              stage.tierId ??
+              ''
+            ).trim(),
+            name,
+            code: String(
+              stage.code ??
+              ''
+            ).trim(),
+            order: stage.order ?? index
+          });
+
+        }
+      );
+
+      const legacyStage =
+        exam?.stageName ??
+        exam?.stage;
+
+      if (
+        !normalized.length &&
+        typeof legacyStage === 'string' &&
+        legacyStage.trim()
+      ) {
+        normalized.push({
+          id: String(
+            exam?.stageId ??
+            ''
+          ).trim(),
+          name: legacyStage.trim(),
+          code: '',
+          order: 0
+        });
+      }
+
+      return normalized.sort(
+        (left, right) =>
+          Number(left.order) -
+          Number(right.order)
+      );
+
+    }
+
+
+    function getExamStages(examId) {
+
+      const exam =
+        allExams.find(
+          item =>
+            String(item.id) ===
+            String(examId)
+        );
+
+      return exam
+        ? normalizeExamStages(exam)
+        : [];
+
+    }
+
+
+    function resolveMockStage(mock) {
+
+      const stages =
+        getExamStages(mock.examId);
+
+      const stageId = String(
+        mock.stageId ??
+        ''
+      ).trim();
+
+      const savedName = String(
+        mock.stageName ??
+        mock.stage ??
+        ''
+      ).trim();
+
+      const matched =
+        stages.find(
+          stage =>
+            (stageId && stage.id === stageId) ||
+            (savedName && stage.name === savedName) ||
+            (savedName && stage.code === savedName)
+        );
+
+      return {
+        stageId:
+          matched?.id ||
+          stageId ||
+          null,
+        stageName:
+          matched?.name ||
+          savedName ||
+          ''
+      };
+
+    }
+
+
+    function populateStageDropdown(
+      examId,
+      selectedStageId = '',
+      selectedStageName = ''
+    ) {
+
+      const select =
+        document.getElementById(
+          'mock-stage-id'
+        );
+
+      if (!select) {
+        return;
+      }
+
+      const stages =
+        getExamStages(examId);
+
+      select.innerHTML =
+        '<option value="">No Stage / Tier</option>' +
+        stages
+          .map(
+            stage => `
+              <option value="${escapeHtml(stage.id || stage.name)}">
+                ${escapeHtml(stage.name)}
+              </option>
+            `
+          )
+          .join('');
+
+      const selected =
+        stages.find(
+          stage =>
+            (selectedStageId && stage.id === String(selectedStageId)) ||
+            (selectedStageName && stage.name === String(selectedStageName))
+        );
+
+      select.value =
+        selected
+          ? selected.id || selected.name
+          : '';
+
+    }
+
+
+    /* =========================================================
+       LOAD MOCK TESTS
+       ========================================================= */
+
+    async function loadMockTests() {
+
+      const tbody =
+        document.getElementById(
+          'mocks-table-body'
+        );
+
+
+      tbody.innerHTML = `
+        <tr>
+          <td colspan="10" class="loading-state">
+            <div class="spinner"></div>
+            <p>Loading mock tests from Firestore...</p>
+          </td>
+        </tr>
+      `;
+
+
+      try {
+
+        const result =
+          await getFirestoreMockTests(null, preselectedExamId || null);
+
+
+        allMockTests =
+          Array.isArray(result)
+            ? result
+            : [];
+
+
+        /*
+         * Attach exam name safely.
+         */
+
+        allMockTests =
+          allMockTests.map(
+            mock => {
+
+              const exam =
+                allExams.find(
+                  e =>
+                    String(e.id) ===
+                    String(mock.examId)
+                );
+
+              const resolvedStage =
+                resolveMockStage(mock);
+
+
+              return {
+                ...mock,
+
+                questionIds:
+                  normalizeQuestionIds(
+                    mock.questionIds ||
+                    mock.question_ids ||
+                    mock.questionIDs
+                  ),
+
+                examName:
+                  mock.examName ||
+                  exam?.name ||
+                  exam?.title ||
+                  'Unknown Exam',
+
+                isPremium:
+                  mock.isPremium === true ||
+                  mock.isPremium === 'true' ||
+                  String(mock.access || '').toLowerCase() ===
+                    'premium',
+
+                resolvedStageId:
+                  resolvedStage.stageId,
+
+                resolvedStageName:
+                  resolvedStage.stageName
+
+              };
+
+            }
+          );
+
+
+        applyFilters();
+
+
+      } catch (error) {
+
+        console.error(
+          'Error loading mock tests:',
+          error
+        );
+
+
+        tbody.innerHTML = `
+          <tr>
+            <td colspan="10" class="empty-state">
+
+              <div class="empty-icon">
+                ${ICONS.alertCircle || '⚠️'}
+              </div>
+
+              <h4 class="empty-title">
+                Failed to load mock tests
+              </h4>
+
+              <p class="empty-desc">
+                ${escapeHtml(
+                  error?.message ||
+                  'Check Firebase configuration.'
+                )}
+              </p>
+
+            </td>
+          </tr>
+        `;
+
+      }
+
+    }
+
+
+    /* =========================================================
+       QUESTION ID NORMALIZER
+       ========================================================= */
+
+    function normalizeQuestionIds(value) {
+
+      if (!Array.isArray(value)) {
+
+        return [];
+
+      }
+
+
+      return [
+        ...new Set(
+          value
+            .map(
+              id =>
+                String(id ?? '').trim()
+            )
+            .filter(Boolean)
+        )
+      ];
+
+    }
+
+
+    /* =========================================================
+       FILTER
+       ========================================================= */
+
+    function applyFilters() {
+
+      const searchInput =
+        document.getElementById(
+          'mock-search'
+        );
+
+
+      const examFilter =
+        document.getElementById(
+          'filter-exam'
+        );
+
+
+      const statusFilter =
+        document.getElementById(
+          'filter-status'
+        );
+
+
+      const search =
+        (
+          searchInput?.value ||
+          ''
+        )
+          .toLowerCase()
+          .trim();
+
+
+      const examId =
+        examFilter?.value ||
+        '';
+
+
+      const status =
+        statusFilter?.value ||
+        '';
+
+
+      filteredMockTests =
+        (
+          Array.isArray(allMockTests)
+            ? allMockTests
+            : []
+        )
+          .filter(
+            mock => {
+
+              const title =
+                String(
+                  mock.title ||
+                  ''
+                )
+                  .toLowerCase();
+
+
+              const examName =
+                String(
+                  mock.examName ||
+                  ''
+                )
+                  .toLowerCase();
+
+
+              const matchesSearch =
+                !search ||
+                title.includes(search) ||
+                examName.includes(search);
+
+
+              const matchesExam =
+                !examId ||
+                String(mock.examId) ===
+                String(examId);
+
+
+              const matchesStatus =
+                !status ||
+                mock.status === status;
+
+
+              return (
+                matchesSearch &&
+                matchesExam &&
+                matchesStatus
+              );
+
+            }
+          );
+
+
+      renderTable();
+
+    }
+
+
+    /* =========================================================
+       TABLE RENDER
+       ========================================================= */
+
+    function renderTable() {
+
+      const tbody =
+        document.getElementById(
+          'mocks-table-body'
+        );
+
+
+      if (!filteredMockTests.length) {
+
+        tbody.innerHTML = `
+          <tr>
+
+            <td
+              colspan="10"
+              class="empty-state"
+            >
+
+              <div class="empty-icon">
+                ${ICONS.mock_tests || '📋'}
+              </div>
+
+              <h4 class="empty-title">
+                No Mock Tests Found
+              </h4>
+
+              <p class="empty-desc">
+                Create a full-length mock test
+                for an existing exam.
+              </p>
+
+            </td>
+
+          </tr>
+        `;
+
+        return;
+
+      }
+
+
+      tbody.innerHTML =
+        filteredMockTests
+          .map(
+            mock => {
+
+              const number =
+                mock.mockNumber ||
+                mock.testNumber ||
+                mock.number ||
+                '—';
+
+
+              const questionIds =
+                normalizeQuestionIds(
+                  mock.questionIds
+                );
+
+
+              const questions =
+                Number(
+                  mock.totalQuestions
+                ) ||
+                questionIds.length ||
+                0;
+
+
+              const linkedQuestions =
+                questionIds.length;
+
+
+              const duration =
+                Number(
+                  mock.duration
+                ) || 0;
+
+
+              const marks =
+                Number(
+                  mock.totalMarks
+                ) || 0;
+
+
+              const negative =
+                Number(
+                  mock.negativeMarking
+                ) || 0;
+
+
+              const isPremium =
+                mock.isPremium === true ||
+                mock.isPremium === 'true';
+
+
+              const isPublished =
+                mock.status ===
+                'published';
+
+
+              const questionText =
+                linkedQuestions > 0
+                  ? `${linkedQuestions} linked`
+                  : 'Not assigned';
+
+
+              return `
+
+                <tr>
+
+                  <!-- MOCK TITLE -->
+
+                  <td>
+
+                    <div class="mock-title-cell">
+
+                      <div class="mock-title-main">
+                        ${escapeHtml(
+                          mock.title ||
+                          `Mock Test ${number}`
+                        )}
+                      </div>
+
+                      <div class="mock-title-sub">
+                        ${escapeHtml(
+                          mock.code ||
+                          mock.id ||
+                          ''
+                        )}
+                      </div>
+
+                    </div>
+
+                  </td>
+
+
+                  <!-- EXAM -->
+
+                  <td>
+
+                    <strong>
+                      ${escapeHtml(
+                        mock.examName ||
+                        'Unknown Exam'
+                      )}
+                    </strong>
+
+                  </td>
+
+
+                  <!-- STAGE / TIER -->
+
+                  <td>
+
+                    ${mock.resolvedStageName
+                      ? `
+                        <span class="mock-stage-badge">
+                          ${escapeHtml(mock.resolvedStageName)}
+                        </span>
+                      `
+                      : '<span class="text-muted">None</span>'
+                    }
+
+                  </td>
+
+
+                  <!-- TYPE -->
+
+                  <td>
+
+                    <span class="mock-type-badge">
+                      FULL LENGTH
+                    </span>
+
+                  </td>
+
+
+                  <!-- QUESTIONS -->
+
+                  <td>
+
+                    <div class="mock-meta">
+
+                      <strong>
+                        ${questions} Questions
+                      </strong>
+
+                      <span>
+                        ${escapeHtml(questionText)}
+                      </span>
+
+                    </div>
+
+                  </td>
+
+
+                  <!-- DURATION -->
+
+                  <td>
+
+                    <div class="mock-meta">
+
+                      <strong>
+                        ${duration} min
+                      </strong>
+
+                      <span>
+                        Exam Timer
+                      </span>
+
+                    </div>
+
+                  </td>
+
+
+                  <!-- MARKS -->
+
+                  <td>
+
+                    <div class="mock-meta">
+
+                      <strong>
+                        ${marks}
+                      </strong>
+
+                      <span>
+                        −${negative} negative
+                      </span>
+
+                    </div>
+
+                  </td>
+
+
+                  <!-- ACCESS -->
+
+                  <td>
+
+                    <span
+                      class="badge ${
+                        isPremium
+                          ? 'badge-primary'
+                          : 'badge-success'
+                      }"
+                    >
+
+                      ${
+                        isPremium
+                          ? '★ Premium'
+                          : 'Free'
+                      }
+
+                    </span>
+
+                  </td>
+
+
+                  <!-- STATUS -->
+
+                  <td>
+
+                    <span
+                      class="badge ${
+                        isPublished
+                          ? 'badge-success'
+                          : 'badge-neutral'
+                      }"
+                    >
+
+                      ${
+                        isPublished
+                          ? 'Published'
+                          : 'Draft'
+                      }
+
+                    </span>
+
+                  </td>
+
+
+                  <!-- ACTIONS -->
+
+                  <td style="text-align:right;">
+
+                    <div
+                      class="action-buttons"
+                      style="justify-content:flex-end;"
+                    >
+
+                      <button
+                        type="button"
+                        class="action-btn btn-edit-mock"
+                        data-id="${escapeHtml(
+                          String(mock.id || '')
+                        )}"
+                        title="Edit Mock Test"
+                      >
+                        ${ICONS.edit}
+                      </button>
+
+
+                      <button
+                        type="button"
+                        class="action-btn delete btn-delete-mock"
+                        data-id="${escapeHtml(
+                          String(mock.id || '')
+                        )}"
+                        data-title="${escapeHtml(
+                          mock.title ||
+                          `Mock Test ${number}`
+                        )}"
+                        title="Delete Mock Test"
+                      >
+                        ${ICONS.trash}
+                      </button>
+
+                    </div>
+
+                  </td>
+
+                </tr>
+
+              `;
+
+            }
+          )
+          .join('');
+
+
+      attachRowEvents();
+
+    }
+
+
+    /* =========================================================
+       EDIT / DELETE EVENTS
+       ========================================================= */
+
+    function attachRowEvents() {
+
+      document
+        .querySelectorAll(
+          '.btn-edit-mock'
+        )
+        .forEach(
+          button => {
+
+            button.onclick =
+              () => {
+
+                const id =
+                  button.getAttribute(
+                    'data-id'
+                  );
+
+
+                const mock =
+                  allMockTests.find(
+                    item =>
+                      String(item.id) ===
+                      String(id)
+                  );
+
+
+                if (!mock) {
+
+                  showToast(
+                    'Mock test not found.',
+                    'error'
+                  );
+
+                  return;
+
+                }
+
+
+                fillMockForm(mock);
+
+
+                document.getElementById(
+                  'mock-modal-title'
+                ).textContent =
+                  'Edit Full-Length Mock Test';
+
+
+                openModal(
+                  'mock-modal'
+                );
+
+              };
+
+          }
+        );
+
+
+      document
+        .querySelectorAll(
+          '.btn-delete-mock'
+        )
+        .forEach(
+          button => {
+
+            button.onclick =
+              () => {
+
+                const id =
+                  button.getAttribute(
+                    'data-id'
+                  );
+
+
+                const title =
+                  button.getAttribute(
+                    'data-title'
+                  ) ||
+                  'this mock test';
+
+
+                showConfirmDialog({
+
+                  title:
+                    'Delete Mock Test',
+
+
+                  message:
+                    `Are you sure you want to permanently delete "${title}"?`,
+
+
+                  confirmText:
+                    'Delete Mock Test',
+
+
+                  isDanger:
+                    true,
+
+
+                  onConfirm:
+                    async () => {
+
+                      try {
+
+                        const mock =
+                          allMockTests.find(
+                            item =>
+                              String(item.id) ===
+                              String(id)
+                          );
+
+
+                        await deleteFirestoreMockTest(
+                          id,
+                          mock?.examId
+                        );
+
+
+                        showToast(
+                          'Mock test deleted successfully.'
+                        );
+
+
+                        await loadMockTests();
+
+
+                      } catch (error) {
+
+                        console.error(
+                          error
+                        );
+
+
+                        showToast(
+                          error?.message ||
+                          'Failed to delete mock test.',
+                          'error'
+                        );
+
+                      }
+
+                    }
+
+                });
+
+              };
+
+          }
+        );
+
+    }
+
+
+    /* =========================================================
+       FILL EDIT FORM
+       ========================================================= */
+
+    function fillMockForm(mock) {
+
+      currentQuestionIds =
+        normalizeQuestionIds(
+          mock.questionIds ||
+          mock.question_ids ||
+          mock.questionIDs
+        );
+
+
+      document.getElementById(
+        'mock-id'
+      ).value =
+        mock.id || '';
+
+
+      document.getElementById(
+        'mock-code'
+      ).value =
+        mock.code ||
+        mock.id ||
+        '';
+
+
+      document.getElementById(
+        'mock-code'
+      ).readOnly =
+        true;
+
+
+      document.getElementById(
+        'mock-exam-id'
+      ).value =
+        mock.examId || '';
+
+      const resolvedStage =
+        resolveMockStage(mock);
+
+      populateStageDropdown(
+        mock.examId || '',
+        resolvedStage.stageId,
+        resolvedStage.stageName
+      );
+
+
+      document.getElementById(
+        'mock-number'
+      ).value =
+        mock.mockNumber ||
+        mock.testNumber ||
+        mock.number ||
+        1;
+
+
+      document.getElementById(
+        'mock-title'
+      ).value =
+        mock.title || '';
+
+
+      document.getElementById(
+        'mock-total-questions'
+      ).value =
+        mock.totalQuestions ||
+        100;
+
+
+      document.getElementById(
+        'mock-duration'
+      ).value =
+        mock.duration ||
+        60;
+
+
+      document.getElementById(
+        'mock-total-marks'
+      ).value =
+        mock.totalMarks ||
+        200;
+
+
+      document.getElementById(
+        'mock-passing-marks'
+      ).value =
+        mock.passingMarks ??
+        60;
+
+
+      document.getElementById(
+        'mock-negative'
+      ).value =
+        mock.negativeMarking ??
+        0.5;
+
+
+      document.getElementById(
+        'mock-is-premium'
+      ).value =
+        mock.isPremium === true ||
+        String(mock.access || '').toLowerCase() === 'premium'
+          ? 'true'
+          : 'false';
+
+
+      document.getElementById(
+        'mock-status'
+      ).value =
+        mock.status ||
+        'draft';
+
+
+      document.getElementById(
+        'mock-instructions'
+      ).value =
+        mock.instructions ||
+        '';
+
+
+      updateQuestionCountUI();
+
+    }
+
+
+    /* =========================================================
+       RESET FORM
+       ========================================================= */
+
+    function resetMockForm() {
+
+      currentQuestionIds = [];
+
+
+      document.getElementById(
+        'mock-form'
+      ).reset();
+
+
+      document.getElementById(
+        'mock-id'
+      ).value =
+        '';
+
+
+      document.getElementById(
+        'mock-code'
+      ).value =
+        '';
+
+
+      document.getElementById(
+        'mock-code'
+      ).readOnly =
+        true;
+
+      populateStageDropdown('');
+
+
+      document.getElementById(
+        'mock-number'
+      ).value =
+        getNextMockNumber();
+
+
+      document.getElementById(
+        'mock-total-questions'
+      ).value =
+        100;
+
+
+      document.getElementById(
+        'mock-duration'
+      ).value =
+        60;
+
+
+      document.getElementById(
+        'mock-total-marks'
+      ).value =
+        200;
+
+
+      document.getElementById(
+        'mock-passing-marks'
+      ).value =
+        60;
+
+
+      document.getElementById(
+        'mock-negative'
+      ).value =
+        0.5;
+
+
+      document.getElementById(
+        'mock-is-premium'
+      ).value =
+        'false';
+
+
+      document.getElementById(
+        'mock-status'
+      ).value =
+        'published';
+
+
+      document.getElementById(
+        'mock-instructions'
+      ).value =
+        '';
+
+
+      if (preselectedExamId) {
+
+        document.getElementById(
+          'mock-exam-id'
+        ).value =
+          preselectedExamId;
+
+        populateStageDropdown(
+          preselectedExamId
+        );
+
+      }
+
+
+      updateQuestionCountUI();
+
+    }
+
+
+    /* =========================================================
+       NEXT MOCK NUMBER
+       ========================================================= */
+
+    function getNextMockNumber() {
+
+      const examId =
+        document.getElementById(
+          'mock-exam-id'
+        ).value;
+
+
+      if (!examId) {
+
+        return 1;
+
+      }
+
+
+      const numbers =
+        (
+          Array.isArray(allMockTests)
+            ? allMockTests
+            : []
+        )
+          .filter(
+            mock =>
+              String(mock.examId) ===
+              String(examId)
+          )
+          .map(
+            mock =>
+              Number(
+                mock.mockNumber ||
+                mock.testNumber ||
+                mock.number
+              )
+          )
+          .filter(
+            number =>
+              Number.isFinite(number) &&
+              number > 0
+          );
+
+
+      if (!numbers.length) {
+
+        return 1;
+
+      }
+
+
+      return Math.max(...numbers) + 1;
+
+    }
+
+
+    /* =========================================================
+       QUESTION COUNT UI
+       ========================================================= */
+
+    function updateQuestionCountUI() {
+
+      const countElement =
+        document.getElementById(
+          'mock-question-count'
+        );
+
+
+      const statusElement =
+        document.getElementById(
+          'mock-sync-status'
+        );
+
+
+      const count =
+        normalizeQuestionIds(
+          currentQuestionIds
+        ).length;
+
+
+      if (countElement) {
+
+        countElement.textContent =
+          `${count} Question${count === 1 ? '' : 's'}`;
+
+      }
+
+
+      if (statusElement) {
+
+        if (count > 0) {
+
+          statusElement.textContent =
+            `${count} question${count === 1 ? '' : 's'} linked to this Mock Test.`;
+
+        } else {
+
+          statusElement.textContent =
+            'No questions are currently linked to this Mock Test.';
+
+        }
+
+      }
+
+    }
+
+
+    /* =========================================================
+       SYNC QUESTIONS
+       ========================================================= */
+
+    async function syncQuestionsForCurrentMock() {
+
+      const examId =
+        document.getElementById(
+          'mock-exam-id'
+        ).value;
+
+
+      const mockId =
+        document.getElementById(
+          'mock-id'
+        ).value.trim();
+
+
+      const mockCode =
+        document.getElementById(
+          'mock-code'
+        ).value.trim();
+
+
+      if (!examId) {
+
+        showToast(
+          'Please select an exam first.',
+          'warning'
+        );
+
+        return;
+
+      }
+
+
+      /*
+       * A new mock must be saved first.
+       * This avoids assigning questions to an
+       * unsaved document.
+       */
+
+      if (!mockId && !mockCode) {
+
+        showToast(
+          'Please save the Mock Test first, then sync questions.',
+          'warning'
+        );
+
+        return;
+
+      }
+
+
+      const button =
+        document.getElementById(
+          'btn-sync-questions'
+        );
+
+
+      const status =
+        document.getElementById(
+          'mock-sync-status'
+        );
+
+
+      const originalText =
+        button.textContent;
+
+
+      try {
+
+        button.disabled =
+          true;
+
+
+        button.textContent =
+          'Syncing...';
+
+
+        if (status) {
+
+          status.textContent =
+            'Loading questions from Question Bank...';
+
+        }
+
+
+        /*
+         * Load all questions for the selected exam.
+         */
+
+        const questionsResult =
+          await getFirestoreQuestions({
+            examId
+          });
+
+
+        const questions =
+          Array.isArray(questionsResult)
+            ? questionsResult
+            : [];
+
+
+        const normalizedMockId =
+          String(
+            mockId ||
+            mockCode ||
+            ''
+          ).trim();
+
+
+        const normalizedMockCode =
+          String(
+            mockCode ||
+            mockId ||
+            ''
+          ).trim();
+
+
+        /*
+         * Find questions assigned to this Mock Test.
+         *
+         * Supports several field names so existing
+         * Question Bank data is not unnecessarily broken.
+         */
+
+        const matchedQuestions =
+          questions.filter(
+            question => {
+
+              const assignedMockIds = [
+
+                question.mockTestId,
+
+                question.mockId,
+
+                question.mock_test_id,
+
+                question.mock_testId,
+
+                question.mockTestCode,
+
+                question.mockCode
+
+              ]
+                .map(
+                  value =>
+                    String(
+                      value ??
+                      ''
+                    ).trim()
+                )
+                .filter(Boolean);
+
+
+              return (
+                assignedMockIds.includes(
+                  normalizedMockId
+                ) ||
+                assignedMockIds.includes(
+                  normalizedMockCode
+                )
+              );
+
+            }
+          );
+
+
+        const syncedIds =
+          matchedQuestions
+            .map(
+              question =>
+                question.id
+            )
+            .filter(Boolean);
+
+
+        currentQuestionIds =
+          normalizeQuestionIds(
+            syncedIds
+          );
+
+
+        updateQuestionCountUI();
+
+
+        /*
+         * If the Mock Test already exists,
+         * immediately save the synced IDs.
+         */
+
+        if (mockId) {
+
+          const existingMock =
+            allMockTests.find(
+              mock =>
+                String(mock.id) ===
+                String(mockId)
+            );
+
+
+          if (!existingMock) {
+
+            throw new Error(
+              'Existing Mock Test record could not be found.'
+            );
+
+          }
+
+
+          const updatedPayload = {
+
+            ...existingMock,
+
+            id:
+              existingMock.id,
+
+
+            code:
+              existingMock.code ||
+              mockCode,
+
+
+            examId:
+              existingMock.examId ||
+              examId,
+
+
+            questionIds:
+              currentQuestionIds
+
+          };
+
+
+          await saveMockTest(
+            updatedPayload
+          );
+
+
+          showToast(
+            currentQuestionIds.length
+              ? `${currentQuestionIds.length} questions synced successfully.`
+              : 'No questions found assigned to this Mock Test.',
+            currentQuestionIds.length
+              ? 'success'
+              : 'warning'
+          );
+
+
+          await loadMockTests();
+
+        } else {
+
+          if (currentQuestionIds.length) {
+
+            showToast(
+              `${currentQuestionIds.length} questions found. Save the Mock Test to store the assignment.`,
+              'success'
+            );
+
+          } else {
+
+            showToast(
+              'No questions found assigned to this Mock Test yet.',
+              'warning'
+            );
+
+          }
+
+        }
+
+
+      } catch (error) {
+
+        console.error(
+          'Question sync error:',
+          error
+        );
+
+
+        if (status) {
+
+          status.textContent =
+            'Question sync failed. Check the console for details.';
+
+        }
+
+
+        showToast(
+          error?.message ||
+          'Failed to sync questions.',
+          'error'
+        );
+
+
+      } finally {
+
+        button.disabled =
+          false;
+
+
+        button.textContent =
+          originalText;
+
+      }
+
+    }
+
+
+    /* =========================================================
+       BUILD PAYLOAD
+       ========================================================= */
+
+    function buildMockPayload() {
+
+      const examId =
+        document.getElementById(
+          'mock-exam-id'
+        ).value.trim();
+
+
+      const exam =
+        allExams.find(
+          item =>
+            String(item.id) ===
+            String(examId)
+        );
+
+
+      const mockId =
+        document.getElementById(
+          'mock-id'
+        ).value.trim();
+
+
+      const mockCode =
+        document.getElementById(
+          'mock-code'
+        ).value.trim();
+
+
+      const mockNumber =
+        Number(
+          document.getElementById(
+            'mock-number'
+          ).value
+        ) || 1;
+
+
+      const title =
+        document.getElementById(
+          'mock-title'
+        ).value.trim();
+
+
+      const totalQuestions =
+        Number(
+          document.getElementById(
+            'mock-total-questions'
+          ).value
+        );
+
+
+      const duration =
+        Number(
+          document.getElementById(
+            'mock-duration'
+          ).value
+        );
+
+
+      const totalMarks =
+        Number(
+          document.getElementById(
+            'mock-total-marks'
+          ).value
+        );
+
+
+      const passingMarks =
+        Number(
+          document.getElementById(
+            'mock-passing-marks'
+          ).value
+        ) || 0;
+
+
+      const negativeMarking =
+        Number(
+          document.getElementById(
+            'mock-negative'
+          ).value
+        ) || 0;
+
+
+      const isPremium =
+        document.getElementById(
+          'mock-is-premium'
+        ).value ===
+        'true';
+
+
+      const status =
+        document.getElementById(
+          'mock-status'
+        ).value;
+
+
+      const instructions =
+        document.getElementById(
+          'mock-instructions'
+        ).value.trim();
+
+      const stageSelect =
+        document.getElementById(
+          'mock-stage-id'
+        );
+
+      const selectedStage =
+        getExamStages(examId).find(
+          stage =>
+            (stage.id || stage.name) ===
+            stageSelect?.value
+        );
+
+
+      /*
+       * IMPORTANT:
+       * Always preserve questionIds.
+       */
+
+      const questionIds =
+        normalizeQuestionIds(
+          currentQuestionIds
+        );
+
+      const existingMock =
+        allMockTests.find(
+          item =>
+            String(item.id) ===
+            String(mockId)
+        );
+
+
+      return {
+
+        /*
+         * Existing document:
+         * preserve document ID.
+         *
+         * New document:
+         * backend can use code.
+         */
+
+        id:
+          mockId ||
+          null,
+
+
+        code:
+          mockCode,
+
+
+        examId:
+          exam.id,
+
+
+        examName:
+          exam.name ||
+          exam.title ||
+          '',
+
+        stageId:
+          selectedStage?.id ||
+          null,
+
+        stageName:
+          selectedStage?.name ||
+          null,
+
+        stage:
+          selectedStage?.name ||
+          null,
+
+        access:
+          isPremium
+            ? 'premium'
+            : 'free',
+
+        ...(existingMock?.testSeriesId
+          ? {
+              testSeriesId:
+                existingMock.testSeriesId
+            }
+          : {}),
+
+
+        mockNumber,
+
+
+        type:
+          'full-length',
+
+
+        testType:
+          'full-length',
+
+
+        isFullLength:
+          true,
+
+
+        title,
+
+
+        duration,
+
+
+        totalQuestions,
+
+
+        totalMarks,
+
+
+        passingMarks,
+
+
+        negativeMarking,
+
+
+        isPremium,
+
+
+        status,
+
+
+        instructions,
+
+
+        /*
+         * THIS IS THE IMPORTANT FIX.
+         */
+
+        questionIds
+
+      };
+
+    }
+
+
+    /* =========================================================
+       EVENTS
+       ========================================================= */
+
+    function setupEvents() {
+
+      /* =======================================================
+         SEARCH
+         ======================================================= */
+
+      document.getElementById(
+        'mock-search'
+      ).oninput =
+        debounce(
+          applyFilters,
+          250
+        );
+
+
+      /* =======================================================
+         FILTERS
+         ======================================================= */
+
+      document.getElementById(
+        'filter-exam'
+      ).onchange =
+        applyFilters;
+
+
+      document.getElementById(
+        'filter-status'
+      ).onchange =
+        applyFilters;
+
+
+      /* =======================================================
+         EXAM CHANGE
+         ======================================================= */
+
+      document.getElementById(
+        'mock-exam-id'
+      ).onchange =
+        () => {
+
+          const numberInput =
+            document.getElementById(
+              'mock-number'
+            );
+
+
+          const mockId =
+            document.getElementById(
+              'mock-id'
+            ).value;
+
+
+          const mockCode =
+            document.getElementById(
+              'mock-code'
+            );
+
+          populateStageDropdown(
+            document.getElementById(
+              'mock-exam-id'
+            ).value
+          );
+
+
+          if (!mockId) {
+
+            mockCode.readOnly =
+              true;
+
+
+            numberInput.value =
+              getNextMockNumber();
+
+
+            currentQuestionIds = [];
+
+
+            updateQuestionCountUI();
+
+          } else {
+
+            mockCode.readOnly =
+              true;
+
+          }
+
+        };
+
+      document.getElementById(
+        'mock-title'
+      ).addEventListener(
+        'input',
+        () => {
+          if (document.getElementById('mock-id').value) return;
+          document.getElementById('mock-code').value = generateIdFromName(
+            document.getElementById('mock-title').value
+          );
+        }
+      );
+
+
+      /* =======================================================
+         QUESTION COUNT
+         ======================================================= */
+
+      document.getElementById(
+        'mock-total-questions'
+      ).oninput =
+        () => {
+
+          /*
+           * Only update UI.
+           * Never automatically delete existing questionIds.
+           */
+
+          updateQuestionCountUI();
+
+        };
+
+
+      /* =======================================================
+         OPEN MODAL
+         ======================================================= */
+
+      document.getElementById(
+        'btn-open-add-mock'
+      ).onclick =
+        () => {
+
+          resetMockForm();
+
+
+          document.getElementById(
+            'mock-modal-title'
+          ).textContent =
+            'Create Full-Length Mock Test';
+
+
+          openModal(
+            'mock-modal'
+          );
+
+        };
+
+
+      /* =======================================================
+         CLOSE
+         ======================================================= */
+
+      document.getElementById(
+        'btn-close-mock-modal'
+      ).onclick =
+        () => {
+
+          closeModal(
+            'mock-modal'
+          );
+
+        };
+
+
+      document.getElementById(
+        'btn-cancel-mock'
+      ).onclick =
+        () => {
+
+          closeModal(
+            'mock-modal'
+          );
+
+        };
+
+
+      /* =======================================================
+         SYNC QUESTIONS
+         ======================================================= */
+
+      document.getElementById(
+        'btn-sync-questions'
+      ).onclick =
+        syncQuestionsForCurrentMock;
+
+
+      /* =======================================================
+         SAVE MOCK TEST
+         ======================================================= */
+
+      document.getElementById(
+        'mock-form'
+      ).onsubmit =
+        async event => {
+
+          event.preventDefault();
+
+
+          const saveButton =
+            document.getElementById(
+              'btn-save-mock'
+            );
+
+
+          try {
+
+            /* ===============================================
+               BASIC VALIDATION
+               =============================================== */
+
+            const examId =
+              document.getElementById(
+                'mock-exam-id'
+              ).value.trim();
+
+
+            if (!examId) {
+
+              showToast(
+                'Please select an exam.',
+                'warning'
+              );
+
+              return;
+
+            }
+
+
+            const exam =
+              allExams.find(
+                item =>
+                  String(item.id) ===
+                  String(examId)
+              );
+
+
+            if (!exam) {
+
+              showToast(
+                'Selected exam was not found.',
+                'error'
+              );
+
+              return;
+
+            }
+
+
+            const mockId =
+              document.getElementById(
+                'mock-id'
+              ).value.trim();
+
+
+            const title =
+              document.getElementById(
+                'mock-title'
+              ).value.trim();
+
+
+            const totalQuestions =
+              Number(
+                document.getElementById(
+                  'mock-total-questions'
+                ).value
+              );
+
+
+            const duration =
+              Number(
+                document.getElementById(
+                  'mock-duration'
+                ).value
+              );
+
+
+            const totalMarks =
+              Number(
+                document.getElementById(
+                  'mock-total-marks'
+                ).value
+              );
+
+
+            if (!title) {
+
+              showToast(
+                'Please enter mock test title.',
+                'warning'
+              );
+
+              return;
+
+            }
+
+            const generatedMockCode = mockId || generateIdFromName(title);
+
+            if (!generatedMockCode) {
+              showToast('Mock Test title is required to generate an ID.', 'warning');
+              return;
+            }
+
+            document.getElementById('mock-code').value = generatedMockCode;
+
+            if (!mockId && allMockTests.some(mock => mock.id === generatedMockCode)) {
+              showToast('An item with this generated ID already exists. Please use a different name.', 'error');
+              return;
+            }
+
+
+            if (
+              totalQuestions < 1 ||
+              duration < 1 ||
+              totalMarks < 1
+            ) {
+
+              showToast(
+                'Questions, duration and marks must be greater than zero.',
+                'warning'
+              );
+
+              return;
+
+            }
+
+
+            /* ===============================================
+               BUILD SAFE PAYLOAD
+               =============================================== */
+
+            const payload =
+              buildMockPayload();
+
+
+            /*
+             * Make absolutely sure questionIds is an array.
+             */
+
+            payload.questionIds =
+              normalizeQuestionIds(
+                payload.questionIds
+              );
+
+
+            console.log(
+              '[RANKHUB] Saving Mock Test:',
+              payload
+            );
+
+
+            /* ===============================================
+               SAVE
+               =============================================== */
+
+            saveButton.disabled =
+              true;
+
+
+            saveButton.textContent =
+              'Saving...';
+
+
+            await saveMockTest(
+              payload
+            );
+
+
+            /*
+             * After successful save:
+             * keep the current question IDs in memory.
+             */
+
+            currentQuestionIds =
+              normalizeQuestionIds(
+                payload.questionIds
+              );
+
+
+            closeModal(
+              'mock-modal'
+            );
+
+
+            showToast(
+              currentQuestionIds.length
+                ? `Mock test saved with ${currentQuestionIds.length} linked questions.`
+                : 'Full-length mock test saved successfully!'
+            );
+
+
+            await loadMockTests();
+
+
+          } catch (error) {
+
+            console.error(
+              'Save mock test error:',
+              error
+            );
+
+
+            showToast(
+              error?.message ||
+              'Failed to save mock test.',
+              'error'
+            );
+
+
+          } finally {
+
+            saveButton.disabled =
+              false;
+
+
+            saveButton.textContent =
+              'Save Mock Test';
+
+          }
+
+        };
+
+    }
+
+  </script>
+
+</body>
+</html>

@@ -1,0 +1,373 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Study Notes & PDFs - RankHub Admin</title>
+  <link rel="stylesheet" href="./admin.css">
+</head>
+<body>
+  <div class="admin-layout">
+    <main class="admin-main">
+      <header class="admin-header"></header>
+
+      <div class="admin-content">
+        <div class="page-toolbar">
+          <div class="page-toolbar-info">
+            <h1>Study Notes & E-Books</h1>
+            <p>Upload lecture notes, chapter summaries, formula sheets, and PDF resources.</p>
+          </div>
+          <div class="page-toolbar-actions">
+            <button type="button" class="btn btn-primary" id="btn-open-add-note">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+              Upload New Note
+            </button>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="filter-bar">
+            <div class="search-input-wrapper">
+              <span class="search-icon">🔍</span>
+              <input type="text" id="note-search" placeholder="Search notes by title or author...">
+            </div>
+            <select id="filter-exam" class="filter-select">
+              <option value="">All Exams</option>
+            </select>
+            <select id="filter-tier" class="filter-select">
+              <option value="">All Tiers (Free & Pro)</option>
+              <option value="free">Free Notes</option>
+              <option value="premium">Premium Pro Only</option>
+            </select>
+          </div>
+
+          <div class="table-responsive">
+            <table class="data-table">
+              <thead>
+                <tr>
+                  <th>Note Title & Subject</th>
+                  <th>Exam</th>
+                  <th>Tier</th>
+                  <th>PDF Resource</th>
+                  <th>Downloads</th>
+                  <th>Status</th>
+                  <th style="text-align: right;">Actions</th>
+                </tr>
+              </thead>
+              <tbody id="notes-table-body">
+                <tr>
+                  <td colspan="7" class="loading-state">
+                    <div class="spinner"></div>
+                    <p>Loading study materials from Firestore...</p>
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </main>
+  </div>
+
+  <!-- Add / Edit Note Modal -->
+  <div class="modal-backdrop" id="note-modal">
+    <div class="modal-container modal-md">
+      <div class="modal-header">
+        <h3 class="modal-title" id="note-modal-title">Upload Study Note</h3>
+        <button type="button" class="modal-close" id="btn-close-note-modal">✕</button>
+      </div>
+      <form id="note-form">
+        <div class="modal-body">
+          <input type="hidden" id="note-id">
+
+          <div class="form-row">
+            <div class="form-group">
+              <label class="form-label">Exam <span class="required">*</span></label>
+              <select id="note-exam-id" class="form-control" required>
+                <option value="">-- Select Exam --</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label class="form-label">Subject <span class="required">*</span></label>
+              <select id="note-subject-id" class="form-control" required>
+                <option value="">-- Select Subject --</option>
+              </select>
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label class="form-label">Note Title <span class="required">*</span></label>
+            <input type="text" id="note-title" class="form-control" placeholder="e.g. Complete Indian Polity Handwritten Revision Notes" required>
+          </div>
+
+          <div class="form-group">
+            <label class="form-label">PDF Link / Cloud Storage URL <span class="required">*</span></label>
+            <input type="url" id="note-pdf-url" class="form-control" placeholder="https://storage.googleapis.com/.../polity-notes.pdf" required>
+          </div>
+
+          <div class="form-row">
+            <div class="form-group">
+              <label class="form-label">Access Tier</label>
+              <select id="note-is-premium" class="form-control">
+                <option value="false">Free for all students</option>
+                <option value="true">Premium Pro Only</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label class="form-label">Author / Faculty</label>
+              <input type="text" id="note-author" class="form-control" value="RankHub Faculty">
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label class="form-label">Description / Topics Summary</label>
+            <textarea id="note-desc" class="form-control" rows="3" placeholder="Covers Articles 1 to 395, Constitutional Amendments, and Landmark Supreme Court Judgments..."></textarea>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" id="btn-cancel-note">Cancel</button>
+          <button type="submit" class="btn btn-primary" id="btn-save-note">Save Resource</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <script type="module">
+    import { initAdminLayout } from './admin-sidebar.js';
+    import { getFirestoreExams, getFirestoreSubjects, getFirestoreNotes, saveNote, deleteFirestoreNote } from './admin-db.js';
+    import { ICONS, formatDate, escapeHtml, showToast, showConfirmDialog, openModal, closeModal, debounce } from './admin.js';
+
+    let allExams = [];
+    let allSubjects = [];
+    let allNotes = [];
+    let filteredNotes = [];
+
+    window.addEventListener('rankhub:bulk-delete-complete', () => loadNotes());
+
+    document.addEventListener('DOMContentLoaded', () => {
+      initAdminLayout('notes', 'Study Notes & PDFs');
+      initPage();
+      setupEvents();
+    });
+
+    async function initPage() {
+      allExams = await getFirestoreExams();
+      allSubjects = await getFirestoreSubjects();
+      populateDropdowns();
+      await loadNotes();
+    }
+
+    function populateDropdowns() {
+      const fExam = document.getElementById('filter-exam');
+      fExam.innerHTML = '<option value="">All Exams</option>' + allExams.map(e => `<option value="${e.id}">${escapeHtml(e.name)}</option>`).join('');
+
+      const mExam = document.getElementById('note-exam-id');
+      mExam.innerHTML = '<option value="">-- Select Exam --</option>' + allExams.map(e => `<option value="${e.id}">${escapeHtml(e.name)}</option>`).join('');
+
+      updateModalSubjectDropdown();
+    }
+
+    function updateModalSubjectDropdown(selectedSubId = null) {
+      const examId = document.getElementById('note-exam-id').value;
+      const mSub = document.getElementById('note-subject-id');
+      const filtered = examId ? allSubjects.filter(s => s.examId === examId) : allSubjects;
+
+      mSub.innerHTML = '<option value="">-- Select Subject --</option>' + 
+        filtered.map(s => `<option value="${s.id}" ${selectedSubId === s.id ? 'selected' : ''}>${escapeHtml(s.name)}</option>`).join('');
+    }
+
+    async function loadNotes() {
+      const tbody = document.getElementById('notes-table-body');
+      tbody.innerHTML = `
+        <tr>
+          <td colspan="7" class="loading-state">
+            <div class="spinner"></div>
+            <p>Loading study notes from Firestore...</p>
+          </td>
+        </tr>
+      `;
+      try {
+        allNotes = await getFirestoreNotes();
+        applyFilters();
+      } catch (e) {
+        console.error('Error loading study notes:', e);
+        showToast('Error loading study notes from Firestore', 'error');
+        tbody.innerHTML = `
+          <tr>
+            <td colspan="7" class="empty-state" style="color:var(--danger-text);">
+              <div class="empty-icon">${ICONS.alertCircle}</div>
+              <h4 class="empty-title">Failed to load study notes</h4>
+              <p class="empty-desc">Check browser console for Firebase connection details.</p>
+            </td>
+          </tr>
+        `;
+      }
+    }
+
+    function applyFilters() {
+      const q = (document.getElementById('note-search').value || '').toLowerCase().trim();
+      const examId = document.getElementById('filter-exam').value;
+      const tier = document.getElementById('filter-tier').value;
+
+      filteredNotes = allNotes.filter(n => {
+        const matchesQ = !q || (n.title && n.title.toLowerCase().includes(q)) || (n.author && n.author.toLowerCase().includes(q));
+        const matchesExam = !examId || n.examId === examId;
+        const matchesTier = !tier || (tier === 'premium' ? n.isPremium : !n.isPremium);
+        return matchesQ && matchesExam && matchesTier;
+      });
+
+      renderTable();
+    }
+
+    function renderTable() {
+      const tbody = document.getElementById('notes-table-body');
+      if (filteredNotes.length === 0) {
+        tbody.innerHTML = `
+          <tr>
+            <td colspan="7" class="empty-state">
+              <div class="empty-icon">${ICONS.notes}</div>
+              <h4 class="empty-title">No Study Notes Found</h4>
+              <p class="empty-desc">Upload study handouts and PDF notes for students.</p>
+            </td>
+          </tr>
+        `;
+        return;
+      }
+
+      tbody.innerHTML = filteredNotes.map(n => `
+        <tr>
+          <td>
+            <strong>${escapeHtml(n.title)}</strong>
+            <div style="font-size:12px; color:#64748b;">By ${escapeHtml(n.author || 'RankHub')} • ${escapeHtml(n.subjectName || '-')}</div>
+          </td>
+          <td>
+            <span class="badge badge-info">${escapeHtml(n.examName || 'Exam')}</span>
+          </td>
+          <td>
+            <span class="badge ${n.isPremium ? 'badge-primary' : 'badge-success'}">
+              ${n.isPremium ? '★ Premium Pro' : 'Free'}
+            </span>
+          </td>
+          <td>
+            <a href="${escapeHtml(n.pdfUrl)}" target="_blank" rel="noopener noreferrer" style="color:#e11d48; text-decoration:none; font-weight:600; font-size:13px;">
+              📄 View PDF &rarr;
+            </a>
+          </td>
+          <td style="font-size:13px; color:#475569;">
+            📥 ${n.downloadsCount || 0}
+          </td>
+          <td>
+            <span class="badge ${n.status === 'active' ? 'badge-success' : 'badge-neutral'}">
+              ${n.status || 'active'}
+            </span>
+          </td>
+          <td style="text-align: right;">
+            <div class="action-buttons" style="justify-content: flex-end;">
+              <button type="button" class="action-btn btn-edit-note" data-id="${n.id}" title="Edit Note">
+                ${ICONS.edit}
+              </button>
+              <button type="button" class="action-btn delete btn-delete-note" data-id="${n.id}" data-title="${escapeHtml(n.title)}" title="Delete Note">
+                ${ICONS.trash}
+              </button>
+            </div>
+          </td>
+        </tr>
+      `).join('');
+
+      attachRowEvents();
+    }
+
+    function attachRowEvents() {
+      document.querySelectorAll('.btn-edit-note').forEach(btn => {
+        btn.onclick = () => {
+          const id = btn.getAttribute('data-id');
+          const n = allNotes.find(x => x.id === id);
+          if (n) {
+            document.getElementById('note-id').value = n.id;
+            document.getElementById('note-exam-id').value = n.examId || '';
+            updateModalSubjectDropdown(n.subjectId);
+            document.getElementById('note-title').value = n.title || '';
+            document.getElementById('note-pdf-url').value = n.pdfUrl || '';
+            document.getElementById('note-is-premium').value = n.isPremium ? 'true' : 'false';
+            document.getElementById('note-author').value = n.author || 'RankHub Faculty';
+            document.getElementById('note-desc').value = n.description || '';
+            document.getElementById('note-modal-title').textContent = 'Edit Study Note';
+            openModal('note-modal');
+          }
+        };
+      });
+
+      document.querySelectorAll('.btn-delete-note').forEach(btn => {
+        btn.onclick = () => {
+          const id = btn.getAttribute('data-id');
+          const title = btn.getAttribute('data-title');
+          showConfirmDialog({
+            title: 'Delete Study Note',
+            message: `Are you sure you want to delete "${title}"?`,
+            confirmText: 'Delete Note',
+            isDanger: true,
+            onConfirm: async () => {
+              await deleteFirestoreNote(id);
+              showToast('Note deleted');
+              await loadNotes();
+            }
+          });
+        };
+      });
+    }
+
+    function setupEvents() {
+      document.getElementById('note-search').oninput = debounce(applyFilters, 250);
+      document.getElementById('filter-exam').onchange = applyFilters;
+      document.getElementById('filter-tier').onchange = applyFilters;
+
+      document.getElementById('note-exam-id').onchange = () => updateModalSubjectDropdown();
+
+      document.getElementById('btn-open-add-note').onclick = () => {
+        document.getElementById('note-form').reset();
+        document.getElementById('note-id').value = '';
+        if (allExams.length > 0) {
+          document.getElementById('note-exam-id').value = allExams[0].id;
+          updateModalSubjectDropdown();
+        }
+        document.getElementById('note-modal-title').textContent = 'Upload New Study Note';
+        openModal('note-modal');
+      };
+
+      document.getElementById('btn-close-note-modal').onclick = () => closeModal('note-modal');
+      document.getElementById('btn-cancel-note').onclick = () => closeModal('note-modal');
+
+      document.getElementById('note-form').onsubmit = async (e) => {
+        e.preventDefault();
+        const examId = document.getElementById('note-exam-id').value;
+        const exam = allExams.find(x => x.id === examId);
+        const subjectId = document.getElementById('note-subject-id').value;
+        const sub = allSubjects.find(s => s.id === subjectId);
+
+        const payload = {
+          id: document.getElementById('note-id').value || null,
+          examId,
+          examName: exam ? exam.name : '',
+          subjectId,
+          subjectName: sub ? sub.name : '',
+          title: document.getElementById('note-title').value,
+          pdfUrl: document.getElementById('note-pdf-url').value,
+          isPremium: document.getElementById('note-is-premium').value === 'true',
+          author: document.getElementById('note-author').value,
+          description: document.getElementById('note-desc').value,
+          status: 'active'
+        };
+
+        try {
+          await saveNote(payload);
+          closeModal('note-modal');
+          showToast('Study note saved successfully!');
+          await loadNotes();
+        } catch (err) {
+          showToast(err.message || 'Failed to save note', 'error');
+        }
+      };
+    }
+  </script>
+</body>
+</html>

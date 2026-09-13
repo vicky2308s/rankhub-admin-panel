@@ -1,0 +1,416 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Topics Management - RankHub Admin</title>
+  <link rel="stylesheet" href="./admin.css">
+</head>
+<body>
+  <div class="admin-layout">
+    <main class="admin-main">
+      <header class="admin-header"></header>
+
+      <div class="admin-content">
+        <div class="page-toolbar">
+          <div class="page-toolbar-info">
+            <h1>Topics & Chapters</h1>
+            <p>Organize syllabus chapters under individual subjects (e.g., Percentage, Syllogism, Ancient History).</p>
+          </div>
+          <div class="page-toolbar-actions">
+            <button type="button" class="btn btn-primary" id="btn-open-add-topic">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+              Add New Topic
+            </button>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="filter-bar">
+            <div class="search-input-wrapper">
+              <span class="search-icon">🔍</span>
+              <input type="text" id="topic-search" placeholder="Search topic name...">
+            </div>
+            <select id="filter-exam" class="filter-select">
+              <option value="">All Exams</option>
+            </select>
+            <select id="filter-subject" class="filter-select">
+              <option value="">All Subjects</option>
+            </select>
+          </div>
+
+          <div class="table-responsive">
+            <table class="data-table">
+              <thead>
+                <tr>
+                  <th>Order</th>
+                  <th>Topic / Chapter Name</th>
+                  <th>Parent Subject</th>
+                  <th>Exam</th>
+                  <th>Status</th>
+                  <th style="text-align: right;">Actions</th>
+                </tr>
+              </thead>
+              <tbody id="topics-table-body">
+                <tr>
+                  <td colspan="6" class="loading-state">
+                    <div class="spinner"></div>
+                    <p>Loading topics from Firestore...</p>
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </main>
+  </div>
+
+  <!-- Add / Edit Topic Modal -->
+  <div class="modal-backdrop" id="topic-modal">
+    <div class="modal-container">
+      <div class="modal-header">
+        <h3 class="modal-title" id="topic-modal-title">Add Topic</h3>
+        <button type="button" class="modal-close" id="btn-close-topic-modal">✕</button>
+      </div>
+      <form id="topic-form">
+        <div class="modal-body">
+          <input type="hidden" id="topic-id">
+          <div class="form-row">
+            <div class="form-group">
+              <label class="form-label">Exam <span class="required">*</span></label>
+              <select id="topic-exam-id" class="form-control" required>
+                <option value="">-- Select Exam --</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label class="form-label">Subject <span class="required">*</span></label>
+              <select id="topic-subject-id" class="form-control" required>
+                <option value="">-- Select Subject --</option>
+              </select>
+            </div>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Topic / Chapter Name <span class="required">*</span></label>
+            <input type="text" id="topic-name" class="form-control" placeholder="e.g. Ratio and Proportion" required>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Topic ID <span class="required">*</span></label>
+            <input type="text" id="topic-code" class="form-control" placeholder="Generated from Topic Name" required readonly>
+          </div>
+          <div class="form-row">
+            <div class="form-group">
+              <label class="form-label">Display Order</label>
+              <input type="number" id="topic-order" class="form-control" value="1" min="1">
+            </div>
+            <div class="form-group">
+              <label class="form-label">Status</label>
+              <select id="topic-status" class="form-control">
+                <option value="active">Active</option>
+                <option value="inactive">Inactive</option>
+              </select>
+            </div>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Short Description / Subtopics</label>
+            <textarea id="topic-description" class="form-control" placeholder="Optional notes about subtopics covered..."></textarea>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" id="btn-cancel-topic">Cancel</button>
+          <button type="submit" class="btn btn-primary" id="btn-save-topic">Save Topic</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <script type="module">
+    import { initAdminLayout } from './admin-sidebar.js';
+    import { getFirestoreExams, getFirestoreSubjects, getFirestoreTopics, saveTopic, deleteFirestoreTopic } from './admin-db.js';
+    import { generateIdFromName } from './id-utils.js';
+    import { ICONS, formatDate, escapeHtml, showToast, showConfirmDialog, openModal, closeModal, debounce } from './admin.js';
+
+    let allExams = [];
+    let allSubjects = [];
+    let allTopics = [];
+    let filteredTopics = [];
+
+    window.addEventListener('rankhub:bulk-delete-complete', () => loadTopics());
+
+    const urlParams = new URLSearchParams(window.location.search);
+    const preselectedSubjectId = urlParams.get('subjectId');
+    const preselectedExamId = urlParams.get('examId');
+
+    document.addEventListener('DOMContentLoaded', () => {
+      initAdminLayout('topics', 'Topics & Syllabus');
+      initPage();
+      setupEvents();
+    });
+
+    async function initPage() {
+      allExams = await getFirestoreExams();
+      allSubjects = await getFirestoreSubjects();
+      populateDropdowns();
+      await loadTopics();
+    }
+
+    function populateDropdowns() {
+      // Filter Exam & Subject
+      const filterExam = document.getElementById('filter-exam');
+      filterExam.innerHTML = '<option value="">All Exams</option>' + 
+        allExams.map(e => `<option value="${e.id}">${escapeHtml(e.name)}</option>`).join('');
+
+      updateFilterSubjectDropdown();
+
+      // Modal Exam & Subject
+      const modalExam = document.getElementById('topic-exam-id');
+      modalExam.innerHTML = '<option value="">-- Select Exam --</option>' + 
+        allExams.map(e => `<option value="${e.id}">${escapeHtml(e.name)}</option>`).join('');
+
+      updateModalSubjectDropdown();
+    }
+
+    function updateFilterSubjectDropdown() {
+      const selectedExam = document.getElementById('filter-exam').value;
+      const filterSub = document.getElementById('filter-subject');
+      const filtered = selectedExam ? allSubjects.filter(s => s.examId === selectedExam) : allSubjects;
+
+      filterSub.innerHTML = '<option value="">All Subjects</option>' + 
+        filtered.map(s => `<option value="${s.id}" ${preselectedSubjectId === s.id ? 'selected' : ''}>${escapeHtml(s.name)}</option>`).join('');
+    }
+
+    function updateModalSubjectDropdown(selectedSubjectId = null) {
+      const modalExamId = document.getElementById('topic-exam-id').value;
+      const modalSub = document.getElementById('topic-subject-id');
+      const filtered = modalExamId ? allSubjects.filter(s => s.examId === modalExamId) : allSubjects;
+
+      modalSub.innerHTML = '<option value="">-- Select Subject --</option>' + 
+        filtered.map(s => `<option value="${s.id}" ${selectedSubjectId === s.id ? 'selected' : ''}>${escapeHtml(s.name)}</option>`).join('');
+    }
+
+    async function loadTopics() {
+      const tbody = document.getElementById('topics-table-body');
+      tbody.innerHTML = `
+        <tr>
+          <td colspan="6" class="loading-state">
+            <div class="spinner"></div>
+            <p>Loading real-time topics from Firestore...</p>
+          </td>
+        </tr>
+      `;
+      try {
+        const selectedExamId =
+          document.getElementById('filter-exam')?.value ||
+          allSubjects.find(subject => subject.id === preselectedSubjectId)?.examId ||
+          null;
+
+        allTopics = await getFirestoreTopics(
+          preselectedSubjectId || null,
+          selectedExamId || preselectedExamId || null
+        );
+        applyFilters();
+      } catch (e) {
+        console.error('Error loading topics:', e);
+        showToast('Error loading topics from Firestore', 'error');
+        tbody.innerHTML = `
+          <tr>
+            <td colspan="6" class="empty-state" style="color:var(--danger-text);">
+              <div class="empty-icon">${ICONS.alertCircle}</div>
+              <h4 class="empty-title">Failed to load topics</h4>
+              <p class="empty-desc">Check browser console for Firebase connection details.</p>
+            </td>
+          </tr>
+        `;
+      }
+    }
+
+    function applyFilters() {
+      const q = (document.getElementById('topic-search').value || '').toLowerCase().trim();
+      const examId = document.getElementById('filter-exam').value;
+      const subjectId = document.getElementById('filter-subject').value;
+
+      filteredTopics = allTopics.filter(t => {
+        const matchesQ = !q || (t.name && t.name.toLowerCase().includes(q));
+        const matchesExam = !examId || t.examId === examId;
+        const matchesSub = !subjectId || t.subjectId === subjectId;
+        return matchesQ && matchesExam && matchesSub;
+      });
+
+      renderTable();
+    }
+
+    function renderTable() {
+      const tbody = document.getElementById('topics-table-body');
+      if (filteredTopics.length === 0) {
+        tbody.innerHTML = `
+          <tr>
+            <td colspan="6" class="empty-state">
+              <div class="empty-icon">${ICONS.topics}</div>
+              <h4 class="empty-title">No Topics Found</h4>
+              <p class="empty-desc">Create syllabus chapters to assign questions and study notes.</p>
+            </td>
+          </tr>
+        `;
+        return;
+      }
+
+      tbody.innerHTML = filteredTopics.map(t => {
+        const exam = allExams.find(e => e.id === t.examId);
+        const sub = allSubjects.find(s => s.id === t.subjectId);
+        return `
+          <tr>
+            <td><span style="font-weight:700; color:#64748b;">#${t.order || 1}</span></td>
+            <td>
+              <strong>${escapeHtml(t.name)}</strong>
+              ${t.description ? `<div style="font-size:12px; color:#94a3b8;">${escapeHtml(t.description)}</div>` : ''}
+            </td>
+            <td><span class="badge badge-info">${escapeHtml(sub ? sub.name : (t.subjectName || '-'))}</span></td>
+            <td><span class="badge badge-neutral">${escapeHtml(exam ? exam.name : (t.examName || '-'))}</span></td>
+            <td>
+              <span class="badge ${t.status === 'active' ? 'badge-success' : 'badge-danger'}">
+                ${t.status === 'active' ? 'Active' : 'Inactive'}
+              </span>
+            </td>
+            <td style="text-align: right;">
+              <div class="action-buttons" style="justify-content: flex-end;">
+                <a href="./admin-questions.html?topicId=${t.id}" class="action-btn" title="View Questions">
+                  ${ICONS.questions}
+                </a>
+                <button type="button" class="action-btn btn-edit-topic" data-id="${t.id}" title="Edit Topic">
+                  ${ICONS.edit}
+                </button>
+                <button type="button" class="action-btn delete btn-delete-topic" data-id="${t.id}" data-name="${escapeHtml(t.name)}" title="Delete Topic">
+                  ${ICONS.trash}
+                </button>
+              </div>
+            </td>
+          </tr>
+        `;
+      }).join('');
+
+      attachRowEvents();
+    }
+
+    function attachRowEvents() {
+      document.querySelectorAll('.btn-edit-topic').forEach(btn => {
+        btn.onclick = () => {
+          const id = btn.getAttribute('data-id');
+          const topic = allTopics.find(t => t.id === id);
+          if (topic) {
+            document.getElementById('topic-id').value = topic.id;
+            document.getElementById('topic-exam-id').value = topic.examId || '';
+            updateModalSubjectDropdown(topic.subjectId);
+            document.getElementById('topic-name').value = topic.name || '';
+            document.getElementById('topic-code').value = topic.id || topic.code || '';
+            document.getElementById('topic-code').readOnly = true;
+            document.getElementById('topic-order').value = topic.order || 1;
+            document.getElementById('topic-status').value = topic.status || 'active';
+            document.getElementById('topic-description').value = topic.description || '';
+            document.getElementById('topic-modal-title').textContent = 'Edit Topic';
+            openModal('topic-modal');
+          }
+        };
+      });
+
+      document.querySelectorAll('.btn-delete-topic').forEach(btn => {
+        btn.onclick = () => {
+          const id = btn.getAttribute('data-id');
+          const name = btn.getAttribute('data-name');
+          const topic = allTopics.find(item => item.id === id);
+          showConfirmDialog({
+            title: 'Delete Topic',
+            message: `Are you sure you want to delete "${name}"?`,
+            confirmText: 'Delete Topic',
+            isDanger: true,
+            onConfirm: async () => {
+              await deleteFirestoreTopic(id, topic?.examId, topic?.subjectId);
+              showToast('Topic deleted');
+              await loadTopics();
+            }
+          });
+        };
+      });
+    }
+
+    function setupEvents() {
+      document.getElementById('topic-search').oninput = debounce(applyFilters, 250);
+      document.getElementById('filter-exam').onchange = () => {
+        updateFilterSubjectDropdown();
+        applyFilters();
+      };
+      document.getElementById('filter-subject').onchange = applyFilters;
+
+      document.getElementById('topic-exam-id').onchange = () => {
+        updateModalSubjectDropdown();
+      };
+
+      document.getElementById('btn-open-add-topic').onclick = () => {
+        document.getElementById('topic-form').reset();
+        document.getElementById('topic-id').value = '';
+        document.getElementById('topic-code').value = '';
+        document.getElementById('topic-code').readOnly = true;
+        if (allExams.length > 0) {
+          document.getElementById('topic-exam-id').value = allExams[0].id;
+          updateModalSubjectDropdown(preselectedSubjectId);
+        }
+        document.getElementById('topic-modal-title').textContent = 'Add New Syllabus Topic';
+        openModal('topic-modal');
+      };
+
+      document.getElementById('btn-close-topic-modal').onclick = () => closeModal('topic-modal');
+      document.getElementById('btn-cancel-topic').onclick = () => closeModal('topic-modal');
+
+      document.getElementById('topic-name').addEventListener('input', () => {
+        if (document.getElementById('topic-id').value) return;
+        document.getElementById('topic-code').value = generateIdFromName(
+          document.getElementById('topic-name').value
+        );
+      });
+
+      document.getElementById('topic-form').onsubmit = async (e) => {
+        e.preventDefault();
+        const examId = document.getElementById('topic-exam-id').value;
+        const subjectId = document.getElementById('topic-subject-id').value;
+        const exam = allExams.find(x => x.id === examId);
+        const sub = allSubjects.find(s => s.id === subjectId);
+        const existingId = document.getElementById('topic-id').value || '';
+        const topicId = existingId || generateIdFromName(
+          document.getElementById('topic-name').value
+        );
+
+        if (!topicId) {
+          showToast('Topic name is required to generate an ID.', 'error');
+          return;
+        }
+
+        if (!existingId && allTopics.some(topic => topic.examId === examId && topic.subjectId === subjectId && topic.id === topicId)) {
+          showToast('An item with this generated ID already exists. Please use a different name.', 'error');
+          return;
+        }
+
+        const payload = {
+          id: existingId || null,
+          examId,
+          examName: exam ? exam.name : '',
+          subjectId,
+          subjectName: sub ? sub.name : '',
+          name: document.getElementById('topic-name').value,
+          code: topicId,
+          order: document.getElementById('topic-order').value,
+          status: document.getElementById('topic-status').value,
+          description: document.getElementById('topic-description').value
+        };
+
+        try {
+          await saveTopic(payload);
+          closeModal('topic-modal');
+          showToast('Topic saved successfully!');
+          await loadTopics();
+        } catch (err) {
+          showToast(err.message || 'Failed to save topic', 'error');
+        }
+      };
+    }
+  </script>
+</body>
+</html>

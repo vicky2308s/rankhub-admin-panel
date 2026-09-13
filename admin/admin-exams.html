@@ -1,0 +1,3433 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Exams Management - RankHub Admin</title>
+  <link rel="stylesheet" href="./admin.css">
+
+  <style>
+    /* =========================================================
+       RANKHUB — EXAM STAGE / TIER UI
+       ========================================================= */
+
+    .stage-create-box {
+      margin-top: 10px;
+      padding: 14px;
+      background: #f8fafc;
+      border: 1px solid #e2e8f0;
+      border-radius: 12px;
+    }
+
+    .stage-create-row {
+      display: flex;
+      gap: 10px;
+      align-items: flex-end;
+    }
+
+    .stage-create-row .form-group {
+      flex: 1;
+      margin-bottom: 0;
+    }
+
+    .stage-add-btn {
+      height: 42px;
+      white-space: nowrap;
+    }
+
+    .stage-list {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin-top: 12px;
+    }
+
+    .stage-chip {
+      display: inline-flex;
+      align-items: center;
+      gap: 7px;
+      padding: 7px 11px;
+      border-radius: 999px;
+      background: #fff;
+      border: 1px solid #cbd5e1;
+      color: #334155;
+      font-size: 13px;
+      font-weight: 700;
+    }
+
+    .stage-chip-remove {
+      border: 0;
+      background: transparent;
+      color: #ef4444;
+      cursor: pointer;
+      font-size: 15px;
+      line-height: 1;
+      padding: 0;
+    }
+
+    .stage-chip-remove:hover {
+      color: #b91c1c;
+    }
+
+    .stage-help-text {
+      margin: 7px 0 0;
+      color: #64748b;
+      font-size: 12px;
+      line-height: 1.5;
+    }
+
+    .stage-table-text {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 5px;
+    }
+
+    .stage-table-chip {
+      display: inline-block;
+      padding: 4px 8px;
+      border-radius: 999px;
+      background: #eff6ff;
+      border: 1px solid #bfdbfe;
+      color: #1d4ed8;
+      font-size: 11px;
+      font-weight: 700;
+    }
+
+    .bulk-import-help {
+      margin: 0 0 16px;
+      color: #64748b;
+      font-size: 13px;
+      line-height: 1.5;
+    }
+
+    .bulk-import-file {
+      padding: 18px;
+      border: 1px dashed #94a3b8;
+      border-radius: 10px;
+      background: #f8fafc;
+      text-align: center;
+    }
+
+    .bulk-import-file input {
+      display: block;
+      width: 100%;
+      margin-top: 10px;
+    }
+
+    .bulk-import-file-name {
+      margin-top: 8px;
+      color: #475569;
+      font-size: 12px;
+    }
+
+    .bulk-import-actions {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin-bottom: 16px;
+    }
+
+    .bulk-import-preview {
+      max-height: 300px;
+      overflow: auto;
+      border: 1px solid #e2e8f0;
+      border-radius: 8px;
+    }
+
+    .bulk-import-preview table {
+      min-width: 720px;
+    }
+
+    .bulk-import-validation-valid {
+      color: #047857;
+      font-weight: 700;
+    }
+
+    .bulk-import-validation-invalid {
+      color: #b91c1c;
+      font-weight: 700;
+    }
+
+    .bulk-import-validation-warning {
+      color: #a16207;
+      font-weight: 700;
+    }
+
+    .bulk-import-summary {
+      display: grid;
+      grid-template-columns: repeat(6, minmax(90px, 1fr));
+      gap: 8px;
+      margin: 16px 0;
+    }
+
+    .bulk-import-summary-item {
+      padding: 10px;
+      border: 1px solid #e2e8f0;
+      border-radius: 8px;
+      background: #fff;
+      text-align: center;
+    }
+
+    .bulk-import-summary-item strong {
+      display: block;
+      color: #0f172a;
+      font-size: 18px;
+    }
+
+    .bulk-import-summary-item span {
+      color: #64748b;
+      font-size: 11px;
+    }
+
+    .bulk-import-no-upload {
+      margin-top: 14px;
+      padding: 10px 12px;
+      border: 1px solid #fde68a;
+      border-radius: 8px;
+      background: #fffbeb;
+      color: #92400e;
+      font-size: 12px;
+      font-weight: 700;
+    }
+
+    .bulk-import-confirm {
+      margin-top: 16px;
+      padding: 16px;
+      border: 1px solid #bfdbfe;
+      border-radius: 9px;
+      background: #eff6ff;
+      color: #1e3a8a;
+      line-height: 1.6;
+    }
+
+    .bulk-import-confirm-actions {
+      display: flex;
+      justify-content: flex-end;
+      gap: 8px;
+      margin-top: 12px;
+    }
+
+    .bulk-import-pagination {
+      display: flex;
+      justify-content: flex-end;
+      gap: 8px;
+      margin-top: 10px;
+    }
+
+    @media (max-width: 700px) {
+      .bulk-import-summary {
+        grid-template-columns: repeat(3, minmax(80px, 1fr));
+      }
+    }
+
+    .bulk-import-status {
+      margin-top: 12px;
+      color: #475569;
+      font-size: 12px;
+      white-space: pre-line;
+    }
+
+    .bulk-import-progress {
+      height: 8px;
+      margin-top: 8px;
+      overflow: hidden;
+      border-radius: 999px;
+      background: #e2e8f0;
+    }
+
+    .bulk-import-progress-bar {
+      width: 0;
+      height: 100%;
+      background: #2563eb;
+      transition: width .2s ease;
+    }
+
+    .bulk-import-result {
+      margin-top: 16px;
+      padding: 12px;
+      border: 1px solid #e2e8f0;
+      border-radius: 8px;
+      background: #f8fafc;
+      color: #475569;
+      font-size: 13px;
+      line-height: 1.6;
+    }
+
+    @media (max-width: 650px) {
+      .stage-create-row {
+        flex-direction: column;
+        align-items: stretch;
+      }
+
+      .stage-add-btn {
+        width: 100%;
+      }
+    }
+  </style>
+</head>
+
+<body>
+
+  <div class="admin-layout">
+
+    <main class="admin-main">
+
+      <header class="admin-header"></header>
+
+      <div class="admin-content">
+
+        <!-- =====================================================
+             PAGE TOOLBAR
+             ===================================================== -->
+
+        <div class="page-toolbar">
+
+          <div class="page-toolbar-info">
+            <h1>Competitive Exams</h1>
+            <p>Configure exam categories, syllabus portals, and target courses on RankHub.</p>
+          </div>
+
+          <div class="page-toolbar-actions">
+
+            <button
+              type="button"
+              class="btn btn-primary"
+              id="btn-open-add-exam"
+            >
+              <svg
+                width="16"
+                height="16"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2.5"
+              >
+                <line x1="12" y1="5" x2="12" y2="19"/>
+                <line x1="5" y1="12" x2="19" y2="12"/>
+              </svg>
+
+              Add New Exam
+            </button>
+
+            <button
+              type="button"
+              class="btn btn-secondary"
+              id="btn-open-bulk-import"
+            >
+              Bulk Import
+            </button>
+
+          </div>
+
+        </div>
+
+
+        <!-- =====================================================
+             EXAMS TABLE
+             ===================================================== -->
+
+        <div class="card">
+
+          <div class="filter-bar">
+
+            <div class="search-input-wrapper">
+
+              <span class="search-icon">🔍</span>
+
+              <input
+                type="text"
+                id="exam-search"
+                placeholder="Search by exam name or code (e.g. SSC, UPSC, IBPS)..."
+              >
+
+            </div>
+
+
+            <select id="filter-category" class="filter-select">
+
+              <option value="">All Categories</option>
+
+              <option value="Central Govt">
+                Central Govt
+              </option>
+
+              <option value="State PSC">
+                State PSC
+              </option>
+
+              <option value="Banking & Insurance">
+                Banking & Insurance
+              </option>
+
+              <option value="Railways">
+                Railways
+              </option>
+
+              <option value="Defence">
+                Defence
+              </option>
+
+              <option value="Teaching & UGC">
+                Teaching & UGC
+              </option>
+
+            </select>
+
+
+            <select id="filter-status" class="filter-select">
+
+              <option value="">
+                All Statuses
+              </option>
+
+              <option value="active">
+                Active
+              </option>
+
+              <option value="inactive">
+                Inactive
+              </option>
+
+            </select>
+
+          </div>
+
+
+          <div class="table-responsive">
+
+            <table class="data-table">
+
+              <thead>
+
+                <tr>
+
+                  <th>Order</th>
+
+                  <th>Exam Name & Code</th>
+
+                  <th>Category</th>
+
+                  <th>Stage / Tier</th>
+
+                  <th>Description</th>
+
+                  <th>Status</th>
+
+                  <th>Created Date</th>
+
+                  <th style="text-align: right;">
+                    Actions
+                  </th>
+
+                </tr>
+
+              </thead>
+
+
+              <tbody id="exams-table-body">
+
+                <tr>
+
+                  <td colspan="8" class="loading-state">
+
+                    <div class="spinner"></div>
+
+                    <p>
+                      Loading exams from Firestore...
+                    </p>
+
+                  </td>
+
+                </tr>
+
+              </tbody>
+
+            </table>
+
+          </div>
+
+        </div>
+
+      </div>
+
+    </main>
+
+  </div>
+
+
+  <!-- =========================================================
+       BULK IMPORT EXAMS MODAL
+       ========================================================= -->
+
+  <div
+    class="modal-backdrop"
+    id="bulk-import-modal"
+  >
+
+    <div class="modal-container modal-lg">
+
+      <div class="modal-header">
+
+        <h3 class="modal-title">
+          Bulk Import Exams
+        </h3>
+
+        <button
+          type="button"
+          class="modal-close"
+          id="btn-close-bulk-import"
+          aria-label="Close"
+        >
+          ✕
+        </button>
+
+      </div>
+
+      <div class="modal-body">
+
+        <p class="bulk-import-help">
+          Upload a CSV using the template. Stages are optional and use the pipe separator.
+        </p>
+
+        <div class="bulk-import-actions">
+
+          <button
+            type="button"
+            class="btn btn-secondary"
+            id="btn-download-exam-template"
+          >
+            Download CSV Template
+          </button>
+
+          <label class="form-label" for="bulk-duplicate-action">
+            Duplicate handling
+          </label>
+
+          <select
+            id="bulk-duplicate-action"
+            class="form-control"
+            style="max-width:220px;"
+          >
+            <option value="skip">Skip duplicates</option>
+            <option value="update">Update existing</option>
+            <option value="cancel">Cancel import</option>
+          </select>
+
+        </div>
+
+        <div class="bulk-import-file">
+
+          <label class="form-label" for="bulk-exam-file">
+            Choose CSV File
+          </label>
+
+          <input
+            type="file"
+            id="bulk-exam-file"
+            accept=".csv,text/csv"
+          >
+
+          <div
+            class="bulk-import-file-name"
+            id="bulk-exam-file-name"
+          >
+            No file selected.
+          </div>
+
+        </div>
+
+        <div
+          class="bulk-import-status"
+          id="bulk-import-status"
+        ></div>
+
+        <div class="bulk-import-progress" id="bulk-import-progress" style="display:none;">
+          <div class="bulk-import-progress-bar" id="bulk-import-progress-bar"></div>
+        </div>
+
+        <div
+          class="bulk-import-summary"
+          id="bulk-import-summary"
+          style="display:none;"
+        ></div>
+
+        <div
+          class="bulk-import-preview"
+          id="bulk-import-preview"
+          style="display:none;"
+        >
+
+          <table class="data-table">
+
+            <thead>
+              <tr>
+                <th>#</th>
+                <th>Exam Name</th>
+                <th>Short Name</th>
+                <th>Category</th>
+                <th>Stages</th>
+                <th>Status</th>
+                <th>Validation</th>
+              </tr>
+            </thead>
+
+            <tbody id="bulk-import-preview-body"></tbody>
+
+          </table>
+
+        </div>
+
+        <div
+          class="bulk-import-pagination"
+          id="bulk-import-pagination"
+          style="display:none;"
+        >
+          <button type="button" class="btn btn-secondary" id="btn-bulk-prev-page">
+            Previous
+          </button>
+          <span class="bulk-import-status" id="bulk-import-page-status"></span>
+          <button type="button" class="btn btn-secondary" id="btn-bulk-next-page">
+            Next
+          </button>
+        </div>
+
+        <div class="bulk-import-no-upload" id="bulk-import-no-upload" style="display:none;">
+          No data has been uploaded yet.
+        </div>
+
+        <div
+          class="bulk-import-confirm"
+          id="bulk-import-confirm"
+          style="display:none;"
+        >
+          <div id="bulk-import-confirm-text"></div>
+          <div class="bulk-import-confirm-actions">
+            <button type="button" class="btn btn-secondary" id="btn-cancel-confirm-upload">
+              Cancel
+            </button>
+            <button type="button" class="btn btn-primary" id="btn-confirm-upload">
+              Yes, Upload Exams
+            </button>
+          </div>
+        </div>
+
+        <div
+          class="bulk-import-result"
+          id="bulk-import-result"
+          style="display:none;"
+        ></div>
+
+      </div>
+
+      <div class="modal-footer">
+
+        <button
+          type="button"
+          class="btn btn-secondary"
+          id="btn-cancel-bulk-import"
+        >
+          Cancel
+        </button>
+
+        <button
+          type="button"
+          class="btn btn-primary"
+          id="btn-import-exams"
+          disabled
+        >
+          Continue to Upload
+        </button>
+
+      </div>
+
+    </div>
+
+  </div>
+
+
+
+  <!-- =========================================================
+       ADD / EDIT EXAM MODAL
+       ========================================================= -->
+
+  <div
+    class="modal-backdrop"
+    id="exam-modal"
+  >
+
+    <div class="modal-container">
+
+
+      <!-- HEADER -->
+
+      <div class="modal-header">
+
+        <h3
+          class="modal-title"
+          id="exam-modal-title"
+        >
+          Add New Exam
+        </h3>
+
+        <button
+          type="button"
+          class="modal-close"
+          id="btn-close-exam-modal"
+        >
+          ✕
+        </button>
+
+      </div>
+
+
+      <!-- FORM -->
+
+      <form id="exam-form">
+
+        <div class="modal-body">
+
+          <input
+            type="hidden"
+            id="exam-id"
+          >
+
+
+          <!-- =================================================
+               EXAM NAME + CODE
+               ================================================= -->
+
+          <div class="form-row">
+
+            <div class="form-group">
+
+              <label class="form-label">
+                Exam Name
+                <span class="required">*</span>
+              </label>
+
+              <input
+                type="text"
+                id="exam-name"
+                class="form-control"
+                placeholder="e.g. SSC CGL 2026"
+                required
+              >
+
+            </div>
+
+
+            <div class="form-group">
+
+              <label class="form-label">
+                Exam ID
+                <span class="required">*</span>
+              </label>
+
+              <input
+                type="text"
+                id="exam-code"
+                class="form-control"
+                placeholder="e.g. bihar-police-constable"
+                required
+              >
+
+              <div class="field-help" id="exam-id-help">
+                Enter a unique permanent ID, e.g. bihar-police-constable
+              </div>
+
+            </div>
+
+          </div>
+
+
+
+          <!-- =================================================
+               CATEGORY + DISPLAY ORDER
+               ================================================= -->
+
+          <div class="form-row">
+
+            <div class="form-group">
+
+              <label class="form-label">
+                Category
+                <span class="required">*</span>
+              </label>
+
+              <select
+                id="exam-category"
+                class="form-control"
+                required
+              >
+
+                <option value="Central Govt">
+                  Central Govt
+                </option>
+
+                <option value="State PSC">
+                  State PSC
+                </option>
+
+                <option value="Banking & Insurance">
+                  Banking & Insurance
+                </option>
+
+                <option value="Railways">
+                  Railways
+                </option>
+
+                <option value="Defence">
+                  Defence
+                </option>
+
+                <option value="Teaching & UGC">
+                  Teaching & UGC
+                </option>
+
+                <option value="Engineering & Gate">
+                  Engineering & Gate
+                </option>
+
+              </select>
+
+            </div>
+
+
+            <div class="form-group">
+
+              <label class="form-label">
+                Display Order
+              </label>
+
+              <input
+                type="number"
+                id="exam-order"
+                class="form-control"
+                value="1"
+                min="1"
+              >
+
+            </div>
+
+          </div>
+
+
+
+          <!-- =================================================
+               STAGE / TIER
+               ================================================= -->
+
+          <div class="form-group">
+
+            <label class="form-label">
+              Stage / Tier
+            </label>
+
+            <select
+              id="exam-stage"
+              class="form-control"
+            >
+
+              <option value="">
+                None
+              </option>
+
+              <option value="__create__">
+                + Create Stage
+              </option>
+
+            </select>
+
+
+            <!-- CREATE STAGE BOX -->
+
+            <div
+              id="stage-create-box"
+              class="stage-create-box"
+              style="display:none;"
+            >
+
+              <div class="stage-create-row">
+
+                <div class="form-group">
+
+                  <label class="form-label">
+                    New Stage Name
+                  </label>
+
+                  <input
+                    type="text"
+                    id="new-stage-name"
+                    class="form-control"
+                    placeholder="e.g. Tier 1, Tier 2, Prelims, Mains"
+                    maxlength="100"
+                  >
+
+                </div>
+
+
+                <button
+                  type="button"
+                  class="btn btn-primary stage-add-btn"
+                  id="btn-add-stage"
+                >
+                  Add Stage
+                </button>
+
+              </div>
+
+
+              <p class="stage-help-text">
+                Enter the stage name and click Add Stage.
+                You can create multiple stages for the same exam.
+              </p>
+
+            </div>
+
+
+            <!-- CREATED STAGES -->
+
+            <div
+              id="stage-list"
+              class="stage-list"
+            ></div>
+
+          </div>
+
+
+
+          <!-- =================================================
+               STATUS
+               ================================================= -->
+
+          <div class="form-group">
+
+            <label class="form-label">
+              Status
+            </label>
+
+            <select
+              id="exam-status"
+              class="form-control"
+            >
+
+              <option value="active">
+                Active (Published on User Website)
+              </option>
+
+              <option value="inactive">
+                Inactive (Hidden)
+              </option>
+
+            </select>
+
+          </div>
+
+
+
+          <!-- =================================================
+               DESCRIPTION
+               ================================================= -->
+
+          <div class="form-group">
+
+            <label class="form-label">
+              Exam Overview / Description
+            </label>
+
+            <textarea
+              id="exam-description"
+              class="form-control"
+              placeholder="Brief details about syllabus, tier patterns, and eligibility..."
+            ></textarea>
+
+          </div>
+
+        </div>
+
+
+
+        <!-- ===================================================
+             FOOTER
+             =================================================== -->
+
+        <div
+          class="modal-footer"
+          style="
+            display:flex;
+            justify-content:flex-end;
+            gap:10px;
+            padding:15px;
+            border-top:1px solid #e2e8f0;
+          "
+        >
+
+          <button
+            type="button"
+            class="btn btn-secondary"
+            id="btn-cancel-exam"
+          >
+            Cancel
+          </button>
+
+
+          <button
+            type="submit"
+            class="btn btn-primary"
+            id="btn-save-exam"
+          >
+            Save Exam
+          </button>
+
+        </div>
+
+      </form>
+
+    </div>
+
+  </div>
+
+
+
+  <!-- =========================================================
+       JAVASCRIPT
+       ========================================================= -->
+
+  <script type="module">
+
+    import {
+      initAdminLayout
+    } from './admin-sidebar.js';
+
+
+    import {
+      getFirestoreExams,
+      saveExam,
+      deleteFirestoreExam
+    } from './admin-db.js';
+
+    import { generateIdFromName } from './id-utils.js';
+
+
+    import {
+      ICONS,
+      formatDate,
+      escapeHtml,
+      showToast,
+      showConfirmDialog,
+      openModal,
+      closeModal,
+      debounce
+    } from './admin.js';
+
+
+
+    /* =========================================================
+       STATE
+       ========================================================= */
+
+    let allExams = [];
+
+    let filteredExams = [];
+
+    let examsLoadPromise = null;
+
+    let examsPageInitialized = false;
+
+    /*
+     * IMPORTANT:
+     * Ye sirf current form ki temporary in-memory state hai.
+     * LocalStorage use nahi ho raha.
+     */
+    let currentStages = [];
+
+    window.addEventListener('rankhub:bulk-delete-complete', () => loadExams());
+
+    let bulkImportRows = [];
+
+    let bulkImportBusy = false;
+
+    let bulkImportPage = 1;
+
+    const BULK_IMPORT_PAGE_SIZE = 25;
+
+
+    const BULK_EXAM_COLUMNS = [
+      'id',
+      'name',
+      'shortName',
+      'category',
+      'description',
+      'icon',
+      'order',
+      'status',
+      'stages'
+    ];
+
+
+    const BULK_REQUIRED_COLUMNS = [
+      'id',
+      'name'
+    ];
+
+
+    function parseBulkCsv(text) {
+
+      const rows = [];
+      let row = [];
+      let value = '';
+      let quoted = false;
+
+      for (let index = 0; index < text.length; index += 1) {
+
+        const character = text[index];
+        const nextCharacter = text[index + 1];
+
+        if (character === '"') {
+
+          if (quoted && nextCharacter === '"') {
+            value += '"';
+            index += 1;
+          } else {
+            quoted = !quoted;
+          }
+
+          continue;
+
+        }
+
+        if (character === ',' && !quoted) {
+          row.push(value);
+          value = '';
+          continue;
+        }
+
+        if ((character === '\n' || character === '\r') && !quoted) {
+
+          if (character === '\r' && nextCharacter === '\n') {
+            index += 1;
+          }
+
+          row.push(value);
+          rows.push(row);
+          row = [];
+          value = '';
+          continue;
+
+        }
+
+        value += character;
+
+      }
+
+      if (quoted) {
+        throw new Error('CSV contains an unclosed quoted field.');
+      }
+
+      if (value || row.length) {
+        row.push(value);
+        rows.push(row);
+      }
+
+      return rows;
+
+    }
+
+
+    function splitBulkStages(value) {
+
+      return [
+        ...new Set(
+          String(value || '')
+            .split('|')
+            .map(stage => stage.trim())
+            .filter(Boolean)
+        )
+      ];
+
+    }
+
+
+    function normalizeBulkHeader(value) {
+
+      return String(value || '')
+        .replace(/^\uFEFF/, '')
+        .trim();
+
+    }
+
+
+    function createBulkExamRows(csvRows) {
+
+      if (!csvRows.length) {
+        throw new Error('CSV file is empty.');
+      }
+
+      const headers = csvRows[0].map(normalizeBulkHeader);
+      const missingColumns =
+        BULK_REQUIRED_COLUMNS.filter(
+          column => !headers.includes(column)
+        );
+
+      if (missingColumns.length) {
+        throw new Error(
+          `Missing required columns: ${missingColumns.join(', ')}`
+        );
+      }
+
+      const headerIndexes = new Map(
+        headers.map((header, index) => [header, index])
+      );
+
+      const unknownColumns = headers.filter(
+        header => header && !BULK_EXAM_COLUMNS.includes(header)
+      );
+
+      const rows = [];
+
+      csvRows.slice(1).forEach(
+        (cells, index) => {
+
+          const rowNumber = index + 2;
+          const hasValue = cells.some(
+            cell => String(cell || '').trim()
+          );
+
+          if (!hasValue) {
+            return;
+          }
+
+          const errors = [];
+          const warnings = [];
+
+          if (cells.length > headers.length) {
+            errors.push('Malformed CSV row: too many columns.');
+          }
+
+          const getValue = column =>
+            String(
+              cells[headerIndexes.get(column)] ??
+              ''
+            ).trim();
+
+          const suppliedId = getValue('id');
+          const name = getValue('name');
+          const rawStatus = getValue('status').toLowerCase();
+          const status = rawStatus || 'active';
+          const rawOrder = getValue('order');
+          const parsedOrder = Number(rawOrder);
+          const order =
+            rawOrder && Number.isFinite(parsedOrder) && parsedOrder > 0
+              ? parsedOrder
+              : index + 1;
+          const id = suppliedId;
+
+          if (!name) {
+            errors.push('Exam name is missing.');
+          }
+
+          if (id && !/^[a-z0-9]+(?:-[a-z0-9]+)*$/.test(id)) {
+            errors.push('Exam ID must use lowercase letters, numbers, and hyphens only.');
+          } else if (!id) {
+            errors.push('Exam ID is required; IDs are never generated automatically.');
+          }
+
+          if (rawStatus && !['active', 'inactive'].includes(status)) {
+            errors.push('Status must be active or inactive.');
+          }
+
+          if (!rawOrder || !Number.isFinite(parsedOrder) || parsedOrder <= 0) {
+            warnings.push(`Order defaulted to ${order}.`);
+          }
+
+          const rawStages = getValue('stages');
+          if (rawStages && /(^\||\|$|\|\s*\|)/.test(rawStages)) {
+            warnings.push('Empty stage values were ignored.');
+          }
+
+          rows.push({
+            rowNumber,
+            id,
+            suppliedId,
+            name,
+            shortName: getValue('shortName'),
+            category: getValue('category'),
+            description: getValue('description'),
+            icon: getValue('icon'),
+            order,
+            status,
+            stages: splitBulkStages(getValue('stages')),
+            errors,
+            warnings,
+            unknownColumns,
+            duplicate: false,
+            duplicateReason: '',
+            existingTarget: null,
+            duplicateInternal: false
+          });
+
+        }
+      );
+
+      const ids = new Map();
+      const names = new Map();
+
+      rows.forEach(row => {
+
+        const idKey = row.id.toLowerCase();
+        const nameKey = row.name.toLowerCase();
+
+        if (idKey) {
+          if (ids.has(idKey)) {
+            row.duplicate = true;
+            row.duplicateInternal = true;
+            row.duplicateReason =
+              `Duplicate exam ID in CSV (row ${ids.get(idKey)}).`;
+          } else {
+            ids.set(idKey, row.rowNumber);
+          }
+        }
+
+        if (nameKey) {
+          if (names.has(nameKey)) {
+            row.duplicate = true;
+            row.duplicateInternal = true;
+            row.duplicateReason =
+              row.duplicateReason ||
+              `Duplicate exam name in CSV (row ${names.get(nameKey)}).`;
+          } else {
+            names.set(nameKey, row.rowNumber);
+          }
+        }
+
+        const existingById = allExams.find(
+          exam => String(exam.id || '').toLowerCase() === idKey
+        );
+
+        const existingByName = allExams.find(
+          exam =>
+            String(exam.name || '').trim().toLowerCase() === nameKey &&
+            String(exam.id || '').toLowerCase() !== idKey
+        );
+
+        row.existingById = existingById || null;
+        row.existingByName = existingByName || null;
+
+        if (existingById || existingByName) {
+          row.duplicate = true;
+          row.duplicateReason = existingById
+            ? `Exam ID already exists (${existingById.id}).`
+            : `Exam name already belongs to ID ${existingByName.id}.`;
+          row.existingTarget = existingById || existingByName;
+        }
+
+      });
+
+      return rows;
+
+    }
+
+
+    function renderBulkImportPreview() {
+
+      const preview = document.getElementById('bulk-import-preview');
+      const body = document.getElementById('bulk-import-preview-body');
+      const importButton = document.getElementById('btn-import-exams');
+
+      const totalRows = bulkImportRows.length;
+      const errorRows = bulkImportRows.filter(
+        row => row.errors.length > 0
+      );
+      const warningRows = bulkImportRows.filter(
+        row => row.errors.length === 0 && row.warnings.length > 0
+      );
+      const duplicateRows = bulkImportRows.filter(
+        row => row.duplicate
+      );
+      const validRows = bulkImportRows.filter(
+        row => row.errors.length === 0
+      );
+      const duplicateAction =
+        document.getElementById('bulk-duplicate-action')?.value ||
+        'skip';
+      const readyRows = validRows.filter(
+        row =>
+          !row.duplicateInternal &&
+          (!row.duplicate || duplicateAction === 'update')
+      );
+      const pageCount = Math.max(
+        1,
+        Math.ceil(totalRows / BULK_IMPORT_PAGE_SIZE)
+      );
+
+      bulkImportPage = Math.min(
+        bulkImportPage,
+        pageCount
+      );
+
+      const pageStart =
+        (bulkImportPage - 1) * BULK_IMPORT_PAGE_SIZE;
+      const pageRows = bulkImportRows.slice(
+        pageStart,
+        pageStart + BULK_IMPORT_PAGE_SIZE
+      );
+
+      const summary = document.getElementById('bulk-import-summary');
+      summary.innerHTML = [
+        ['Total Rows', totalRows],
+        ['Valid', validRows.length],
+        ['Warnings', warningRows.length],
+        ['Errors', errorRows.length],
+        ['Duplicates', duplicateRows.length],
+        ['Ready to Upload', readyRows.length]
+      ].map(([label, count]) => `
+        <div class="bulk-import-summary-item">
+          <strong>${count}</strong>
+          <span>${label}</span>
+        </div>
+      `).join('');
+      summary.style.display = totalRows ? 'grid' : 'none';
+
+      body.innerHTML = pageRows.map(row => {
+
+        const valid = row.errors.length === 0;
+        const validation = !valid
+          ? row.errors.join(' ')
+          : row.duplicate
+            ? `Duplicate: ${row.duplicateReason}`
+            : row.warnings.length
+              ? `Warning: ${row.warnings.join(' ')}`
+              : 'Valid';
+        const validationClass = !valid
+          ? 'bulk-import-validation-invalid'
+          : row.duplicate || row.warnings.length
+            ? 'bulk-import-validation-warning'
+            : 'bulk-import-validation-valid';
+
+        return `
+          <tr>
+            <td>${row.rowNumber}</td>
+            <td>${escapeHtml(row.name || '-')}</td>
+            <td>${escapeHtml(row.shortName || '-')}</td>
+            <td>${escapeHtml(row.category || '-')}</td>
+            <td>${escapeHtml(row.stages.join(', ') || 'None')}</td>
+            <td>${escapeHtml(row.status || '-')}</td>
+            <td class="${validationClass}">
+              ${escapeHtml(validation)}
+            </td>
+          </tr>
+        `;
+
+      }).join('');
+
+      preview.style.display = bulkImportRows.length ? 'block' : 'none';
+      document.getElementById('bulk-import-pagination').style.display =
+        pageCount > 1 ? 'flex' : 'none';
+      document.getElementById('bulk-import-page-status').textContent =
+        `Page ${bulkImportPage} of ${pageCount}`;
+      document.getElementById('btn-bulk-prev-page').disabled =
+        bulkImportPage <= 1;
+      document.getElementById('btn-bulk-next-page').disabled =
+        bulkImportPage >= pageCount;
+      importButton.disabled = readyRows.length === 0;
+
+      document.getElementById('bulk-import-no-upload').style.display =
+        bulkImportRows.length ? 'block' : 'none';
+
+    }
+
+
+    function resetBulkImport() {
+
+      bulkImportRows = [];
+      bulkImportBusy = false;
+      bulkImportPage = 1;
+
+      document.getElementById('bulk-exam-file').value = '';
+      document.getElementById('bulk-exam-file-name').textContent =
+        'No file selected.';
+      document.getElementById('bulk-import-status').textContent = '';
+      document.getElementById('bulk-import-progress').style.display = 'none';
+      document.getElementById('bulk-import-progress-bar').style.width = '0%';
+      document.getElementById('bulk-import-preview').style.display = 'none';
+      document.getElementById('bulk-import-preview-body').innerHTML = '';
+      document.getElementById('bulk-import-result').style.display = 'none';
+      document.getElementById('bulk-import-summary').style.display = 'none';
+      document.getElementById('bulk-import-pagination').style.display = 'none';
+      document.getElementById('bulk-import-no-upload').style.display = 'none';
+      document.getElementById('bulk-import-confirm').style.display = 'none';
+      document.getElementById('btn-import-exams').disabled = true;
+      document.getElementById('btn-cancel-bulk-import').textContent = 'Cancel';
+      document.getElementById('btn-confirm-upload').disabled = false;
+
+    }
+
+
+    function downloadBulkTemplate() {
+
+      const csv = [
+        BULK_EXAM_COLUMNS.join(',')
+      ].join('\n');
+
+      const link = document.createElement('a');
+      link.href = URL.createObjectURL(
+        new Blob([csv], { type: 'text/csv;charset=utf-8' })
+      );
+      link.download = 'rankhub-exams-template.csv';
+      link.click();
+      URL.revokeObjectURL(link.href);
+
+    }
+
+
+    function downloadBulkErrorReport(errors) {
+
+      const report = errors
+        .map(error => `Row ${error.rowNumber} — ${error.reason}`)
+        .join('\n');
+
+      const link = document.createElement('a');
+      link.href = URL.createObjectURL(
+        new Blob([report], { type: 'text/plain;charset=utf-8' })
+      );
+      link.download = 'rankhub-exam-import-errors.txt';
+      link.click();
+      URL.revokeObjectURL(link.href);
+
+    }
+
+
+    async function handleBulkFileChange(event) {
+
+      const file = event.target.files?.[0];
+      const status = document.getElementById('bulk-import-status');
+
+      resetBulkImport();
+
+      if (!file) {
+        return;
+      }
+
+      document.getElementById('bulk-exam-file-name').textContent = file.name;
+
+      if (!file.name.toLowerCase().endsWith('.csv')) {
+        status.textContent = 'Please choose a CSV file.';
+        return;
+      }
+
+      try {
+        const csvRows = parseBulkCsv(await file.text());
+        bulkImportRows = createBulkExamRows(csvRows);
+
+        if (!bulkImportRows.length) {
+          throw new Error('CSV contains no exam rows.');
+        }
+
+        const unknownColumns = bulkImportRows[0].unknownColumns;
+        status.textContent = unknownColumns.length
+          ? `Ignored unsupported columns: ${unknownColumns.join(', ')}`
+          : `${bulkImportRows.length} row(s) ready for import.`;
+
+        renderBulkImportPreview();
+
+      } catch (error) {
+        bulkImportRows = [];
+        status.textContent = error.message || 'Unable to read CSV file.';
+        renderBulkImportPreview();
+      }
+
+    }
+
+
+    function requestBulkUploadConfirmation() {
+
+      if (bulkImportBusy) {
+        return;
+      }
+
+      const duplicateAction =
+        document.getElementById('bulk-duplicate-action').value;
+      const validRows = bulkImportRows.filter(
+        row => row.errors.length === 0
+      );
+      const readyRows = validRows.filter(
+        row =>
+          !row.duplicateInternal &&
+          (!row.duplicate || duplicateAction === 'update')
+      );
+
+      if (!readyRows.length) {
+        showToast('No valid exam rows are ready to upload.', 'warning');
+        return;
+      }
+
+      const skipped = validRows.filter(
+        row => row.duplicate && duplicateAction === 'skip'
+      ).length;
+      const errors = bulkImportRows.filter(
+        row => row.errors.length > 0
+      ).length;
+
+      document.getElementById('bulk-import-confirm-text').innerHTML = `
+        You are about to import <strong>${readyRows.length}</strong> exams.<br>
+        Valid records: ${validRows.length}<br>
+        Duplicates skipped: ${skipped}<br>
+        Errors excluded: ${errors}<br><br>
+        Do you want to continue?
+      `;
+      document.getElementById('bulk-import-confirm').style.display = 'block';
+      document.getElementById('bulk-import-no-upload').textContent =
+        'Preview complete. No data has been uploaded yet.';
+
+    }
+
+
+    async function uploadBulkExams() {
+
+      if (bulkImportBusy) {
+        return;
+      }
+
+      const duplicateAction =
+        document.getElementById('bulk-duplicate-action').value;
+      const validRows = bulkImportRows.filter(
+        row => row.errors.length === 0
+      );
+      const duplicateRows = validRows.filter(
+        row => row.duplicate
+      );
+
+      if (duplicateAction === 'cancel' && duplicateRows.length) {
+        document.getElementById('bulk-import-confirm').style.display = 'none';
+        showToast('Import cancelled because duplicate exams were found.', 'warning');
+        return;
+      }
+
+      bulkImportBusy = true;
+      const button = document.getElementById('btn-import-exams');
+      const status = document.getElementById('bulk-import-status');
+      const progress = document.getElementById('bulk-import-progress');
+      const progressBar = document.getElementById('bulk-import-progress-bar');
+      const errors = bulkImportRows
+        .filter(row => row.errors.length)
+        .map(row => ({
+          rowNumber: row.rowNumber,
+          reason: row.errors.join(' ')
+        }));
+      let imported = 0;
+      let skipped = 0;
+
+      button.disabled = true;
+      button.textContent = 'Importing...';
+      document.getElementById('btn-confirm-upload').disabled = true;
+      document.getElementById('btn-cancel-bulk-import').disabled = true;
+      progress.style.display = 'block';
+
+      try {
+
+        for (let index = 0; index < validRows.length; index += 1) {
+
+          const row = validRows[index];
+
+          status.textContent =
+            `Uploading Exams... ${index + 1} / ${validRows.length}`;
+          progressBar.style.width =
+            `${Math.round(((index + 1) / validRows.length) * 100)}%`;
+
+          if (
+            row.duplicate &&
+            (duplicateAction === 'skip' || row.duplicateInternal)
+          ) {
+            skipped += 1;
+            continue;
+          }
+
+          const existing = row.existingTarget;
+          const payload = {
+            ...(duplicateAction === 'update' && existing ? existing : {}),
+            id: duplicateAction === 'update' && existing
+              ? existing.id
+              : row.id,
+            code: duplicateAction === 'update' && existing
+              ? existing.id
+              : row.id,
+            name: row.name,
+            shortName: row.shortName,
+            category: row.category,
+            description: row.description,
+            icon: row.icon,
+            order: row.order,
+            status: row.status,
+            stages: row.stages,
+            stage: row.stages[0] || null
+          };
+
+          try {
+            await saveExam(payload);
+            imported += 1;
+          } catch (error) {
+            errors.push({
+              rowNumber: row.rowNumber,
+              reason: error.message || 'API save failed.'
+            });
+          }
+
+        }
+
+        const result = document.getElementById('bulk-import-result');
+        result.innerHTML = `
+          <strong>Import Completed</strong><br>
+          Total Rows: ${bulkImportRows.length}<br>
+          Imported: ${imported}<br>
+          Skipped: ${skipped}<br>
+          Failed: ${errors.length}<br>
+          Warnings: ${bulkImportRows.filter(row => row.warnings.length).length}
+          ${errors.length ? '<br><button type="button" class="btn btn-secondary" id="btn-download-bulk-errors">Download Error Report</button>' : ''}
+        `;
+        result.style.display = 'block';
+
+        if (errors.length) {
+          document.getElementById('btn-download-bulk-errors').onclick = () =>
+            downloadBulkErrorReport(errors);
+        }
+
+        await loadExams();
+        showToast('Bulk exam import completed.');
+        document.getElementById('bulk-import-confirm').style.display = 'none';
+        document.getElementById('bulk-import-no-upload').style.display = 'none';
+
+      } finally {
+        bulkImportBusy = false;
+        button.disabled = true;
+        button.textContent = 'Upload Completed';
+        document.getElementById('btn-cancel-bulk-import').disabled = false;
+        document.getElementById('btn-cancel-bulk-import').textContent = 'Close';
+        status.textContent = 'Import finished.';
+      }
+
+    }
+
+
+
+    /* =========================================================
+       INITIALIZE
+       ========================================================= */
+
+    function initializeExamsPage() {
+
+      if (examsPageInitialized) {
+        return;
+      }
+
+      examsPageInitialized = true;
+
+      initAdminLayout(
+        'exams',
+        'Exams Management'
+      );
+
+      loadExams();
+
+      setupEvents();
+
+      setupStageEvents();
+
+    }
+
+    if (document.readyState === 'loading') {
+      document.addEventListener(
+        'DOMContentLoaded',
+        initializeExamsPage,
+        { once: true }
+      );
+    } else {
+      initializeExamsPage();
+    }
+
+
+
+    /* =========================================================
+       LOAD EXAMS
+       ========================================================= */
+
+    async function loadExams() {
+
+      if (examsLoadPromise) {
+        return examsLoadPromise;
+      }
+
+      examsLoadPromise = loadExamsOnce();
+
+      try {
+        await examsLoadPromise;
+      } finally {
+        examsLoadPromise = null;
+      }
+
+    }
+
+
+    async function loadExamsOnce() {
+
+      const tbody =
+        document.getElementById(
+          'exams-table-body'
+        );
+
+
+      tbody.innerHTML = `
+
+        <tr>
+
+          <td
+            colspan="8"
+            class="loading-state"
+          >
+
+            <div class="spinner"></div>
+
+            <p>
+              Loading exams from Firestore...
+            </p>
+
+          </td>
+
+        </tr>
+
+      `;
+
+
+      try {
+
+        allExams =
+          await getFirestoreExams();
+
+
+        applyFilters();
+
+
+      } catch (e) {
+
+        console.error(
+          'Error loading exams:',
+          e
+        );
+
+
+        showToast(
+          'Error loading exams from Firestore',
+          'error'
+        );
+
+
+        tbody.innerHTML = `
+
+          <tr>
+
+            <td
+              colspan="8"
+              class="empty-state"
+              style="color:var(--danger-text);"
+            >
+
+              <div class="empty-icon">
+                ${ICONS.alertCircle}
+              </div>
+
+              <h4 class="empty-title">
+                Failed to load exams
+              </h4>
+
+              <p class="empty-desc">
+                Check browser console for Firebase connection details.
+              </p>
+
+            </td>
+
+          </tr>
+
+        `;
+
+      }
+
+    }
+
+
+
+    /* =========================================================
+       FILTERS
+       ========================================================= */
+
+    function applyFilters() {
+
+      const q =
+        (
+          document.getElementById(
+            'exam-search'
+          ).value || ''
+        )
+        .toLowerCase()
+        .trim();
+
+
+      const cat =
+        document.getElementById(
+          'filter-category'
+        ).value;
+
+
+      const stat =
+        document.getElementById(
+          'filter-status'
+        ).value;
+
+
+      filteredExams =
+        allExams.filter(
+          x => {
+
+            const matchesQuery =
+              !q ||
+              (
+                x.name &&
+                x.name
+                  .toLowerCase()
+                  .includes(q)
+              ) ||
+              (
+                x.code &&
+                x.code
+                  .toLowerCase()
+                  .includes(q)
+              );
+
+
+            const matchesCat =
+              !cat ||
+              x.category === cat;
+
+
+            const matchesStat =
+              !stat ||
+              x.status === stat;
+
+
+            return (
+              matchesQuery &&
+              matchesCat &&
+              matchesStat
+            );
+
+          }
+        );
+
+
+      renderTable();
+
+    }
+
+
+
+    /* =========================================================
+       NORMALIZE STAGES
+       ========================================================= */
+
+    function normalizeStages(exam) {
+
+      if (
+        Array.isArray(exam?.stages)
+      ) {
+
+        return exam.stages
+          .map(stage => {
+
+            if (
+              typeof stage === 'string'
+            ) {
+
+              return stage
+                .trim();
+
+            }
+
+
+            if (
+              stage &&
+              typeof stage.name === 'string'
+            ) {
+
+              return stage.name
+                .trim();
+
+            }
+
+
+            return '';
+
+          })
+          .filter(Boolean);
+
+      }
+
+
+      /*
+       * Backward compatibility:
+       * Agar purane exam me sirf `stage`
+       * field hai to usko bhi read karo.
+       */
+
+      if (
+        typeof exam?.stage === 'string' &&
+        exam.stage.trim()
+      ) {
+
+        return [
+          exam.stage.trim()
+        ];
+
+      }
+
+
+      return [];
+
+    }
+
+
+
+    /* =========================================================
+       RENDER TABLE
+       ========================================================= */
+
+    function renderTable() {
+
+      const tbody =
+        document.getElementById(
+          'exams-table-body'
+        );
+
+
+      if (
+        filteredExams.length === 0
+      ) {
+
+        tbody.innerHTML = `
+
+          <tr>
+
+            <td
+              colspan="8"
+              class="empty-state"
+            >
+
+              <div class="empty-icon">
+                ${ICONS.exams}
+              </div>
+
+              <h4 class="empty-title">
+                No Exams Found
+              </h4>
+
+              <p class="empty-desc">
+                Create your first exam category to organize subjects and tests.
+              </p>
+
+            </td>
+
+          </tr>
+
+        `;
+
+        return;
+
+      }
+
+
+
+      tbody.innerHTML =
+        filteredExams
+          .map(
+            x => {
+
+              const stages =
+                normalizeStages(x);
+
+
+              const stageHtml =
+                stages.length
+                  ? `
+                    <div class="stage-table-text">
+
+                      ${stages
+                        .map(
+                          stage => `
+                            <span class="stage-table-chip">
+                              ${escapeHtml(stage)}
+                            </span>
+                          `
+                        )
+                        .join('')
+                      }
+
+                    </div>
+                  `
+                  : `
+                    <span
+                      style="
+                        color:#94a3b8;
+                        font-size:12px;
+                      "
+                    >
+                      None
+                    </span>
+                  `;
+
+
+              return `
+
+                <tr>
+
+                  <td>
+
+                    <span
+                      style="
+                        font-weight:700;
+                        color:#64748b;
+                      "
+                    >
+                      #${x.order || 1}
+                    </span>
+
+                  </td>
+
+
+                  <td>
+
+                    <strong>
+                      ${escapeHtml(x.name)}
+                    </strong>
+
+                    <div
+                      style="
+                        font-size:12px;
+                        color:#e11d48;
+                        font-family:monospace;
+                      "
+                    >
+                      ${escapeHtml(x.code || '')}
+                    </div>
+
+                  </td>
+
+
+                  <td>
+
+                    <span class="badge badge-info">
+                      ${escapeHtml(
+                        x.category || 'General'
+                      )}
+                    </span>
+
+                  </td>
+
+
+                  <td>
+                    ${stageHtml}
+                  </td>
+
+
+                  <td
+                    style="
+                      max-width:280px;
+                      font-size:13px;
+                      color:#64748b;
+                    "
+                  >
+                    ${escapeHtml(
+                      x.description || '-'
+                    )}
+                  </td>
+
+
+                  <td>
+
+                    <span
+                      class="
+                        badge
+                        ${
+                          x.status === 'active'
+                            ? 'badge-success'
+                            : 'badge-danger'
+                        }
+                      "
+                    >
+
+                      ${
+                        x.status === 'active'
+                          ? 'Active'
+                          : 'Inactive'
+                      }
+
+                    </span>
+
+                  </td>
+
+
+                  <td
+                    style="
+                      font-size:12px;
+                      color:#64748b;
+                    "
+                  >
+                    ${formatDate(
+                      x.createdAt ||
+                      x.updatedAt
+                    )}
+                  </td>
+
+
+                  <td
+                    style="text-align:right;"
+                  >
+
+                    <div
+                      class="action-buttons"
+                      style="
+                        justify-content:flex-end;
+                      "
+                    >
+
+                      <a
+                        href="./admin-subjects.html?examId=${encodeURIComponent(x.id)}"
+                        class="action-btn"
+                        title="View Subjects"
+                      >
+                        ${ICONS.subjects}
+                      </a>
+
+
+                      <button
+                        type="button"
+                        class="action-btn btn-edit-exam"
+                        data-id="${escapeHtml(x.id)}"
+                        title="Edit Exam"
+                      >
+                        ${ICONS.edit}
+                      </button>
+
+
+                      <button
+                        type="button"
+                        class="
+                          action-btn
+                          delete
+                          btn-delete-exam
+                        "
+                        data-id="${escapeHtml(x.id)}"
+                        data-name="${escapeHtml(x.name)}"
+                        title="Delete Exam"
+                      >
+                        ${ICONS.trash}
+                      </button>
+
+                    </div>
+
+                  </td>
+
+                </tr>
+
+              `;
+
+            }
+          )
+          .join('');
+
+
+      attachRowEvents();
+
+    }
+
+
+
+    /* =========================================================
+       ROW EVENTS
+       ========================================================= */
+
+    function attachRowEvents() {
+
+
+      /* =========================
+         EDIT
+         ========================= */
+
+      document
+        .querySelectorAll(
+          '.btn-edit-exam'
+        )
+        .forEach(
+          btn => {
+
+            btn.onclick = () => {
+
+              const id =
+                btn.getAttribute(
+                  'data-id'
+                );
+
+
+              const exam =
+                allExams.find(
+                  x => x.id === id
+                );
+
+
+              if (!exam) {
+                return;
+              }
+
+
+              document.getElementById(
+                'exam-id'
+              ).value =
+                exam.id || '';
+
+
+              document.getElementById(
+                'exam-name'
+              ).value =
+                exam.name || '';
+
+
+              document.getElementById(
+                'exam-code'
+              ).value =
+                exam.id || exam.code || '';
+
+              document.getElementById(
+                'exam-code'
+              ).readOnly = true;
+
+              document.getElementById(
+                'exam-id-help'
+              ).textContent =
+                'Exam ID cannot be changed after creation.';
+
+
+              document.getElementById(
+                'exam-category'
+              ).value =
+                exam.category ||
+                'Central Govt';
+
+
+              document.getElementById(
+                'exam-order'
+              ).value =
+                exam.order || 1;
+
+
+              document.getElementById(
+                'exam-status'
+              ).value =
+                exam.status ||
+                'active';
+
+
+              document.getElementById(
+                'exam-description'
+              ).value =
+                exam.description || '';
+
+
+              /*
+               * Load saved stages
+               */
+
+              currentStages =
+                normalizeStages(exam);
+
+
+              renderStageList();
+
+              refreshStageDropdown();
+
+
+              /*
+               * Agar backward-compatible
+               * single stage hai to usko select karo.
+               */
+
+              const currentStage =
+                typeof exam.stage === 'string'
+                  ? exam.stage.trim()
+                  : '';
+
+
+              if (
+                currentStage &&
+                currentStages.includes(
+                  currentStage
+                )
+              ) {
+
+                document.getElementById(
+                  'exam-stage'
+                ).value =
+                  currentStage;
+
+              } else {
+
+                document.getElementById(
+                  'exam-stage'
+                ).value = '';
+
+              }
+
+
+              document.getElementById(
+                'stage-create-box'
+              ).style.display =
+                'none';
+
+
+              document.getElementById(
+                'new-stage-name'
+              ).value = '';
+
+
+              document.getElementById(
+                'exam-modal-title'
+              ).textContent =
+                'Edit Exam Details';
+
+
+              openModal(
+                'exam-modal'
+              );
+
+            };
+
+          }
+        );
+
+
+
+      /* =========================
+         DELETE
+         ========================= */
+
+      document
+        .querySelectorAll(
+          '.btn-delete-exam'
+        )
+        .forEach(
+          btn => {
+
+            btn.onclick = () => {
+
+              const id =
+                btn.getAttribute(
+                  'data-id'
+                );
+
+
+              const name =
+                btn.getAttribute(
+                  'data-name'
+                );
+
+
+              showConfirmDialog({
+
+                title:
+                  'Delete Exam',
+
+                message:
+                  `Delete this exam permanently?\n\nThis will permanently delete the exam and ALL related data including Subjects, Topics, Questions, Mock Tests, PYQs, Results, Attempts, Saved Exams and other exam-linked records.\n\nThis action cannot be undone.`,
+
+                confirmText:
+                  'Delete Everything',
+
+                isDanger:
+                  true,
+
+                onConfirm:
+                  async () => {
+
+                    try {
+                      const result = await deleteFirestoreExam(
+                        id
+                      );
+
+                      if (!result?.success) {
+                        throw new Error(result?.error || 'Exam deletion failed.');
+                      }
+
+                      showToast(
+                        result?.message || 'Exam and all related data deleted successfully.'
+                      );
+
+                      await loadExams();
+                    } catch (error) {
+                      console.error('Failed to delete exam:', error);
+                      showToast(
+                        error?.message || 'Failed to delete exam and related data.',
+                        'error'
+                      );
+                    }
+
+                  }
+
+              });
+
+            };
+
+          }
+        );
+
+    }
+
+
+
+    /* =========================================================
+       STAGE EVENTS
+       ========================================================= */
+
+    function setupStageEvents() {
+
+      const stageSelect =
+        document.getElementById(
+          'exam-stage'
+        );
+
+
+      const createBox =
+        document.getElementById(
+          'stage-create-box'
+        );
+
+
+      const newStageInput =
+        document.getElementById(
+          'new-stage-name'
+        );
+
+
+      const addStageBtn =
+        document.getElementById(
+          'btn-add-stage'
+        );
+
+
+
+      /* =========================
+         STAGE DROPDOWN CHANGE
+         ========================= */
+
+      stageSelect.onchange = () => {
+
+        if (
+          stageSelect.value ===
+          '__create__'
+        ) {
+
+          createBox.style.display =
+            'block';
+
+
+          setTimeout(
+            () => {
+              newStageInput.focus();
+            },
+            50
+          );
+
+        } else {
+
+          createBox.style.display =
+            'none';
+
+        }
+
+      };
+
+
+
+      /* =========================
+         ADD STAGE
+         ========================= */
+
+      addStageBtn.onclick =
+        addNewStage;
+
+
+
+      /* =========================
+         ENTER KEY
+         ========================= */
+
+      newStageInput.onkeydown =
+        event => {
+
+          if (
+            event.key === 'Enter'
+          ) {
+
+            event.preventDefault();
+
+            addNewStage();
+
+          }
+
+        };
+
+    }
+
+
+
+    /* =========================================================
+       ADD NEW STAGE
+       ========================================================= */
+
+    function addNewStage() {
+
+      const input =
+        document.getElementById(
+          'new-stage-name'
+        );
+
+
+      const name =
+        (input.value || '')
+          .trim();
+
+
+      if (!name) {
+
+        showToast(
+          'Please enter a stage name.',
+          'error'
+        );
+
+        input.focus();
+
+        return;
+
+      }
+
+
+
+      /*
+       * Duplicate prevent
+       */
+
+      const duplicate =
+        currentStages.some(
+          stage =>
+            stage.toLowerCase() ===
+            name.toLowerCase()
+        );
+
+
+      if (duplicate) {
+
+        showToast(
+          'This stage already exists for this exam.',
+          'error'
+        );
+
+        input.focus();
+
+        return;
+
+      }
+
+
+
+      /*
+       * Add to current form state.
+       * No LocalStorage.
+       */
+
+      currentStages.push(name);
+
+
+      renderStageList();
+
+      refreshStageDropdown();
+
+
+      /*
+       * Newly created stage becomes selected.
+       */
+
+      document.getElementById(
+        'exam-stage'
+      ).value = name;
+
+
+      document.getElementById(
+        'stage-create-box'
+      ).style.display =
+        'none';
+
+
+      input.value = '';
+
+
+      showToast(
+        `"${name}" stage added. Save the exam to permanently store it.`
+      );
+
+    }
+
+
+
+    /* =========================================================
+       REMOVE STAGE FROM FORM
+       ========================================================= */
+
+    function removeStage(stageName) {
+
+      currentStages =
+        currentStages.filter(
+          stage =>
+            stage !== stageName
+        );
+
+
+      refreshStageDropdown();
+
+      renderStageList();
+
+
+      const selectedStage =
+        document.getElementById(
+          'exam-stage'
+        ).value;
+
+
+      if (
+        selectedStage ===
+        stageName
+      ) {
+
+        document.getElementById(
+          'exam-stage'
+        ).value = '';
+
+      }
+
+    }
+
+
+
+    /* =========================================================
+       REFRESH STAGE DROPDOWN
+       ========================================================= */
+
+    function refreshStageDropdown() {
+
+      const select =
+        document.getElementById(
+          'exam-stage'
+        );
+
+
+      const currentValue =
+        select.value;
+
+
+      select.innerHTML = `
+
+        <option value="">
+          None
+        </option>
+
+      `;
+
+
+      currentStages.forEach(
+        stage => {
+
+          const option =
+            document.createElement(
+              'option'
+            );
+
+
+          option.value =
+            stage;
+
+
+          option.textContent =
+            stage;
+
+
+          select.appendChild(
+            option
+          );
+
+        }
+      );
+
+
+      const createOption =
+        document.createElement(
+          'option'
+        );
+
+
+      createOption.value =
+        '__create__';
+
+
+      createOption.textContent =
+        '+ Create Stage';
+
+
+      select.appendChild(
+        createOption
+      );
+
+
+      /*
+       * Existing selection preserve
+       */
+
+      if (
+        currentStages.includes(
+          currentValue
+        )
+      ) {
+
+        select.value =
+          currentValue;
+
+      } else {
+
+        select.value = '';
+
+      }
+
+    }
+
+
+
+    /* =========================================================
+       RENDER STAGE CHIPS
+       ========================================================= */
+
+    function renderStageList() {
+
+      const container =
+        document.getElementById(
+          'stage-list'
+        );
+
+
+      if (
+        currentStages.length === 0
+      ) {
+
+        container.innerHTML = '';
+
+        return;
+
+      }
+
+
+      container.innerHTML =
+        currentStages
+          .map(
+            stage => `
+
+              <span class="stage-chip">
+
+                ${escapeHtml(stage)}
+
+                <button
+                  type="button"
+                  class="stage-chip-remove"
+                  data-stage="${escapeHtml(stage)}"
+                  title="Remove stage"
+                >
+                  ×
+                </button>
+
+              </span>
+
+            `
+          )
+          .join('');
+
+
+      container
+        .querySelectorAll(
+          '.stage-chip-remove'
+        )
+        .forEach(
+          button => {
+
+            button.onclick = () => {
+
+              const stage =
+                button.getAttribute(
+                  'data-stage'
+                );
+
+
+              removeStage(stage);
+
+            };
+
+          }
+        );
+
+    }
+
+
+
+    /* =========================================================
+       RESET FORM
+       ========================================================= */
+
+    function resetExamForm() {
+
+      document
+        .getElementById(
+          'exam-form'
+        )
+        .reset();
+
+
+      document.getElementById(
+        'exam-id'
+      ).value = '';
+
+      document.getElementById(
+        'exam-code'
+      ).readOnly = true;
+
+      document.getElementById(
+        'exam-code'
+      ).value = '';
+
+      document.getElementById(
+        'exam-id-help'
+      ).textContent =
+        'Auto-generated from Exam Name for new exams.';
+
+
+      document.getElementById(
+        'exam-order'
+      ).value =
+        allExams.length + 1;
+
+
+      /*
+       * Reset temporary stage state
+       */
+
+      currentStages = [];
+
+
+      renderStageList();
+
+      refreshStageDropdown();
+
+
+      document.getElementById(
+        'stage-create-box'
+      ).style.display =
+        'none';
+
+
+      document.getElementById(
+        'new-stage-name'
+      ).value = '';
+
+
+      document.getElementById(
+        'exam-status'
+      ).value =
+        'active';
+
+    }
+
+
+    function syncExamCodeFromName() {
+
+      const examIdField =
+        document.getElementById('exam-id');
+
+      if (examIdField.value.trim()) {
+        return;
+      }
+
+      const nameInput =
+        document.getElementById('exam-name');
+
+      const generatedId =
+        generateIdFromName(
+          nameInput.value
+        );
+
+      const codeInput =
+        document.getElementById('exam-code');
+
+      codeInput.value = generatedId;
+      codeInput.readOnly = true;
+
+      document.getElementById('exam-id-help').textContent =
+        generatedId
+          ? 'Auto-generated from Exam Name. This ID is permanent after creation.'
+          : 'Type the exam name to auto-generate the permanent ID.';
+
+    }
+
+
+
+    /* =========================================================
+       SETUP GENERAL EVENTS
+       ========================================================= */
+
+    function setupEvents() {
+
+      document.getElementById(
+        'btn-open-bulk-import'
+      ).onclick = () => {
+
+        resetBulkImport();
+        openModal('bulk-import-modal');
+
+      };
+
+      document.getElementById(
+        'btn-close-bulk-import'
+      ).onclick = () => {
+        closeModal('bulk-import-modal');
+      };
+
+      document.getElementById(
+        'btn-cancel-bulk-import'
+      ).onclick = () => {
+        closeModal('bulk-import-modal');
+      };
+
+      document.getElementById(
+        'btn-download-exam-template'
+      ).onclick = downloadBulkTemplate;
+
+      document.getElementById(
+        'bulk-exam-file'
+      ).onchange = handleBulkFileChange;
+
+      document.getElementById(
+        'btn-import-exams'
+      ).onclick = requestBulkUploadConfirmation;
+
+      document.getElementById(
+        'bulk-duplicate-action'
+      ).onchange = renderBulkImportPreview;
+
+      document.getElementById(
+        'btn-confirm-upload'
+      ).onclick = uploadBulkExams;
+
+      document.getElementById(
+        'btn-cancel-confirm-upload'
+      ).onclick = () => {
+        document.getElementById('bulk-import-confirm').style.display = 'none';
+      };
+
+      document.getElementById(
+        'btn-bulk-prev-page'
+      ).onclick = () => {
+        bulkImportPage = Math.max(1, bulkImportPage - 1);
+        renderBulkImportPreview();
+      };
+
+      document.getElementById(
+        'btn-bulk-next-page'
+      ).onclick = () => {
+        bulkImportPage += 1;
+        renderBulkImportPreview();
+      };
+
+      document.getElementById(
+        'bulk-import-modal'
+      ).onclick = event => {
+
+        if (event.target.id === 'bulk-import-modal' && !bulkImportBusy) {
+          closeModal('bulk-import-modal');
+        }
+
+      };
+
+
+      /* =========================
+         SEARCH
+         ========================= */
+
+      document.getElementById(
+        'exam-search'
+      ).oninput =
+        debounce(
+          applyFilters,
+          250
+        );
+
+
+
+      /* =========================
+         CATEGORY FILTER
+         ========================= */
+
+      document.getElementById(
+        'filter-category'
+      ).onchange =
+        applyFilters;
+
+
+
+      /* =========================
+         STATUS FILTER
+         ========================= */
+
+      document.getElementById(
+        'filter-status'
+      ).onchange =
+        applyFilters;
+
+
+
+      /* =========================
+         OPEN ADD MODAL
+         ========================= */
+
+      document.getElementById(
+        'btn-open-add-exam'
+      ).onclick = () => {
+
+        resetExamForm();
+
+
+        document.getElementById(
+          'exam-modal-title'
+        ).textContent =
+          'Add New Competitive Exam';
+
+
+        openModal(
+          'exam-modal'
+        );
+
+        setTimeout(
+          () => {
+            document.getElementById(
+              'exam-name'
+            ).focus();
+          },
+          50
+        );
+
+      };
+
+
+      document.getElementById(
+        'exam-name'
+      ).addEventListener(
+        'input',
+        syncExamCodeFromName
+      );
+
+
+
+      /* =========================
+         CLOSE MODAL
+         ========================= */
+
+      document.getElementById(
+        'btn-close-exam-modal'
+      ).onclick = () => {
+
+        closeModal(
+          'exam-modal'
+        );
+
+      };
+
+
+
+      /* =========================
+         CANCEL
+         ========================= */
+
+      document.getElementById(
+        'btn-cancel-exam'
+      ).onclick = () => {
+
+        closeModal(
+          'exam-modal'
+        );
+
+      };
+
+
+
+      /* =========================
+         SAVE EXAM
+         ========================= */
+
+      document.getElementById(
+        'exam-form'
+      ).onsubmit =
+        async e => {
+
+          e.preventDefault();
+
+          const existingId = document.getElementById('exam-id').value.trim();
+          const examId = document.getElementById('exam-code').value.trim();
+
+          if (!existingId) {
+            const generatedId =
+              generateIdFromName(
+                document.getElementById('exam-name').value
+              );
+
+            if (!generatedId) {
+              showToast('Exam name is required to generate a valid Exam ID.', 'error');
+              return;
+            }
+
+            document.getElementById('exam-code').value = generatedId;
+          }
+
+          const finalExamId = document.getElementById('exam-code').value.trim();
+
+          if (!finalExamId) {
+            showToast('Exam ID is required.', 'error');
+            return;
+          }
+
+          if (!existingId && !/^[a-z0-9]+(?:-[a-z0-9]+)*$/.test(finalExamId)) {
+            showToast('Exam ID must use lowercase letters, numbers, and hyphens only.', 'error');
+            return;
+          }
+
+          if (!existingId && allExams.some(exam => exam.id === finalExamId)) {
+            showToast('Exam ID already exists. Please use a unique Exam ID.', 'error');
+            return;
+          }
+
+
+          console.log(
+            'Save Exam button clicked'
+          );
+
+
+          const btn =
+            document.getElementById(
+              'btn-save-exam'
+            );
+
+
+          const originalText =
+            btn.textContent;
+
+
+          btn.disabled =
+            true;
+
+
+          btn.textContent =
+            'Saving...';
+
+
+
+          /*
+           * Selected stage
+           */
+
+          const selectedStage =
+            document.getElementById(
+              'exam-stage'
+            ).value;
+
+
+          /*
+           * Create Stage option should
+           * never be saved as actual stage.
+           */
+
+          const validSelectedStage =
+            selectedStage ===
+            '__create__'
+              ? ''
+              : selectedStage;
+
+
+
+          /*
+           * Ensure selected stage
+           * exists in stages list.
+           */
+
+          if (
+            validSelectedStage &&
+            !currentStages.includes(
+              validSelectedStage
+            )
+          ) {
+
+            currentStages.push(
+              validSelectedStage
+            );
+
+          }
+
+
+
+          /*
+           * Payload
+           */
+
+          const payload = {
+
+            id:
+              document.getElementById(
+                'exam-id'
+              ).value || null,
+
+
+            name:
+              document.getElementById(
+                'exam-name'
+              ).value.trim(),
+
+
+            code:
+              existingId || finalExamId,
+
+
+            category:
+              document.getElementById(
+                'exam-category'
+              ).value,
+
+
+            order:
+              document.getElementById(
+                'exam-order'
+              ).value,
+
+
+            status:
+              document.getElementById(
+                'exam-status'
+              ).value,
+
+
+            description:
+              document.getElementById(
+                'exam-description'
+              ).value.trim(),
+
+
+            /*
+             * NEW:
+             * All stages for this exam.
+             */
+
+            stages:
+              [...currentStages],
+
+
+            /*
+             * Backward compatibility:
+             * Current selected stage.
+             */
+
+            stage:
+              validSelectedStage || null
+
+          };
+
+
+
+          console.log(
+            'Exam Payload:',
+            payload
+          );
+
+
+
+          try {
+
+            await saveExam(
+              payload
+            );
+
+
+            btn.textContent =
+              'Exam Saved';
+
+
+            showToast(
+              'Exam saved successfully!'
+            );
+
+
+            closeModal(
+              'exam-modal'
+            );
+
+
+            await loadExams();
+
+
+            setTimeout(
+              () => {
+
+                btn.textContent =
+                  originalText;
+
+                btn.disabled =
+                  false;
+
+              },
+              1500
+            );
+
+
+          } catch (err) {
+
+            console.error(
+              'Save Exam Error:',
+              err
+            );
+
+
+            showToast(
+              'Unable to save exam. Please try again.',
+              'error'
+            );
+
+
+            btn.textContent =
+              originalText;
+
+
+            btn.disabled =
+              false;
+
+          }
+
+        };
+
+    }
+
+  </script>
+
+</body>
+</html>

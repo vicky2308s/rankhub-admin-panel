@@ -1,0 +1,364 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Subjects Management - RankHub Admin</title>
+  <link rel="stylesheet" href="./admin.css">
+</head>
+<body>
+  <div class="admin-layout">
+    <main class="admin-main">
+      <header class="admin-header"></header>
+
+      <div class="admin-content">
+        <div class="page-toolbar">
+          <div class="page-toolbar-info">
+            <h1>Subjects Management</h1>
+            <p>Define subjects linked to exams (Quantitative Aptitude, Reasoning, General Awareness, English, etc.)</p>
+          </div>
+          <div class="page-toolbar-actions">
+            <button type="button" class="btn btn-primary" id="btn-open-add-subject">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+              Add New Subject
+            </button>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="filter-bar">
+            <div class="search-input-wrapper">
+              <span class="search-icon">🔍</span>
+              <input type="text" id="subject-search" placeholder="Search subject name or code...">
+            </div>
+            <select id="filter-exam" class="filter-select">
+              <option value="">All Exams</option>
+            </select>
+            <select id="filter-status" class="filter-select">
+              <option value="">All Statuses</option>
+              <option value="active">Active</option>
+              <option value="inactive">Inactive</option>
+            </select>
+          </div>
+
+          <div class="table-responsive">
+            <table class="data-table">
+              <thead>
+                <tr>
+                  <th>Order</th>
+                  <th>Subject Name</th>
+                  <th>Subject Code</th>
+                  <th>Linked Exam</th>
+                  <th>Status</th>
+                  <th style="text-align: right;">Actions</th>
+                </tr>
+              </thead>
+              <tbody id="subjects-table-body">
+                <tr>
+                  <td colspan="6" class="loading-state">
+                    <div class="spinner"></div>
+                    <p>Loading subjects from Firestore...</p>
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </main>
+  </div>
+
+  <!-- Add / Edit Subject Modal -->
+  <div class="modal-backdrop" id="subject-modal">
+    <div class="modal-container">
+      <div class="modal-header">
+        <h3 class="modal-title" id="subject-modal-title">Add Subject</h3>
+        <button type="button" class="modal-close" id="btn-close-subject-modal">✕</button>
+      </div>
+      <form id="subject-form">
+        <div class="modal-body">
+          <input type="hidden" id="subject-id">
+          <div class="form-group">
+            <label class="form-label">Linked Exam <span class="required">*</span></label>
+            <select id="subject-exam-id" class="form-control" required>
+              <option value="">-- Choose Exam --</option>
+            </select>
+          </div>
+          <div class="form-row">
+            <div class="form-group">
+              <label class="form-label">Subject Name <span class="required">*</span></label>
+              <input type="text" id="subject-name" class="form-control" placeholder="e.g. Quantitative Aptitude" required>
+            </div>
+            <div class="form-group">
+              <label class="form-label">Subject ID <span class="required">*</span></label>
+              <input type="text" id="subject-code" class="form-control" placeholder="Generated from Subject Name" required readonly>
+            </div>
+          </div>
+          <div class="form-row">
+            <div class="form-group">
+              <label class="form-label">Display Order</label>
+              <input type="number" id="subject-order" class="form-control" value="1" min="1">
+            </div>
+            <div class="form-group">
+              <label class="form-label">Status</label>
+              <select id="subject-status" class="form-control">
+                <option value="active">Active</option>
+                <option value="inactive">Inactive</option>
+              </select>
+            </div>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" id="btn-cancel-subject">Cancel</button>
+          <button type="submit" class="btn btn-primary" id="btn-save-subject">Save Subject</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <script type="module">
+    import { initAdminLayout } from './admin-sidebar.js';
+    import { getFirestoreExams, getFirestoreSubjects, saveSubject, deleteFirestoreSubject } from './admin-db.js';
+    import { generateIdFromName } from './id-utils.js';
+    import { ICONS, formatDate, escapeHtml, showToast, showConfirmDialog, openModal, closeModal, debounce } from './admin.js';
+
+    let allExams = [];
+    let allSubjects = [];
+    let filteredSubjects = [];
+
+    window.addEventListener('rankhub:bulk-delete-complete', () => loadSubjects());
+
+    const urlParams = new URLSearchParams(window.location.search);
+    const preselectedExamId = urlParams.get('examId');
+
+    document.addEventListener('DOMContentLoaded', () => {
+      initAdminLayout('subjects', 'Subjects');
+      initPage();
+      setupEvents();
+    });
+
+    async function initPage() {
+      allExams = await getFirestoreExams();
+      populateExamDropdowns();
+      await loadSubjects();
+    }
+
+    function populateExamDropdowns() {
+      const filterSelect = document.getElementById('filter-exam');
+      const modalSelect = document.getElementById('subject-exam-id');
+
+      filterSelect.innerHTML = '<option value="">All Exams</option>' + 
+        allExams.map(e => `<option value="${e.id}" ${preselectedExamId === e.id ? 'selected' : ''}>${escapeHtml(e.name)}</option>`).join('');
+
+      modalSelect.innerHTML = '<option value="">-- Choose Exam --</option>' +
+        allExams.map(e => `<option value="${e.id}">${escapeHtml(e.name)}</option>`).join('');
+    }
+
+    async function loadSubjects() {
+      const tbody = document.getElementById('subjects-table-body');
+      tbody.innerHTML = `
+        <tr>
+          <td colspan="6" class="loading-state">
+            <div class="spinner"></div>
+            <p>Loading real-time subjects from Firestore...</p>
+          </td>
+        </tr>
+      `;
+      try {
+        allSubjects = await getFirestoreSubjects(preselectedExamId || null);
+        applyFilters();
+      } catch (e) {
+        console.error('Error loading subjects:', e);
+        showToast('Error loading subjects from Firestore', 'error');
+        tbody.innerHTML = `
+          <tr>
+            <td colspan="6" class="empty-state" style="color:var(--danger-text);">
+              <div class="empty-icon">${ICONS.alertCircle}</div>
+              <h4 class="empty-title">Failed to load subjects</h4>
+              <p class="empty-desc">Check browser console for Firebase connection details.</p>
+            </td>
+          </tr>
+        `;
+      }
+    }
+
+    function applyFilters() {
+      const q = (document.getElementById('subject-search').value || '').toLowerCase().trim();
+      const examId = document.getElementById('filter-exam').value;
+      const status = document.getElementById('filter-status').value;
+
+      filteredSubjects = allSubjects.filter(s => {
+        const matchesQ = !q || (s.name && s.name.toLowerCase().includes(q)) || (s.code && s.code.toLowerCase().includes(q));
+        const matchesExam = !examId || s.examId === examId;
+        const matchesStatus = !status || s.status === status;
+        return matchesQ && matchesExam && matchesStatus;
+      });
+
+      renderTable();
+    }
+
+    function renderTable() {
+      const tbody = document.getElementById('subjects-table-body');
+      if (filteredSubjects.length === 0) {
+        tbody.innerHTML = `
+          <tr>
+            <td colspan="6" class="empty-state">
+              <div class="empty-icon">${ICONS.subjects}</div>
+              <h4 class="empty-title">No Subjects Found</h4>
+              <p class="empty-desc">Add a subject to start building topics and question banks.</p>
+            </td>
+          </tr>
+        `;
+        return;
+      }
+
+      tbody.innerHTML = filteredSubjects.map(s => {
+        const exam = allExams.find(e => e.id === s.examId);
+        return `
+          <tr>
+            <td><span style="font-weight:700; color:#64748b;">#${s.order || 1}</span></td>
+            <td>
+              <strong>${escapeHtml(s.name)}</strong>
+            </td>
+            <td>
+              <span style="font-family:monospace; font-size:12px; color:#e11d48;">${escapeHtml(s.code || '-')}</span>
+            </td>
+            <td>
+              <span class="badge badge-info">${escapeHtml(exam ? exam.name : (s.examName || 'Exam'))}</span>
+            </td>
+            <td>
+              <span class="badge ${s.status === 'active' ? 'badge-success' : 'badge-danger'}">
+                ${s.status === 'active' ? 'Active' : 'Inactive'}
+              </span>
+            </td>
+            <td style="text-align: right;">
+              <div class="action-buttons" style="justify-content: flex-end;">
+                <a href="./admin-topics.html?examId=${encodeURIComponent(s.examId || '')}&subjectId=${encodeURIComponent(s.id)}" class="action-btn" title="View Topics">
+                  ${ICONS.topics}
+                </a>
+                <button type="button" class="action-btn btn-edit-sub" data-id="${s.id}" title="Edit Subject">
+                  ${ICONS.edit}
+                </button>
+                <button type="button" class="action-btn delete btn-delete-sub" data-id="${s.id}" data-name="${escapeHtml(s.name)}" title="Delete Subject">
+                  ${ICONS.trash}
+                </button>
+              </div>
+            </td>
+          </tr>
+        `;
+      }).join('');
+
+      attachRowEvents();
+    }
+
+    function attachRowEvents() {
+      document.querySelectorAll('.btn-edit-sub').forEach(btn => {
+        btn.onclick = () => {
+          const id = btn.getAttribute('data-id');
+          const sub = allSubjects.find(s => s.id === id);
+          if (sub) {
+            document.getElementById('subject-id').value = sub.id;
+            document.getElementById('subject-exam-id').value = sub.examId || '';
+            document.getElementById('subject-name').value = sub.name || '';
+            document.getElementById('subject-code').value = sub.id || sub.code || '';
+            document.getElementById('subject-code').readOnly = true;
+            document.getElementById('subject-order').value = sub.order || 1;
+            document.getElementById('subject-status').value = sub.status || 'active';
+            document.getElementById('subject-modal-title').textContent = 'Edit Subject';
+            openModal('subject-modal');
+          }
+        };
+      });
+
+      document.querySelectorAll('.btn-delete-sub').forEach(btn => {
+        btn.onclick = () => {
+          const id = btn.getAttribute('data-id');
+          const name = btn.getAttribute('data-name');
+          const subject = allSubjects.find(item => item.id === id);
+          showConfirmDialog({
+            title: 'Delete Subject',
+            message: `Are you sure you want to delete "${name}"?`,
+            confirmText: 'Delete Subject',
+            isDanger: true,
+            onConfirm: async () => {
+              await deleteFirestoreSubject(id, subject?.examId);
+              showToast('Subject deleted');
+              await loadSubjects();
+            }
+          });
+        };
+      });
+    }
+
+    function setupEvents() {
+      document.getElementById('subject-search').oninput = debounce(applyFilters, 250);
+      document.getElementById('filter-exam').onchange = applyFilters;
+      document.getElementById('filter-status').onchange = applyFilters;
+
+      document.getElementById('btn-open-add-subject').onclick = () => {
+        document.getElementById('subject-form').reset();
+        document.getElementById('subject-id').value = '';
+        document.getElementById('subject-code').value = '';
+        document.getElementById('subject-code').readOnly = true;
+        if (preselectedExamId) document.getElementById('subject-exam-id').value = preselectedExamId;
+        document.getElementById('subject-modal-title').textContent = 'Add New Subject';
+        openModal('subject-modal');
+      };
+
+      document.getElementById('btn-close-subject-modal').onclick = () => closeModal('subject-modal');
+      document.getElementById('btn-cancel-subject').onclick = () => closeModal('subject-modal');
+
+      document.getElementById('subject-name').addEventListener('input', () => {
+        if (document.getElementById('subject-id').value) return;
+        document.getElementById('subject-code').value = generateIdFromName(
+          document.getElementById('subject-name').value
+        );
+      });
+
+      document.getElementById('subject-form').onsubmit = async (e) => {
+        e.preventDefault();
+        const examId = document.getElementById('subject-exam-id').value;
+        const exam = allExams.find(x => x.id === examId);
+        const existingId = document.getElementById('subject-id').value || '';
+        const subjectId = existingId || generateIdFromName(
+          document.getElementById('subject-name').value
+        );
+
+        if (!subjectId) {
+          showToast('Subject name is required to generate an ID.', 'error');
+          return;
+        }
+
+        if (!examId || !exam) {
+          showToast('Please select a valid exam before saving the subject.', 'error');
+          return;
+        }
+
+        if (!existingId && allSubjects.some(subject => subject.examId === examId && subject.id === subjectId)) {
+          showToast('An item with this generated ID already exists. Please use a different name.', 'error');
+          return;
+        }
+
+        const payload = {
+          id: existingId || null,
+          examId: examId,
+          examName: exam ? exam.name : '',
+          name: document.getElementById('subject-name').value,
+          code: subjectId,
+          order: document.getElementById('subject-order').value,
+          status: document.getElementById('subject-status').value
+        };
+
+        try {
+          await saveSubject(payload);
+          closeModal('subject-modal');
+          showToast('Subject saved successfully!');
+          await loadSubjects();
+        } catch (err) {
+          showToast(err.message || 'Failed to save subject', 'error');
+        }
+      };
+    }
+  </script>
+</body>
+</html>

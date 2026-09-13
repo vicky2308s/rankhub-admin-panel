@@ -1,0 +1,1571 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Test Series Management - RankHub Admin</title>
+  <link rel="stylesheet" href="./admin.css">
+</head>
+
+<body>
+
+  <div class="admin-layout">
+
+    <main class="admin-main">
+
+      <header class="admin-header"></header>
+
+      <div class="admin-content">
+
+        <!-- =====================================================
+             PAGE TOOLBAR
+        ====================================================== -->
+        <div class="page-toolbar">
+
+          <div class="page-toolbar-info">
+            <h1>Test Series</h1>
+            <p>Create and manage exam-wise test series and their individual tests.</p>
+          </div>
+
+          <div class="page-toolbar-actions">
+            <button type="button" class="btn btn-primary" id="btn-open-add-ts">
+              <svg
+                width="16"
+                height="16"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2.5"
+              >
+                <line x1="12" y1="5" x2="12" y2="19"></line>
+                <line x1="5" y1="12" x2="19" y2="12"></line>
+              </svg>
+
+              Create Test Series
+            </button>
+          </div>
+
+        </div>
+
+
+        <!-- =====================================================
+             TEST SERIES LIST
+        ====================================================== -->
+        <div class="card">
+
+          <div class="filter-bar">
+
+            <div class="search-input-wrapper">
+
+              <span class="search-icon">🔍</span>
+
+              <input
+                type="text"
+                id="ts-search"
+                placeholder="Search test series title..."
+              >
+
+            </div>
+
+
+            <select id="filter-exam" class="filter-select">
+              <option value="">All Exams</option>
+            </select>
+
+          </div>
+
+
+          <div class="table-responsive">
+
+            <table class="data-table">
+
+              <thead>
+                <tr>
+
+                  <th>Test Series Title & Features</th>
+
+                  <th>Exam</th>
+
+                  <th>Tests Included</th>
+
+                  <th>Status</th>
+
+                  <th style="text-align:right;">
+                    Actions
+                  </th>
+
+                </tr>
+              </thead>
+
+
+              <tbody id="ts-table-body">
+
+                <tr>
+
+                  <td
+                    colspan="5"
+                    class="loading-state"
+                  >
+
+                    <div class="spinner"></div>
+
+                    <p>
+                      Loading test series...
+                    </p>
+
+                  </td>
+
+                </tr>
+
+              </tbody>
+
+            </table>
+
+          </div>
+
+        </div>
+
+      </div>
+
+    </main>
+
+  </div>
+
+
+
+  <!-- =========================================================
+       ADD / EDIT TEST SERIES MODAL
+  ========================================================== -->
+
+  <div
+    class="modal-backdrop"
+    id="ts-modal"
+  >
+
+    <div class="modal-container modal-md">
+
+      <div class="modal-header">
+
+        <h3
+          class="modal-title"
+          id="ts-modal-title"
+        >
+          Create Test Series
+        </h3>
+
+        <button
+          type="button"
+          class="modal-close"
+          id="btn-close-ts-modal"
+        >
+          ✕
+        </button>
+
+      </div>
+
+
+      <form id="ts-form">
+
+        <div class="modal-body">
+
+          <!-- Existing ID -->
+          <input
+            type="hidden"
+            id="ts-id"
+          >
+
+
+          <!-- =================================================
+               EXAM
+          ================================================== -->
+
+          <div class="form-group">
+
+            <label class="form-label">
+
+              Target Exam
+
+              <span class="required">*</span>
+
+            </label>
+
+            <select
+              id="ts-exam-id"
+              class="form-control"
+              required
+            >
+
+              <option value="">
+                -- Select Exam --
+              </option>
+
+            </select>
+
+          </div>
+
+
+          <!-- =================================================
+               TITLE
+          ================================================== -->
+
+          <div class="form-group">
+
+            <label class="form-label">
+
+              Test Series Title
+
+              <span class="required">*</span>
+
+            </label>
+
+            <input
+              type="text"
+              id="ts-title"
+              class="form-control"
+              placeholder="e.g. SSC CGL Tier 1 Test Series"
+              required
+            >
+
+          </div>
+
+
+          <!-- =================================================
+               ID
+          ================================================== -->
+
+          <div class="form-group">
+
+            <label class="form-label">
+
+              Test Series ID
+
+              <span class="required">*</span>
+
+            </label>
+
+            <input
+              type="text"
+              id="ts-code"
+              class="form-control"
+              placeholder="Generated from Test Series Title"
+              required
+              readonly
+            >
+
+          </div>
+
+
+          <!-- =================================================
+               TOTAL TESTS
+          ================================================== -->
+
+          <div class="form-group">
+
+            <label class="form-label">
+
+              Total Tests
+
+              <span class="required">*</span>
+
+            </label>
+
+            <input
+              type="number"
+              id="ts-total-tests"
+              class="form-control"
+              value="1"
+              min="1"
+              required
+            >
+
+          </div>
+
+
+          <!-- =================================================
+               FEATURES / DESCRIPTION
+          ================================================== -->
+
+          <div class="form-group">
+
+            <label class="form-label">
+              Key Features / Description
+            </label>
+
+            <textarea
+              id="ts-features"
+              class="form-control"
+              rows="4"
+              placeholder="Full Length Mock Tests&#10;Subject-wise Tests&#10;Detailed Solutions"
+            ></textarea>
+
+          </div>
+
+
+          <!-- =================================================
+               STATUS
+          ================================================== -->
+
+          <div class="form-group">
+
+            <label class="form-label">
+              Status
+            </label>
+
+            <select
+              id="ts-status"
+              class="form-control"
+            >
+
+              <option value="active">
+                Active (Available on Student App)
+              </option>
+
+              <option value="draft">
+                Draft (Hidden)
+              </option>
+
+            </select>
+
+          </div>
+
+        </div>
+
+
+        <!-- =================================================
+             MODAL FOOTER
+        ================================================== -->
+
+        <div class="modal-footer">
+
+          <button
+            type="button"
+            class="btn btn-secondary"
+            id="btn-cancel-ts"
+          >
+            Cancel
+          </button>
+
+          <button
+            type="submit"
+            class="btn btn-primary"
+            id="btn-save-ts"
+          >
+            Save Test Series
+          </button>
+
+        </div>
+
+      </form>
+
+    </div>
+
+  </div>
+
+
+
+  <!-- =========================================================
+       JAVASCRIPT
+  ========================================================== -->
+
+  <script type="module">
+
+    import {
+      initAdminLayout
+    } from './admin-sidebar.js';
+
+
+    import {
+      getFirestoreExams,
+      getFirestoreTestSeries,
+      saveTestSeries,
+      deleteFirestoreTestSeries
+    } from './admin-db.js';
+
+
+    import {
+      generateIdFromName
+    } from './id-utils.js';
+
+
+    import {
+      ICONS,
+      escapeHtml,
+      showToast,
+      showConfirmDialog,
+      openModal,
+      closeModal,
+      debounce
+    } from './admin.js';
+
+
+
+    /* =========================================================
+       STATE
+    ========================================================== */
+
+    let allExams = [];
+
+    let allTestSeries = [];
+
+    let filteredTestSeries = [];
+
+    window.addEventListener('rankhub:bulk-delete-complete', () => loadTestSeries());
+
+
+
+    /* =========================================================
+       INITIALIZE
+    ========================================================== */
+
+    document.addEventListener(
+      'DOMContentLoaded',
+      () => {
+
+        initAdminLayout(
+          'test-series',
+          'Test Series'
+        );
+
+        initPage();
+
+        setupEvents();
+
+      }
+    );
+
+
+
+    /* =========================================================
+       PAGE INIT
+    ========================================================== */
+
+    async function initPage() {
+
+      try {
+
+        allExams =
+          await getFirestoreExams();
+
+        populateExamDropdowns();
+
+        await loadTestSeries();
+
+      } catch (error) {
+
+        console.error(
+          'Error initializing Test Series:',
+          error
+        );
+
+        showToast(
+          error.message ||
+          'Failed to initialize Test Series',
+          'error'
+        );
+
+      }
+
+    }
+
+
+
+    /* =========================================================
+       EXAM DROPDOWNS
+    ========================================================== */
+
+    function populateExamDropdowns() {
+
+      const filterExam =
+        document.getElementById(
+          'filter-exam'
+        );
+
+
+      const modalExam =
+        document.getElementById(
+          'ts-exam-id'
+        );
+
+
+      filterExam.innerHTML =
+        '<option value="">All Exams</option>' +
+
+        allExams
+          .map(
+            exam => `
+              <option value="${escapeHtml(exam.id)}">
+                ${escapeHtml(exam.name || 'Unnamed Exam')}
+              </option>
+            `
+          )
+          .join('');
+
+
+      modalExam.innerHTML =
+        '<option value="">-- Select Exam --</option>' +
+
+        allExams
+          .map(
+            exam => `
+              <option value="${escapeHtml(exam.id)}">
+                ${escapeHtml(exam.name || 'Unnamed Exam')}
+              </option>
+            `
+          )
+          .join('');
+
+    }
+
+
+
+    /* =========================================================
+       LOAD TEST SERIES
+    ========================================================== */
+
+    async function loadTestSeries() {
+
+      const tbody =
+        document.getElementById(
+          'ts-table-body'
+        );
+
+
+      tbody.innerHTML = `
+        <tr>
+
+          <td
+            colspan="5"
+            class="loading-state"
+          >
+
+            <div class="spinner"></div>
+
+            <p>
+              Loading test series from Firestore...
+            </p>
+
+          </td>
+
+        </tr>
+      `;
+
+
+      try {
+
+        allTestSeries =
+          await getFirestoreTestSeries();
+
+
+        if (!Array.isArray(allTestSeries)) {
+
+          allTestSeries = [];
+
+        }
+
+
+        applyFilters();
+
+
+      } catch (error) {
+
+        console.error(
+          'Error loading test series:',
+          error
+        );
+
+
+        showToast(
+          'Error loading test series from Firestore',
+          'error'
+        );
+
+
+        tbody.innerHTML = `
+          <tr>
+
+            <td
+              colspan="5"
+              class="empty-state"
+              style="color:var(--danger-text);"
+            >
+
+              <div class="empty-icon">
+                ${ICONS.alertCircle}
+              </div>
+
+              <h4 class="empty-title">
+                Failed to load test series
+              </h4>
+
+              <p class="empty-desc">
+                Check browser console for Firebase connection details.
+              </p>
+
+            </td>
+
+          </tr>
+        `;
+
+      }
+
+    }
+
+
+
+    /* =========================================================
+       FILTERS
+    ========================================================== */
+
+    function applyFilters() {
+
+      const search =
+        (
+          document.getElementById(
+            'ts-search'
+          )?.value || ''
+        )
+        .toLowerCase()
+        .trim();
+
+
+      const examId =
+        document.getElementById(
+          'filter-exam'
+        )?.value || '';
+
+
+      filteredTestSeries =
+        allTestSeries.filter(
+          series => {
+
+            const title =
+              String(
+                series?.title || ''
+              )
+              .toLowerCase();
+
+
+            const matchesSearch =
+              !search ||
+              title.includes(search);
+
+
+            const matchesExam =
+              !examId ||
+              String(
+                series?.examId || ''
+              ) === String(examId);
+
+
+            return (
+              matchesSearch &&
+              matchesExam
+            );
+
+          }
+        );
+
+
+      renderTable();
+
+    }
+
+
+
+    /* =========================================================
+       RENDER TABLE
+    ========================================================== */
+
+    function renderTable() {
+
+      const tbody =
+        document.getElementById(
+          'ts-table-body'
+        );
+
+
+      if (
+        !filteredTestSeries ||
+        filteredTestSeries.length === 0
+      ) {
+
+        tbody.innerHTML = `
+          <tr>
+
+            <td
+              colspan="5"
+              class="empty-state"
+            >
+
+              <div class="empty-icon">
+                ${ICONS.test_series}
+              </div>
+
+              <h4 class="empty-title">
+                No Test Series Found
+              </h4>
+
+              <p class="empty-desc">
+                Create your first test series.
+              </p>
+
+            </td>
+
+          </tr>
+        `;
+
+        return;
+
+      }
+
+
+
+      tbody.innerHTML =
+        filteredTestSeries
+          .map(
+            series => {
+
+              const features =
+                Array.isArray(
+                  series.features
+                )
+                  ? series.features
+                  : [];
+
+
+              const status =
+                series.status ||
+                'active';
+
+
+              const totalTests =
+                Number(
+                  series.totalTests || 0
+                );
+
+
+              return `
+                <tr>
+
+                  <!-- TITLE -->
+                  <td>
+
+                    <strong>
+                      ${escapeHtml(
+                        series.title ||
+                        'Untitled Test Series'
+                      )}
+                    </strong>
+
+
+                    ${
+                      features.length > 0
+                        ? `
+                          <div
+                            style="
+                              font-size:12px;
+                              color:#64748b;
+                              margin-top:3px;
+                            "
+                          >
+                            • ${escapeHtml(
+                              features[0]
+                            )}
+                          </div>
+                        `
+                        : ''
+                    }
+
+                  </td>
+
+
+                  <!-- EXAM -->
+                  <td>
+
+                    <span class="badge badge-info">
+
+                      ${escapeHtml(
+                        series.examName ||
+                        getExamName(
+                          series.examId
+                        ) ||
+                        'Exam'
+                      )}
+
+                    </span>
+
+                  </td>
+
+
+                  <!-- TESTS -->
+                  <td>
+
+                    <span
+                      style="font-weight:600;"
+                    >
+                      ${totalTests}
+                    </span>
+
+                    Tests
+
+                  </td>
+
+
+                  <!-- STATUS -->
+                  <td>
+
+                    <span
+                      class="badge ${
+                        status === 'active'
+                          ? 'badge-success'
+                          : 'badge-neutral'
+                      }"
+                    >
+                      ${escapeHtml(status)}
+                    </span>
+
+                  </td>
+
+
+                  <!-- ACTIONS -->
+                  <td
+                    style="text-align:right;"
+                  >
+
+                    <div
+                      class="action-buttons"
+                      style="justify-content:flex-end;"
+                    >
+
+                      <!-- MANAGE TESTS -->
+                      <a
+                        href="./admin-mock-tests.html?examId=${encodeURIComponent(
+                          series.examId || ''
+                        )}&testSeriesId=${encodeURIComponent(
+                          series.id || ''
+                        )}"
+                        class="action-btn"
+                        title="Manage Tests"
+                      >
+                        ${ICONS.mock_tests}
+                      </a>
+
+
+                      <!-- EDIT -->
+                      <button
+                        type="button"
+                        class="action-btn btn-edit-ts"
+                        data-id="${escapeHtml(
+                          series.id || ''
+                        )}"
+                        title="Edit Test Series"
+                      >
+                        ${ICONS.edit}
+                      </button>
+
+
+                      <!-- DELETE -->
+                      <button
+                        type="button"
+                        class="action-btn delete btn-delete-ts"
+                        data-id="${escapeHtml(
+                          series.id || ''
+                        )}"
+                        data-title="${escapeHtml(
+                          series.title || ''
+                        )}"
+                        title="Delete Test Series"
+                      >
+                        ${ICONS.trash}
+                      </button>
+
+                    </div>
+
+                  </td>
+
+                </tr>
+              `;
+
+            }
+          )
+          .join('');
+
+
+      attachRowEvents();
+
+    }
+
+
+
+    /* =========================================================
+       EXAM NAME
+    ========================================================== */
+
+    function getExamName(examId) {
+
+      if (!examId) {
+        return '';
+      }
+
+
+      const exam =
+        allExams.find(
+          item =>
+            String(item.id) ===
+            String(examId)
+        );
+
+
+      return exam?.name || '';
+
+    }
+
+
+
+    /* =========================================================
+       EDIT / DELETE EVENTS
+    ========================================================== */
+
+    function attachRowEvents() {
+
+
+      /* -------------------------------------------------------
+         EDIT
+      -------------------------------------------------------- */
+
+      document
+        .querySelectorAll(
+          '.btn-edit-ts'
+        )
+        .forEach(
+          button => {
+
+            button.onclick = () => {
+
+              const id =
+                button.getAttribute(
+                  'data-id'
+                );
+
+
+              const series =
+                allTestSeries.find(
+                  item =>
+                    String(item.id) ===
+                    String(id)
+                );
+
+
+              if (!series) {
+                return;
+              }
+
+
+              document.getElementById(
+                'ts-id'
+              ).value =
+                series.id || '';
+
+
+              document.getElementById(
+                'ts-code'
+              ).value =
+                series.id ||
+                series.code ||
+                '';
+
+
+              document.getElementById(
+                'ts-exam-id'
+              ).value =
+                series.examId || '';
+
+
+              document.getElementById(
+                'ts-title'
+              ).value =
+                series.title || '';
+
+
+              document.getElementById(
+                'ts-total-tests'
+              ).value =
+                series.totalTests || 0;
+
+
+              document.getElementById(
+                'ts-features'
+              ).value =
+                Array.isArray(
+                  series.features
+                )
+                  ? series.features.join('\n')
+                  : (
+                      series.features ||
+                      ''
+                    );
+
+
+              document.getElementById(
+                'ts-status'
+              ).value =
+                series.status ||
+                'active';
+
+
+              document.getElementById(
+                'ts-modal-title'
+              ).textContent =
+                'Edit Test Series';
+
+
+              openModal(
+                'ts-modal'
+              );
+
+            };
+
+          }
+        );
+
+
+
+      /* -------------------------------------------------------
+         DELETE
+      -------------------------------------------------------- */
+
+      document
+        .querySelectorAll(
+          '.btn-delete-ts'
+        )
+        .forEach(
+          button => {
+
+            button.onclick = () => {
+
+              const id =
+                button.getAttribute(
+                  'data-id'
+                );
+
+
+              const title =
+                button.getAttribute(
+                  'data-title'
+                ) ||
+                'this test series';
+
+
+              const series =
+                allTestSeries.find(
+                  item =>
+                    String(item.id) ===
+                    String(id)
+                );
+
+
+              showConfirmDialog({
+
+                title:
+                  'Delete Test Series',
+
+                message:
+                  `Are you sure you want to delete "${title}"?`,
+
+                confirmText:
+                  'Delete Series',
+
+                isDanger:
+                  true,
+
+                onConfirm:
+                  async () => {
+
+                    try {
+
+                      await deleteFirestoreTestSeries(
+                        id,
+                        series?.examId
+                      );
+
+
+                      showToast(
+                        'Test series deleted successfully'
+                      );
+
+
+                      await loadTestSeries();
+
+                    } catch (error) {
+
+                      console.error(
+                        'Delete Test Series Error:',
+                        error
+                      );
+
+
+                      showToast(
+                        error.message ||
+                        'Failed to delete test series',
+                        'error'
+                      );
+
+                    }
+
+                  }
+
+              });
+
+            };
+
+          }
+        );
+
+    }
+
+
+
+    /* =========================================================
+       EVENTS
+    ========================================================== */
+
+    function setupEvents() {
+
+
+      /* -------------------------------------------------------
+         SEARCH
+      -------------------------------------------------------- */
+
+      document.getElementById(
+        'ts-search'
+      ).oninput =
+        debounce(
+          applyFilters,
+          250
+        );
+
+
+
+      /* -------------------------------------------------------
+         EXAM FILTER
+      -------------------------------------------------------- */
+
+      document.getElementById(
+        'filter-exam'
+      ).onchange =
+        applyFilters;
+
+
+
+      /* -------------------------------------------------------
+         OPEN CREATE MODAL
+      -------------------------------------------------------- */
+
+      document.getElementById(
+        'btn-open-add-ts'
+      ).onclick =
+        () => {
+
+          document.getElementById(
+            'ts-form'
+          ).reset();
+
+
+          document.getElementById(
+            'ts-id'
+          ).value = '';
+
+
+          document.getElementById(
+            'ts-code'
+          ).value = '';
+
+
+          document.getElementById(
+            'ts-total-tests'
+          ).value = '1';
+
+
+          document.getElementById(
+            'ts-status'
+          ).value = 'active';
+
+
+          if (
+            allExams.length > 0
+          ) {
+
+            document.getElementById(
+              'ts-exam-id'
+            ).value =
+              allExams[0].id;
+
+          }
+
+
+          document.getElementById(
+            'ts-modal-title'
+          ).textContent =
+            'Create New Test Series';
+
+
+          openModal(
+            'ts-modal'
+          );
+
+        };
+
+
+
+      /* -------------------------------------------------------
+         CLOSE MODAL
+      -------------------------------------------------------- */
+
+      document.getElementById(
+        'btn-close-ts-modal'
+      ).onclick =
+        () => {
+
+          closeModal(
+            'ts-modal'
+          );
+
+        };
+
+
+      document.getElementById(
+        'btn-cancel-ts'
+      ).onclick =
+        () => {
+
+          closeModal(
+            'ts-modal'
+          );
+
+        };
+
+
+
+      /* -------------------------------------------------------
+         AUTO GENERATE ID
+      -------------------------------------------------------- */
+
+      document.getElementById(
+        'ts-title'
+      ).addEventListener(
+        'input',
+        () => {
+
+          const existingId =
+            document.getElementById(
+              'ts-id'
+            ).value;
+
+
+          if (existingId) {
+            return;
+          }
+
+
+          const title =
+            document.getElementById(
+              'ts-title'
+            ).value;
+
+
+          document.getElementById(
+            'ts-code'
+          ).value =
+            generateIdFromName(
+              title
+            );
+
+        }
+      );
+
+
+
+      /* -------------------------------------------------------
+         SAVE
+      -------------------------------------------------------- */
+
+      document.getElementById(
+        'ts-form'
+      ).onsubmit =
+        async event => {
+
+          event.preventDefault();
+
+
+          const examId =
+            document.getElementById(
+              'ts-exam-id'
+            ).value;
+
+
+          const exam =
+            allExams.find(
+              item =>
+                String(item.id) ===
+                String(examId)
+            );
+
+
+          const existingId =
+            document.getElementById(
+              'ts-id'
+            ).value ||
+            '';
+
+
+          const title =
+            document.getElementById(
+              'ts-title'
+            ).value
+            .trim();
+
+
+          const generatedId =
+            generateIdFromName(
+              title
+            );
+
+
+          const seriesId =
+            existingId ||
+            generatedId;
+
+
+          /* -----------------------------------------------
+             VALIDATION
+          ------------------------------------------------ */
+
+          if (!title) {
+
+            showToast(
+              'Test Series title is required.',
+              'error'
+            );
+
+            return;
+
+          }
+
+
+          if (!seriesId) {
+
+            showToast(
+              'Unable to generate Test Series ID.',
+              'error'
+            );
+
+            return;
+
+          }
+
+
+          if (!examId || !exam) {
+
+            showToast(
+              'Please select a valid exam.',
+              'error'
+            );
+
+            return;
+
+          }
+
+
+          const totalTests =
+            Number(
+              document.getElementById(
+                'ts-total-tests'
+              ).value
+            );
+
+
+          if (
+            !Number.isFinite(totalTests) ||
+            totalTests < 1
+          ) {
+
+            showToast(
+              'Total Tests must be at least 1.',
+              'error'
+            );
+
+            return;
+
+          }
+
+
+
+          /* -----------------------------------------------
+             DUPLICATE ID CHECK
+          ------------------------------------------------ */
+
+          if (
+            !existingId &&
+            allTestSeries.some(
+              series =>
+                String(series.id) ===
+                String(seriesId)
+            )
+          ) {
+
+            showToast(
+              'A Test Series with this ID already exists. Please use a different title.',
+              'error'
+            );
+
+            return;
+
+          }
+
+
+
+          /* -----------------------------------------------
+             FEATURES
+          ------------------------------------------------ */
+
+          const featuresText =
+            document.getElementById(
+              'ts-features'
+            ).value;
+
+
+          const features =
+            featuresText
+              .split('\n')
+              .map(
+                item =>
+                  item.trim()
+              )
+              .filter(Boolean);
+
+
+
+          /* -----------------------------------------------
+             PAYLOAD
+
+             IMPORTANT:
+             No subscription fields.
+             No price.
+             No premium.
+             No validity.
+          ------------------------------------------------ */
+
+          const payload = {
+
+            id:
+              existingId ||
+              null,
+
+            code:
+              seriesId,
+
+            examId:
+              examId,
+
+            examName:
+              exam.name || '',
+
+            title:
+              title,
+
+            totalTests:
+              totalTests,
+
+            features:
+              features,
+
+            status:
+              document.getElementById(
+                'ts-status'
+              ).value ||
+              'active'
+
+          };
+
+
+
+          /* -----------------------------------------------
+             SAVE
+          ------------------------------------------------ */
+
+          try {
+
+            const saveButton =
+              document.getElementById(
+                'btn-save-ts'
+              );
+
+
+            saveButton.disabled =
+              true;
+
+
+            saveButton.textContent =
+              'Saving...';
+
+
+            await saveTestSeries(
+              payload
+            );
+
+
+            closeModal(
+              'ts-modal'
+            );
+
+
+            showToast(
+              existingId
+                ? 'Test series updated successfully!'
+                : 'Test series created successfully!'
+            );
+
+
+            await loadTestSeries();
+
+
+          } catch (error) {
+
+            console.error(
+              'Save Test Series Error:',
+              error
+            );
+
+
+            showToast(
+              error.message ||
+              'Failed to save test series',
+              'error'
+            );
+
+
+          } finally {
+
+            const saveButton =
+              document.getElementById(
+                'btn-save-ts'
+              );
+
+
+            saveButton.disabled =
+              false;
+
+
+            saveButton.textContent =
+              'Save Test Series';
+
+          }
+
+        };
+
+    }
+
+  </script>
+
+</body>
+</html>

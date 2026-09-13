@@ -1,0 +1,340 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Admin Dashboard - RankHub Console</title>
+  <link rel="stylesheet" href="./admin.css">
+</head>
+
+<body>
+  <div class="admin-layout">
+    <!-- Common Sidebar is injected by admin-sidebar.js -->
+
+    <main class="admin-main">
+      <header class="admin-header"></header>
+
+      <div class="admin-content">
+        <div class="page-toolbar">
+          <div class="page-toolbar-info">
+            <h1>RankHub Overview</h1>
+            <p>Real-time analytics and central administrative operations from Firestore.</p>
+          </div>
+          <div class="page-toolbar-actions">
+            <button type="button" class="btn btn-secondary" id="btn-refresh-stats">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M3 12a9 9 0 0 1 9-9 9.75 9.75 0 0 1 6.74 2.74L21 8" />
+                <path d="M21 3v5h-5" />
+                <path d="M21 12a9 9 0 0 1-9 9 9.75 9.75 0 0 1-6.74-2.74L3 16" />
+                <path d="M3 21v-5h5" />
+              </svg>
+              Refresh Data
+            </button>
+            <a href="./admin-questions.html" class="btn btn-primary">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+                <line x1="12" y1="5" x2="12" y2="19" />
+                <line x1="5" y1="12" x2="19" y2="12" />
+              </svg>
+              Add Question
+            </a>
+          </div>
+        </div>
+
+        <!-- Real Firebase Stats Metrics Grid -->
+        <div class="metrics-grid" id="stats-container">
+          <div class="metric-card">
+            <div class="metric-header">
+              <span class="metric-title">Total Users</span>
+              <div class="metric-icon-box blue" id="icon-total-users"></div>
+            </div>
+            <div class="metric-value" id="stat-total-users">0</div>
+            <div class="metric-footer">
+              <span class="metric-badge positive" id="stat-active-users-badge">0 Active</span>
+              <span>Registered Students</span>
+            </div>
+          </div>
+
+          <div class="metric-card">
+            <div class="metric-header">
+              <span class="metric-title">Premium Subscriptions</span>
+              <div class="metric-icon-box amber" id="icon-premium-users"></div>
+            </div>
+            <div class="metric-value" id="stat-premium-users">0</div>
+            <div class="metric-footer">
+              <span class="metric-badge neutral">VIP Access</span>
+              <span>Active Pro Members</span>
+            </div>
+          </div>
+
+          <div class="metric-card">
+            <div class="metric-header">
+              <span class="metric-title">Total Exams</span>
+              <div class="metric-icon-box" id="icon-total-exams"></div>
+            </div>
+            <div class="metric-value" id="stat-total-exams">0</div>
+            <div class="metric-footer">
+              <span class="metric-badge neutral" id="stat-subjects-badge">0 Subjects</span>
+              <span>Exam Portals</span>
+            </div>
+          </div>
+
+          <div class="metric-card">
+            <div class="metric-header">
+              <span class="metric-title">Question Bank</span>
+              <div class="metric-icon-box green" id="icon-total-questions"></div>
+            </div>
+            <div class="metric-value" id="stat-total-questions">0</div>
+            <div class="metric-footer">
+              <span class="metric-badge positive">Verified</span>
+              <span>Total MCQs & PYQs</span>
+            </div>
+          </div>
+
+          <div class="metric-card">
+            <div class="metric-header">
+              <span class="metric-title">Test Series</span>
+              <div class="metric-icon-box" id="icon-total-series"></div>
+            </div>
+            <div class="metric-value" id="stat-total-test-series">0</div>
+            <div class="metric-footer">
+              <span class="metric-badge neutral" id="stat-mocks-badge">0 Mock Tests</span>
+              <span>Live Packages</span>
+            </div>
+          </div>
+
+          <div class="metric-card">
+            <div class="metric-header">
+              <span class="metric-title">Student Submissions</span>
+              <div class="metric-icon-box green" id="icon-total-results"></div>
+            </div>
+            <div class="metric-value" id="stat-total-results">0</div>
+            <div class="metric-footer">
+              <span class="metric-badge positive">Completed</span>
+              <span>Test Evaluations</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Quick Operations Section -->
+        <div
+          style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 24px; margin-bottom: 32px;">
+          <div class="card" style="margin-bottom: 0;">
+            <div class="card-header">
+              <div>
+                <h3 class="card-title">Quick Action Hub</h3>
+                <p class="card-subtitle">One-click administrative shortcuts</p>
+              </div>
+            </div>
+            <div class="card-body" style="display: flex; flex-direction: column; gap: 12px;">
+              <a href="./admin-exams.html" class="btn btn-secondary" style="justify-content: flex-start;">
+                <span style="color:#e11d48;">📚</span> Create New Exam Category
+              </a>
+              <a href="./admin-questions.html?action=import" class="btn btn-secondary"
+                style="justify-content: flex-start;">
+                <span style="color:#10b981;">📥</span> Bulk Import Questions (CSV / JSON)
+              </a>
+              <a href="./admin-mock-tests.html" class="btn btn-secondary" style="justify-content: flex-start;">
+                <span style="color:#3b82f6;">⏱️</span> Publish Full Mock Test
+              </a>
+              <a href="./admin-current-affairs.html" class="btn btn-secondary" style="justify-content: flex-start;">
+                <span style="color:#f59e0b;">📰</span> Post Daily Current Affairs
+              </a>
+              <a href="./admin-notifications.html" class="btn btn-secondary" style="justify-content: flex-start;">
+                <span style="color:#8b5cf6;">📢</span> Send Push Broadcast Notification
+              </a>
+            </div>
+          </div>
+
+          <div class="card" style="margin-bottom: 0;">
+            <div class="card-header">
+              <div>
+                <h3 class="card-title">System & Database Health</h3>
+                <p class="card-subtitle">Firestore connection and schema telemetry</p>
+              </div>
+              <span class="badge badge-success">Firestore Online</span>
+            </div>
+            <div class="card-body">
+              <div style="display: flex; flex-direction: column; gap: 14px; font-size: 13.5px;">
+                <div
+                  style="display: flex; justify-content: space-between; border-bottom: 1px solid var(--border-subtle); padding-bottom: 10px;">
+                  <span style="color:var(--text-muted);">Database Target:</span>
+                  <strong>Google Cloud Firestore</strong>
+                </div>
+                <div
+                  style="display: flex; justify-content: space-between; border-bottom: 1px solid var(--border-subtle); padding-bottom: 10px;">
+                  <span style="color:var(--text-muted);">Active Collections:</span>
+                  <span
+                    style="font-family: monospace; font-size: 12px; background: var(--bg-subtle); border: 1px solid var(--border-color); padding: 2px 6px; border-radius: 4px;">14
+                    Collections</span>
+                </div>
+                <div
+                  style="display: flex; justify-content: space-between; border-bottom: 1px solid var(--border-subtle); padding-bottom: 10px;">
+                  <span style="color:var(--text-muted);">Security Rules:</span>
+                  <span class="badge badge-success">Hardened RBAC</span>
+                </div>
+                <div style="display: flex; justify-content: space-between;">
+                  <span style="color:var(--text-muted);">User Platform:</span>
+                  <a href="./admin-settings.html"
+                    style="color:#e11d48; text-decoration: none; font-weight: 600;">Configure App Settings &rarr;</a>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Recent Test Results Table -->
+        <div class="card">
+          <div class="card-header">
+            <div>
+              <h3 class="card-title">Latest Student Test Submissions</h3>
+              <p class="card-subtitle">Real-time exam results evaluated by the RankHub scoring engine</p>
+            </div>
+            <a href="./admin-results.html" class="btn btn-sm btn-secondary">View All Results</a>
+          </div>
+          <div class="table-responsive">
+            <table class="data-table">
+              <thead>
+                <tr>
+                  <th>Student</th>
+                  <th>Exam & Test</th>
+                  <th>Score</th>
+                  <th>Correct / Wrong</th>
+                  <th>Percentage</th>
+                  <th>Submitted At</th>
+                  <th>Action</th>
+                </tr>
+              </thead>
+              <tbody id="recent-results-tbody">
+                <tr>
+                  <td colspan="7" class="loading-state">
+                    <div class="spinner"></div>
+                    <p>Loading real-time records from Firestore...</p>
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+      </div>
+    </main>
+  </div>
+
+  <script type="module">
+    import { initAdminLayout } from './admin-sidebar.js';
+    import { getDashboardStats, getFirestoreResults } from './admin-db.js';
+    import { ICONS, formatDate, escapeHtml, showToast } from './admin.js';
+
+    let dashboardLoadPromise = null;
+
+    // The dashboard loads directly from the Firestore-backed API.
+    initAdminLayout('dashboard', 'Dashboard Overview');
+    setupIcons();
+    const dashboardDataChannel = typeof BroadcastChannel === 'function'
+      ? new BroadcastChannel('rankhub-admin-data-change')
+      : null;
+    window.addEventListener('rankhub:data-changed', () => loadDashboardData());
+    dashboardDataChannel?.addEventListener('message', () => loadDashboardData());
+    loadDashboardData();
+
+    function setupIcons() {
+      document.getElementById('icon-total-users').innerHTML = ICONS.users;
+      document.getElementById('icon-premium-users').innerHTML = ICONS.test_series;
+      document.getElementById('icon-total-exams').innerHTML = ICONS.exams;
+      document.getElementById('icon-total-questions').innerHTML = ICONS.questions;
+      document.getElementById('icon-total-series').innerHTML = ICONS.mock_tests;
+      document.getElementById('icon-total-results').innerHTML = ICONS.results;
+    }
+
+    async function loadDashboardData() {
+      if (dashboardLoadPromise) return dashboardLoadPromise;
+
+      dashboardLoadPromise = (async () => {
+        try {
+          const stats = await getDashboardStats();
+          document.getElementById('stat-total-users').textContent = stats.totalUsers;
+          document.getElementById('stat-active-users-badge').textContent = `${stats.activeUsers} Active`;
+          document.getElementById('stat-premium-users').textContent = stats.premiumUsers;
+          document.getElementById('stat-total-exams').textContent = stats.totalExams;
+          document.getElementById('stat-subjects-badge').textContent = `${stats.totalSubjects} Subjects`;
+          document.getElementById('stat-total-questions').textContent = stats.totalQuestions;
+          document.getElementById('stat-total-test-series').textContent = stats.totalTestSeries;
+          document.getElementById('stat-mocks-badge').textContent = `${stats.totalMockTests} Mock Tests`;
+
+          const results = await getFirestoreResults();
+          document.getElementById('stat-total-results').textContent = results.length;
+          renderRecentResults(results.slice(0, 5));
+        } catch (err) {
+          console.error('Failed to load dashboard data:', err);
+          showToast('Dashboard statistics temporarily unavailable.', 'error');
+          document.getElementById('recent-results-tbody').innerHTML = `
+            <tr><td colspan="7" class="empty-state">Dashboard data is temporarily unavailable. Existing values were preserved.</td></tr>
+          `;
+        } finally {
+          dashboardLoadPromise = null;
+        }
+      })();
+
+      return dashboardLoadPromise;
+    }
+
+    function renderRecentResults(results) {
+      const tbody = document.getElementById('recent-results-tbody');
+      if (!results || results.length === 0) {
+        tbody.innerHTML = `
+          <tr>
+            <td colspan="7" style="text-align: center; padding: 40px; color: #94a3b8;">
+              No student test submissions recorded yet. Once students complete tests on the user portal, results will stream here in real-time.
+            </td>
+          </tr>
+        `;
+        return;
+      }
+
+      tbody.innerHTML = results.map(r => `
+        <tr>
+          <td>
+            <strong>${escapeHtml(r.userName || 'Student')}</strong>
+            <div style="font-size:12px; color:#94a3b8;">${escapeHtml(r.userEmail || '-')}</div>
+          </td>
+          <td>
+            <strong>${escapeHtml(r.testTitle || 'Mock Test')}</strong>
+            <div style="font-size:12px; color:#64748b;">${escapeHtml(r.examName || '-')}</div>
+          </td>
+          <td>
+            <span style="font-weight:700; color:#e11d48;">${r.score || 0}</span> / ${r.totalMarks || 100}
+          </td>
+          <td>
+            <span style="color:#10b981; font-weight:600;">+${r.correctCount || 0}</span> / 
+            <span style="color:#ef4444; font-weight:600;">-${r.wrongCount || 0}</span>
+          </td>
+          <td>
+            <span class="badge ${(r.percentage || 0) >= 60 ? 'badge-success' : 'badge-warning'}">
+              ${(r.percentage || 0).toFixed(1)}%
+            </span>
+          </td>
+          <td style="font-size:12px; color:#64748b;">
+            ${formatDate(r.submittedAt)}
+          </td>
+          <td>
+            <a href="./admin-results.html" class="action-btn" title="View Full Analysis">
+              ${ICONS.eye}
+            </a>
+          </td>
+        </tr>
+      `).join('');
+    }
+
+    document.getElementById('btn-refresh-stats').onclick = async () => {
+      const btn = document.getElementById('btn-refresh-stats');
+      btn.disabled = true;
+      showToast('Refreshing live data from Firebase...', 'info');
+      await loadDashboardData();
+      btn.disabled = false;
+      showToast('Dashboard data refreshed!', 'success');
+    };
+  </script>
+</body>
+
+</html>

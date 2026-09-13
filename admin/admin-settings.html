@@ -1,0 +1,3050 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+  <title>Platform Settings - RankHub Admin</title>
+
+  <link rel="stylesheet" href="./admin.css">
+
+  <style>
+    /* =========================================================
+       RANKHUB SETTINGS PAGE
+       Uses existing admin.css design system
+    ========================================================= */
+
+    .settings-grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 24px;
+    }
+
+    .settings-card {
+      margin-bottom: 0;
+    }
+
+    .settings-card.full-width {
+      grid-column: 1 / -1;
+    }
+
+    .settings-section-icon {
+      width: 38px;
+      height: 38px;
+      border-radius: 10px;
+      background: var(--primary-red-light);
+      color: var(--primary-red);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+    }
+
+    .settings-header-content {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      min-width: 0;
+    }
+
+    .settings-header-content > div:last-child {
+      min-width: 0;
+    }
+
+    .settings-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 20px;
+      padding: 16px 0;
+      border-bottom: 1px solid var(--border-subtle);
+    }
+
+    .settings-row:first-child {
+      padding-top: 0;
+    }
+
+    .settings-row:last-child {
+      border-bottom: none;
+      padding-bottom: 0;
+    }
+
+    .settings-row-info {
+      min-width: 0;
+      flex: 1;
+    }
+
+    .settings-row-title {
+      display: block;
+      font-size: 14px;
+      font-weight: 700;
+      color: var(--text-main);
+      line-height: 1.4;
+    }
+
+    .settings-row-desc {
+      display: block;
+      margin-top: 3px;
+      font-size: 12px;
+      color: var(--text-muted);
+      line-height: 1.5;
+    }
+
+    /* =========================================================
+       CUSTOM SWITCH
+    ========================================================= */
+
+    .setting-switch {
+      position: relative;
+      width: 46px;
+      height: 26px;
+      flex: 0 0 46px;
+    }
+
+    .setting-switch input {
+      position: absolute;
+      opacity: 0;
+      pointer-events: none;
+      width: 0;
+      height: 0;
+    }
+
+    .switch-slider {
+      position: absolute;
+      inset: 0;
+      cursor: pointer;
+      background: #d1d5db;
+      border-radius: 999px;
+      transition: var(--transition);
+    }
+
+    .switch-slider::before {
+      content: "";
+      position: absolute;
+      width: 20px;
+      height: 20px;
+      left: 3px;
+      top: 3px;
+      background: #ffffff;
+      border-radius: 50%;
+      box-shadow: 0 2px 5px rgba(15, 23, 42, 0.18);
+      transition: var(--transition);
+    }
+
+    .setting-switch input:checked + .switch-slider {
+      background: var(--primary-red);
+    }
+
+    .setting-switch input:checked + .switch-slider::before {
+      transform: translateX(20px);
+    }
+
+    .setting-switch input:focus-visible + .switch-slider {
+      box-shadow: 0 0 0 3px var(--primary-red-glow);
+    }
+
+    /* =========================================================
+       STATUS SELECT
+    ========================================================= */
+
+    .status-selector {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 10px;
+    }
+
+    .status-option {
+      position: relative;
+    }
+
+    .status-option input {
+      position: absolute;
+      opacity: 0;
+      pointer-events: none;
+    }
+
+    .status-label {
+      min-height: 76px;
+      padding: 12px 10px;
+      border: 1px solid var(--border-color);
+      border-radius: var(--radius-md);
+      background: var(--bg-subtle);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 5px;
+      cursor: pointer;
+      text-align: center;
+      transition: var(--transition);
+    }
+
+    .status-label:hover {
+      border-color: var(--primary-red-border);
+      background: var(--primary-red-light);
+    }
+
+    .status-option input:checked + .status-label {
+      border-color: var(--primary-red);
+      background: var(--primary-red-light);
+      box-shadow: 0 0 0 2px var(--primary-red-glow);
+    }
+
+    .status-dot {
+      width: 9px;
+      height: 9px;
+      border-radius: 50%;
+      background: #9ca3af;
+    }
+
+    .status-dot.online {
+      background: var(--success);
+    }
+
+    .status-dot.maintenance {
+      background: var(--warning);
+    }
+
+    .status-dot.coming-soon {
+      background: var(--info);
+    }
+
+    .status-label strong {
+      font-size: 12px;
+      color: var(--text-main);
+    }
+
+    .status-label small {
+      font-size: 10px;
+      color: var(--text-muted);
+    }
+
+    /* =========================================================
+       COLOR PREVIEW
+    ========================================================= */
+
+    .color-setting {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .color-preview {
+      width: 42px;
+      height: 42px;
+      border-radius: 10px;
+      background: var(--primary-red);
+      border: 1px solid var(--primary-red-border);
+      box-shadow: var(--shadow-sm);
+      flex-shrink: 0;
+    }
+
+    /* =========================================================
+       MAINTENANCE BOX
+    ========================================================= */
+
+    .maintenance-box {
+      margin-top: 20px;
+      padding: 16px;
+      border: 1px solid var(--warning-border);
+      background: var(--warning-light);
+      border-radius: var(--radius-md);
+    }
+
+    .maintenance-box-title {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 13px;
+      font-weight: 700;
+      color: var(--warning-text);
+    }
+
+    .maintenance-box-text {
+      margin-top: 5px;
+      font-size: 12px;
+      color: var(--warning-text);
+      line-height: 1.5;
+    }
+
+    /* =========================================================
+       DIAGNOSTIC
+    ========================================================= */
+
+    .diagnostic-box {
+      background: #f8fafc;
+      color: #0f172a;
+      border: 1px solid var(--border-color);
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 12px;
+      padding: 18px;
+      border-radius: var(--radius-md);
+      line-height: 1.8;
+      min-height: 110px;
+      box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.7);
+      overflow-x: auto;
+      white-space: normal;
+    }
+
+    .diag-success {
+      color: var(--success-text);
+      font-weight: 600;
+    }
+
+    .diag-error {
+      color: var(--danger-text);
+      font-weight: 600;
+    }
+
+    .diag-warning {
+      color: var(--warning-text);
+      font-weight: 600;
+    }
+
+    /* =========================================================
+       SAVE BAR
+    ========================================================= */
+
+    .settings-save-bar {
+      margin-top: 24px;
+      padding: 16px 20px;
+      background: var(--bg-surface);
+      border: 1px solid var(--border-color);
+      border-radius: var(--radius-lg);
+      box-shadow: var(--shadow-sm);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 16px;
+      position: sticky;
+      bottom: 16px;
+      z-index: 20;
+    }
+
+    .save-status {
+      font-size: 12px;
+      color: var(--text-muted);
+    }
+
+    .save-status strong {
+      color: var(--text-main);
+    }
+
+    /* =========================================================
+       RESPONSIVE
+    ========================================================= */
+
+    @media (max-width: 900px) {
+      .settings-grid {
+        grid-template-columns: 1fr;
+      }
+
+      .settings-card.full-width {
+        grid-column: auto;
+      }
+    }
+
+    @media (max-width: 600px) {
+      .status-selector {
+        grid-template-columns: 1fr;
+      }
+
+      .settings-row {
+        align-items: flex-start;
+      }
+
+      .settings-save-bar {
+        flex-direction: column;
+        align-items: stretch;
+      }
+
+      .settings-save-bar .btn {
+        width: 100%;
+      }
+    }
+
+    @media (max-width: 480px) {
+      .settings-row {
+        gap: 12px;
+      }
+
+      .settings-row-title {
+        font-size: 13px;
+      }
+
+      .settings-row-desc {
+        font-size: 11.5px;
+      }
+    }
+  </style>
+</head>
+
+<body>
+
+  <div class="admin-layout">
+
+    <main class="admin-main">
+
+      <!-- Header is populated by admin-sidebar.js -->
+      <header class="admin-header"></header>
+
+      <div class="admin-content">
+
+        <!-- =====================================================
+             PAGE TOOLBAR
+        ====================================================== -->
+
+        <div class="page-toolbar">
+
+          <div class="page-toolbar-info">
+
+            <h1>Platform Settings & Diagnostics</h1>
+
+            <p>
+              Configure RankHub platform, access, notifications,
+              maintenance and system settings.
+            </p>
+
+          </div>
+
+          <div class="page-toolbar-actions">
+
+            <button
+              type="button"
+              class="btn btn-primary"
+              id="btn-save-all-settings">
+
+              <svg
+                width="16"
+                height="16"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2.5">
+
+                <polyline points="20 6 9 17 4 12"></polyline>
+
+              </svg>
+
+              Save Changes
+
+            </button>
+
+          </div>
+
+        </div>
+
+
+        <!-- =====================================================
+             SETTINGS GRID
+        ====================================================== -->
+
+        <div class="settings-grid">
+
+
+          <!-- ===================================================
+               1. GENERAL PLATFORM
+          ==================================================== -->
+
+          <div class="card settings-card">
+
+            <div class="card-header">
+
+              <div class="settings-header-content">
+
+                <div class="settings-section-icon">
+
+                  <svg
+                    width="19"
+                    height="19"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    stroke-width="2">
+
+                    <circle cx="12" cy="12" r="3"></circle>
+
+                    <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06-1.42 1.42-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V20h-2v-.08a1.65 1.65 0 0 0-1-1.51 1.65 1.65 0 0 0-1.82.33l-.06.06-1.42-1.42.06-.06A1.65 1.65 0 0 0 9.6 15a1.65 1.65 0 0 0-1.51-1H8v-2h.09a1.65 1.65 0 0 0 1.51-1 1.65 1.65 0 0 0-.33-1.82l-.06-.06 1.42-1.42.06.06a1.65 1.65 0 0 0 1.82.33 1.65 1.65 0 0 0 1-1.51V6h2v.08a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06 1.42 1.42-.06.06A1.65 1.65 0 0 0 19.4 11c.19.6.75 1 1.4 1h.2v2h-.2c-.65 0-1.21.4-1.4 1z"></path>
+
+                  </svg>
+
+                </div>
+
+                <div>
+
+                  <h3 class="card-title">
+                    General Platform Config
+                  </h3>
+
+                  <p class="card-subtitle">
+                    Public branding and candidate support information
+                  </p>
+
+                </div>
+
+              </div>
+
+            </div>
+
+
+            <div class="card-body">
+
+              <form id="general-settings-form">
+
+                <div class="form-group">
+
+                  <label class="form-label" for="setting-name">
+                    Platform Name
+                  </label>
+
+                  <input
+                    type="text"
+                    id="setting-name"
+                    class="form-control"
+                    value="RankHub Exam Prep"
+                    autocomplete="organization">
+
+                </div>
+
+
+                <div class="form-group">
+
+                  <label class="form-label" for="setting-tagline">
+                    Brand Tagline
+                  </label>
+
+                  <input
+                    type="text"
+                    id="setting-tagline"
+                    class="form-control"
+                    value="Crack India’s Top Competitive Exams with Confidence">
+
+                </div>
+
+
+                <div class="form-row">
+
+                  <div class="form-group">
+
+                    <label class="form-label" for="setting-email">
+                      Support Email
+                    </label>
+
+                    <input
+                      type="email"
+                      id="setting-email"
+                      class="form-control"
+                      value="support@rankhub.in"
+                      autocomplete="email">
+
+                  </div>
+
+
+                  <div class="form-group">
+
+                    <label class="form-label" for="setting-phone">
+                      Support Phone / WhatsApp
+                    </label>
+
+                    <input
+                      type="tel"
+                      id="setting-phone"
+                      class="form-control"
+                      value="+91 98765 43210"
+                      autocomplete="tel">
+
+                  </div>
+
+                </div>
+
+
+                <div class="form-group">
+
+                  <label class="form-label" for="setting-currency">
+                    Platform Currency
+                  </label>
+
+                  <input
+                    type="text"
+                    id="setting-currency"
+                    class="form-control"
+                    value="INR (₹)"
+                    readonly>
+
+                  <div class="form-hint">
+                    RankHub currently uses Indian Rupees for platform pricing.
+                  </div>
+
+                </div>
+
+              </form>
+
+            </div>
+
+          </div>
+
+
+          <!-- ===================================================
+               2. PORTAL ACCESS
+          ==================================================== -->
+
+          <div class="card settings-card">
+
+            <div class="card-header">
+
+              <div class="settings-header-content">
+
+                <div class="settings-section-icon">
+
+                  <svg
+                    width="19"
+                    height="19"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    stroke-width="2">
+
+                    <rect
+                      x="3"
+                      y="11"
+                      width="18"
+                      height="10"
+                      rx="2"></rect>
+
+                    <path d="M7 11V7a5 5 0 0 1 10 0v4"></path>
+
+                  </svg>
+
+                </div>
+
+                <div>
+
+                  <h3 class="card-title">
+                    Portal Access & Security
+                  </h3>
+
+                  <p class="card-subtitle">
+                    Control student registration and website availability
+                  </p>
+
+                </div>
+
+              </div>
+
+            </div>
+
+
+            <div class="card-body">
+
+
+              <!-- Registration -->
+
+              <div class="settings-row">
+
+                <div class="settings-row-info">
+
+                  <span class="settings-row-title">
+                    Candidate Registration
+                  </span>
+
+                  <span class="settings-row-desc">
+                    Allow new candidates to create accounts.
+                  </span>
+
+                </div>
+
+                <label class="setting-switch">
+
+                  <input
+                    type="checkbox"
+                    id="setting-reg-enabled"
+                    checked>
+
+                  <span class="switch-slider"></span>
+
+                </label>
+
+              </div>
+
+
+              <!-- Maintenance -->
+
+              <div class="settings-row">
+
+                <div class="settings-row-info">
+
+                  <span class="settings-row-title">
+                    Maintenance Mode
+                  </span>
+
+                  <span class="settings-row-desc">
+                    Temporarily show the maintenance page to students.
+                  </span>
+
+                </div>
+
+                <label class="setting-switch">
+
+                  <input
+                    type="checkbox"
+                    id="setting-maint-enabled">
+
+                  <span class="switch-slider"></span>
+
+                </label>
+
+              </div>
+
+
+              <!-- Admin bypass -->
+
+              <div class="settings-row">
+
+                <div class="settings-row-info">
+
+                  <span class="settings-row-title">
+                    Admin Maintenance Bypass
+                  </span>
+
+                  <span class="settings-row-desc">
+                    Keep the admin panel accessible while students see maintenance mode.
+                  </span>
+
+                </div>
+
+                <label class="setting-switch">
+
+                  <input
+                    type="checkbox"
+                    id="setting-maint-admin-bypass"
+                    checked>
+
+                  <span class="switch-slider"></span>
+
+                </label>
+
+              </div>
+
+
+              <div class="form-group" style="margin-top:20px;">
+
+                <label
+                  class="form-label"
+                  for="setting-maint-msg">
+
+                  Maintenance Message
+
+                </label>
+
+                <textarea
+                  id="setting-maint-msg"
+                  class="form-control"
+                  rows="3">RankHub is undergoing scheduled infrastructure optimization. Tests will resume shortly.</textarea>
+
+              </div>
+
+
+              <div class="form-row">
+
+                <div class="form-group">
+
+                  <label
+                    class="form-label"
+                    for="setting-maint-return">
+
+                    Expected Return Time
+
+                  </label>
+
+                  <input
+                    type="datetime-local"
+                    id="setting-maint-return"
+                    class="form-control">
+
+                </div>
+
+
+                <div class="form-group">
+
+                  <label
+                    class="form-label"
+                    for="setting-maint-show-time">
+
+                    Show Return Time
+
+                  </label>
+
+                  <select
+                    id="setting-maint-show-time"
+                    class="form-control">
+
+                    <option value="true">
+                      Yes
+                    </option>
+
+                    <option value="false">
+                      No
+                    </option>
+
+                  </select>
+
+                </div>
+
+              </div>
+
+
+              <div
+                id="maintenance-info"
+                class="maintenance-box"
+                hidden>
+
+                <div class="maintenance-box-title">
+
+                  <span>⚠️</span>
+
+                  Maintenance Mode is Active
+
+                </div>
+
+                <div class="maintenance-box-text">
+
+                  Students will see the maintenance page.
+                  Admin access remains available according to the bypass setting.
+
+                </div>
+
+              </div>
+
+            </div>
+
+          </div>
+
+
+          <!-- ===================================================
+               3. WEBSITE STATUS
+          ==================================================== -->
+
+          <div class="card settings-card">
+
+            <div class="card-header">
+
+              <div class="settings-header-content">
+
+                <div class="settings-section-icon">
+
+                  <svg
+                    width="19"
+                    height="19"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    stroke-width="2">
+
+                    <circle cx="12" cy="12" r="9"></circle>
+
+                    <path d="M12 7v5l3 2"></path>
+
+                  </svg>
+
+                </div>
+
+                <div>
+
+                  <h3 class="card-title">
+                    Website Status
+                  </h3>
+
+                  <p class="card-subtitle">
+                    Control the public availability state of RankHub
+                  </p>
+
+                </div>
+
+              </div>
+
+            </div>
+
+
+            <div class="card-body">
+
+              <div class="status-selector">
+
+
+                <div class="status-option">
+
+                  <input
+                    type="radio"
+                    name="website-status"
+                    id="status-online"
+                    value="online"
+                    checked>
+
+                  <label
+                    class="status-label"
+                    for="status-online">
+
+                    <span class="status-dot online"></span>
+
+                    <strong>Online</strong>
+
+                    <small>Website active</small>
+
+                  </label>
+
+                </div>
+
+
+                <div class="status-option">
+
+                  <input
+                    type="radio"
+                    name="website-status"
+                    id="status-maintenance"
+                    value="maintenance">
+
+                  <label
+                    class="status-label"
+                    for="status-maintenance">
+
+                    <span class="status-dot maintenance"></span>
+
+                    <strong>Maintenance</strong>
+
+                    <small>Temporarily unavailable</small>
+
+                  </label>
+
+                </div>
+
+
+                <div class="status-option">
+
+                  <input
+                    type="radio"
+                    name="website-status"
+                    id="status-coming-soon"
+                    value="coming-soon">
+
+                  <label
+                    class="status-label"
+                    for="status-coming-soon">
+
+                    <span class="status-dot coming-soon"></span>
+
+                    <strong>Coming Soon</strong>
+
+                    <small>Pre-launch mode</small>
+
+                  </label>
+
+                </div>
+
+              </div>
+
+
+              <div
+                class="form-hint"
+                style="margin-top:14px;">
+
+                Website status is stored as a platform setting.
+                The public website must read this value to enforce the selected mode.
+
+              </div>
+
+            </div>
+
+          </div>
+
+
+          <!-- ===================================================
+               4. APPEARANCE
+          ==================================================== -->
+
+          <div class="card settings-card">
+
+            <div class="card-header">
+
+              <div class="settings-header-content">
+
+                <div class="settings-section-icon">
+
+                  <svg
+                    width="19"
+                    height="19"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    stroke-width="2">
+
+                    <circle cx="12" cy="12" r="4"></circle>
+
+                    <path d="M12 2v2"></path>
+                    <path d="M12 20v2"></path>
+                    <path d="M4.93 4.93l1.41 1.41"></path>
+                    <path d="M17.66 17.66l1.41 1.41"></path>
+                    <path d="M2 12h2"></path>
+                    <path d="M20 12h2"></path>
+                    <path d="M4.93 19.07l1.41-1.41"></path>
+                    <path d="M17.66 6.34l1.41-1.41"></path>
+
+                  </svg>
+
+                </div>
+
+                <div>
+
+                  <h3 class="card-title">
+                    Appearance
+                  </h3>
+
+                  <p class="card-subtitle">
+                    Control the public platform visual preferences
+                  </p>
+
+                </div>
+
+              </div>
+
+            </div>
+
+
+            <div class="card-body">
+
+
+              <div class="form-group">
+
+                <label
+                  class="form-label"
+                  for="setting-theme">
+
+                  Website Theme
+
+                </label>
+
+                <select
+                  id="setting-theme"
+                  class="form-control">
+
+                  <option value="light">
+                    Light
+                  </option>
+
+                  <option value="dark">
+                    Dark
+                  </option>
+
+                  <option value="system">
+                    System Default
+                  </option>
+
+                </select>
+
+              </div>
+
+
+              <div class="form-group">
+
+                <label class="form-label">
+                  Primary Brand Color
+                </label>
+
+                <div class="color-setting">
+
+                  <div
+                    class="color-preview"
+                    id="primary-color-preview">
+                  </div>
+
+                  <input
+                    type="text"
+                    id="setting-primary-color"
+                    class="form-control"
+                    value="#dc2626"
+                    placeholder="#dc2626">
+
+                </div>
+
+                <div class="form-hint">
+                  Current RankHub accent is Crimson Red.
+                </div>
+
+              </div>
+
+
+              <div class="settings-row">
+
+                <div class="settings-row-info">
+
+                  <span class="settings-row-title">
+                    Compact Header
+                  </span>
+
+                  <span class="settings-row-desc">
+                    Use a smaller header on supported pages.
+                  </span>
+
+                </div>
+
+                <label class="setting-switch">
+
+                  <input
+                    type="checkbox"
+                    id="setting-compact-header">
+
+                  <span class="switch-slider"></span>
+
+                </label>
+
+              </div>
+
+
+              <div class="settings-row">
+
+                <div class="settings-row-info">
+
+                  <span class="settings-row-title">
+                    Smooth Animations
+                  </span>
+
+                  <span class="settings-row-desc">
+                    Enable subtle interface transitions.
+                  </span>
+
+                </div>
+
+                <label class="setting-switch">
+
+                  <input
+                    type="checkbox"
+                    id="setting-animations"
+                    checked>
+
+                  <span class="switch-slider"></span>
+
+                </label>
+
+              </div>
+
+            </div>
+
+          </div>
+
+
+          <!-- ===================================================
+               5. NOTIFICATIONS
+          ==================================================== -->
+
+          <div class="card settings-card">
+
+            <div class="card-header">
+
+              <div class="settings-header-content">
+
+                <div class="settings-section-icon">
+
+                  <svg
+                    width="19"
+                    height="19"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    stroke-width="2">
+
+                    <path d="M18 8a6 6 0 0 0-12 0c0 7-3 7-3 9h18c0-2-3-2-3-9"></path>
+
+                    <path d="M10 21h4"></path>
+
+                  </svg>
+
+                </div>
+
+                <div>
+
+                  <h3 class="card-title">
+                    Notification Settings
+                  </h3>
+
+                  <p class="card-subtitle">
+                    Control the RankHub student notification experience
+                  </p>
+
+                </div>
+
+              </div>
+
+            </div>
+
+
+            <div class="card-body">
+
+
+              <div class="settings-row">
+
+                <div class="settings-row-info">
+
+                  <span class="settings-row-title">
+                    Notifications
+                  </span>
+
+                  <span class="settings-row-desc">
+                    Enable the website notification system.
+                  </span>
+
+                </div>
+
+                <label class="setting-switch">
+
+                  <input
+                    type="checkbox"
+                    id="setting-notifications-enabled"
+                    checked>
+
+                  <span class="switch-slider"></span>
+
+                </label>
+
+              </div>
+
+
+              <div class="settings-row">
+
+                <div class="settings-row-info">
+
+                  <span class="settings-row-title">
+                    Header Notification Bell
+                  </span>
+
+                  <span class="settings-row-desc">
+                    Show the existing 🔔 notification bell in the student header.
+                  </span>
+
+                </div>
+
+                <label class="setting-switch">
+
+                  <input
+                    type="checkbox"
+                    id="setting-notification-bell"
+                    checked>
+
+                  <span class="switch-slider"></span>
+
+                </label>
+
+              </div>
+
+
+              <div class="settings-row">
+
+                <div class="settings-row-info">
+
+                  <span class="settings-row-title">
+                    Unread Badge
+                  </span>
+
+                  <span class="settings-row-desc">
+                    Display the unread notification count on the bell.
+                  </span>
+
+                </div>
+
+                <label class="setting-switch">
+
+                  <input
+                    type="checkbox"
+                    id="setting-notification-badge"
+                    checked>
+
+                  <span class="switch-slider"></span>
+
+                </label>
+
+              </div>
+
+
+              <div class="settings-row">
+
+                <div class="settings-row-info">
+
+                  <span class="settings-row-title">
+                    Real-time Notifications
+                  </span>
+
+                  <span class="settings-row-desc">
+                    Use Firestore real-time updates for new notifications.
+                  </span>
+
+                </div>
+
+                <label class="setting-switch">
+
+                  <input
+                    type="checkbox"
+                    id="setting-notification-realtime"
+                    checked>
+
+                  <span class="switch-slider"></span>
+
+                </label>
+
+              </div>
+
+
+              <div class="form-group" style="margin-top:20px;">
+
+                <label
+                  class="form-label"
+                  for="setting-notification-limit">
+
+                  Popup Notification Limit
+
+                </label>
+
+                <select
+                  id="setting-notification-limit"
+                  class="form-control">
+
+                  <option value="5">5 Notifications</option>
+                  <option value="10" selected>10 Notifications</option>
+                  <option value="15">15 Notifications</option>
+                  <option value="20">20 Notifications</option>
+
+                </select>
+
+              </div>
+
+            </div>
+
+          </div>
+
+
+          <!-- ===================================================
+               6. EXAM & MOCK TEST
+          ==================================================== -->
+
+          <div class="card settings-card">
+
+            <div class="card-header">
+
+              <div class="settings-header-content">
+
+                <div class="settings-section-icon">
+
+                  <svg
+                    width="19"
+                    height="19"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    stroke-width="2">
+
+                    <path d="M4 4h16v16H4z"></path>
+                    <path d="M8 8h8"></path>
+                    <path d="M8 12h8"></path>
+                    <path d="M8 16h5"></path>
+
+                  </svg>
+
+                </div>
+
+                <div>
+
+                  <h3 class="card-title">
+                    Exam & Mock Test
+                  </h3>
+
+                  <p class="card-subtitle">
+                    Default student test experience settings
+                  </p>
+
+                </div>
+
+              </div>
+
+            </div>
+
+
+            <div class="card-body">
+
+
+              <div class="settings-row">
+
+                <div class="settings-row-info">
+
+                  <span class="settings-row-title">
+                    Exams Enabled
+                  </span>
+
+                  <span class="settings-row-desc">
+                    Allow students to access active exams.
+                  </span>
+
+                </div>
+
+                <label class="setting-switch">
+
+                  <input
+                    type="checkbox"
+                    id="setting-exams-enabled"
+                    checked>
+
+                  <span class="switch-slider"></span>
+
+                </label>
+
+              </div>
+
+
+              <div class="settings-row">
+
+                <div class="settings-row-info">
+
+                  <span class="settings-row-title">
+                    Mock Tests Enabled
+                  </span>
+
+                  <span class="settings-row-desc">
+                    Allow students to access published mock tests.
+                  </span>
+
+                </div>
+
+                <label class="setting-switch">
+
+                  <input
+                    type="checkbox"
+                    id="setting-mock-enabled"
+                    checked>
+
+                  <span class="switch-slider"></span>
+
+                </label>
+
+              </div>
+
+
+              <div class="settings-row">
+
+                <div class="settings-row-info">
+
+                  <span class="settings-row-title">
+                    Results Visible
+                  </span>
+
+                  <span class="settings-row-desc">
+                    Allow students to view submitted test results.
+                  </span>
+
+                </div>
+
+                <label class="setting-switch">
+
+                  <input
+                    type="checkbox"
+                    id="setting-results-visible"
+                    checked>
+
+                  <span class="switch-slider"></span>
+
+                </label>
+
+              </div>
+
+
+              <div class="form-row" style="margin-top:20px;">
+
+                <div class="form-group">
+
+                  <label
+                    class="form-label"
+                    for="setting-default-duration">
+
+                    Default Test Duration
+
+                  </label>
+
+                  <input
+                    type="number"
+                    id="setting-default-duration"
+                    class="form-control"
+                    min="1"
+                    value="60">
+
+                  <div class="form-hint">
+                    Duration in minutes.
+                  </div>
+
+                </div>
+
+
+                <div class="form-group">
+
+                  <label
+                    class="form-label"
+                    for="setting-default-attempts">
+
+                    Default Attempts
+
+                  </label>
+
+                  <input
+                    type="number"
+                    id="setting-default-attempts"
+                    class="form-control"
+                    min="1"
+                    value="1">
+
+                </div>
+
+              </div>
+
+            </div>
+
+          </div>
+
+
+          <!-- ===================================================
+               7. USER & LOGIN
+          ==================================================== -->
+
+          <div class="card settings-card">
+
+            <div class="card-header">
+
+              <div class="settings-header-content">
+
+                <div class="settings-section-icon">
+
+                  <svg
+                    width="19"
+                    height="19"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    stroke-width="2">
+
+                    <path d="M20 21a8 8 0 0 0-16 0"></path>
+
+                    <circle
+                      cx="12"
+                      cy="7"
+                      r="4"></circle>
+
+                  </svg>
+
+                </div>
+
+                <div>
+
+                  <h3 class="card-title">
+                    Users & Login
+                  </h3>
+
+                  <p class="card-subtitle">
+                    Control available student authentication methods
+                  </p>
+
+                </div>
+
+              </div>
+
+            </div>
+
+
+            <div class="card-body">
+
+
+              <div class="settings-row">
+
+                <div class="settings-row-info">
+
+                  <span class="settings-row-title">
+                    Email Login
+                  </span>
+
+                  <span class="settings-row-desc">
+                    Allow students to sign in using email and password.
+                  </span>
+
+                </div>
+
+                <label class="setting-switch">
+
+                  <input
+                    type="checkbox"
+                    id="setting-email-login"
+                    checked>
+
+                  <span class="switch-slider"></span>
+
+                </label>
+
+              </div>
+
+
+              <div class="settings-row">
+
+                <div class="settings-row-info">
+
+                  <span class="settings-row-title">
+                    Google Login
+                  </span>
+
+                  <span class="settings-row-desc">
+                    Allow Google authentication if configured.
+                  </span>
+
+                </div>
+
+                <label class="setting-switch">
+
+                  <input
+                    type="checkbox"
+                    id="setting-google-login"
+                    checked>
+
+                  <span class="switch-slider"></span>
+
+                </label>
+
+              </div>
+
+
+              <div class="settings-row">
+
+                <div class="settings-row-info">
+
+                  <span class="settings-row-title">
+                    Phone Login
+                  </span>
+
+                  <span class="settings-row-desc">
+                    Allow phone OTP authentication if configured.
+                  </span>
+
+                </div>
+
+                <label class="setting-switch">
+
+                  <input
+                    type="checkbox"
+                    id="setting-phone-login"
+                    checked>
+
+                  <span class="switch-slider"></span>
+
+                </label>
+
+              </div>
+
+
+              <div class="settings-row">
+
+                <div class="settings-row-info">
+
+                  <span class="settings-row-title">
+                    Profile Editing
+                  </span>
+
+                  <span class="settings-row-desc">
+                    Allow students to update their profile information.
+                  </span>
+
+                </div>
+
+                <label class="setting-switch">
+
+                  <input
+                    type="checkbox"
+                    id="setting-profile-edit"
+                    checked>
+
+                  <span class="switch-slider"></span>
+
+                </label>
+
+              </div>
+
+            </div>
+
+          </div>
+
+
+          <!-- ===================================================
+               8. SYSTEM SETTINGS
+          ==================================================== -->
+
+          <div class="card settings-card">
+
+            <div class="card-header">
+
+              <div class="settings-header-content">
+
+                <div class="settings-section-icon">
+
+                  <svg
+                    width="19"
+                    height="19"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    stroke-width="2">
+
+                    <path d="M12 2v20"></path>
+                    <path d="M2 12h20"></path>
+                    <circle cx="12" cy="12" r="8"></circle>
+
+                  </svg>
+
+                </div>
+
+                <div>
+
+                  <h3 class="card-title">
+                    System Preferences
+                  </h3>
+
+                  <p class="card-subtitle">
+                    General runtime preferences
+                  </p>
+
+                </div>
+
+              </div>
+
+            </div>
+
+
+            <div class="card-body">
+
+
+              <div class="form-group">
+
+                <label
+                  class="form-label"
+                  for="setting-timezone">
+
+                  Platform Timezone
+
+                </label>
+
+                <select
+                  id="setting-timezone"
+                  class="form-control">
+
+                  <option value="Asia/Kolkata" selected>
+                    Asia/Kolkata (IST)
+                  </option>
+
+                  <option value="UTC">
+                    UTC
+                  </option>
+
+                </select>
+
+              </div>
+
+
+              <div class="settings-row">
+
+                <div class="settings-row-info">
+
+                  <span class="settings-row-title">
+                    Automatic Date & Time
+                  </span>
+
+                  <span class="settings-row-desc">
+                    Use server/database timestamps for platform events.
+                  </span>
+
+                </div>
+
+                <label class="setting-switch">
+
+                  <input
+                    type="checkbox"
+                    id="setting-auto-time"
+                    checked>
+
+                  <span class="switch-slider"></span>
+
+                </label>
+
+              </div>
+
+
+              <div class="settings-row">
+
+                <div class="settings-row-info">
+
+                  <span class="settings-row-title">
+                    System Error Logging
+                  </span>
+
+                  <span class="settings-row-desc">
+                    Keep diagnostic errors available in the browser console.
+                  </span>
+
+                </div>
+
+                <label class="setting-switch">
+
+                  <input
+                    type="checkbox"
+                    id="setting-error-logging"
+                    checked>
+
+                  <span class="switch-slider"></span>
+
+                </label>
+
+              </div>
+
+            </div>
+
+          </div>
+
+
+          <!-- ===================================================
+               9. FIREBASE DIAGNOSTIC
+          ==================================================== -->
+
+          <div class="card settings-card full-width">
+
+            <div class="card-header">
+
+              <div class="settings-header-content">
+
+                <div class="settings-section-icon">
+
+                  <svg
+                    width="19"
+                    height="19"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    stroke-width="2">
+
+                    <path d="M12 2l9 5v10l-9 5-9-5V7z"></path>
+                    <path d="M12 22V12"></path>
+                    <path d="M3.3 7.5L12 12l8.7-4.5"></path>
+                    <path d="M7.5 4.5L16.5 9"></path>
+
+                  </svg>
+
+                </div>
+
+                <div>
+
+                  <h3 class="card-title">
+                    Database Health & Firestore Diagnostic
+                  </h3>
+
+                  <p class="card-subtitle">
+                    Verify real-time read/write permissions and connection status
+                  </p>
+
+                </div>
+
+              </div>
+
+
+              <button
+                type="button"
+                class="btn btn-sm btn-secondary"
+                id="btn-run-diag">
+
+                Run Diagnostic Test
+
+              </button>
+
+            </div>
+
+
+            <div class="card-body">
+
+              <div
+                id="diag-results-box"
+                class="diagnostic-box">
+
+                [INFO] Firebase Firestore SDK Loaded.<br>
+                [INFO] Ready to perform schema verification and collection diagnostics.
+
+              </div>
+
+            </div>
+
+          </div>
+
+        </div>
+
+
+        <!-- =====================================================
+             STICKY SAVE BAR
+        ====================================================== -->
+
+        <div class="settings-save-bar">
+
+          <div class="save-status" id="settings-save-status">
+
+            Changes are stored only after you click
+            <strong>Save Changes</strong>.
+
+          </div>
+
+
+          <button
+            type="button"
+            class="btn btn-primary"
+            id="btn-save-all-settings-bottom">
+
+            <svg
+              width="16"
+              height="16"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2.5">
+
+              <polyline points="20 6 9 17 4 12"></polyline>
+
+            </svg>
+
+            Save All Settings
+
+          </button>
+
+        </div>
+
+      </div>
+
+    </main>
+
+  </div>
+
+
+  <!-- =========================================================
+       JAVASCRIPT
+  ========================================================= -->
+
+  <script type="module">
+
+    import {
+      initAdminLayout
+    } from './admin-sidebar.js';
+
+    import {
+      getFirestoreSettings,
+      saveFirestoreSettings,
+      getDashboardStats
+    } from './admin-db.js';
+
+    import {
+      showToast
+    } from './admin.js';
+
+
+    /* =========================================================
+       DOM HELPERS
+    ========================================================= */
+
+    const $ = (id) => document.getElementById(id);
+
+
+    /* =========================================================
+       DEFAULT SETTINGS
+    ========================================================= */
+
+    const DEFAULT_SETTINGS = {
+
+      platformName:
+        'RankHub Exam Prep',
+
+      brandTagline:
+        'Crack India’s Top Competitive Exams with Confidence',
+
+      supportEmail:
+        'support@rankhub.in',
+
+      supportPhone:
+        '+91 98765 43210',
+
+      enableRegistration:
+        true,
+
+      enableMaintenanceMode:
+        false,
+
+      maintenanceMessage:
+        'RankHub is undergoing scheduled infrastructure optimization. Tests will resume shortly.',
+
+      maintenanceAdminBypass:
+        true,
+
+      maintenanceReturnTime:
+        '',
+
+      showMaintenanceReturnTime:
+        true,
+
+      websiteStatus:
+        'online',
+
+      theme:
+        'light',
+
+      primaryColor:
+        '#dc2626',
+
+      compactHeader:
+        false,
+
+      enableAnimations:
+        true,
+
+      notificationsEnabled:
+        true,
+
+      notificationBellEnabled:
+        true,
+
+      notificationBadgeEnabled:
+        true,
+
+      notificationRealtimeEnabled:
+        true,
+
+      notificationPopupLimit:
+        10,
+
+      examsEnabled:
+        true,
+
+      mockTestsEnabled:
+        true,
+
+      resultsVisible:
+        true,
+
+      defaultTestDuration:
+        60,
+
+      defaultTestAttempts:
+        1,
+
+      emailLoginEnabled:
+        true,
+
+      googleLoginEnabled:
+        true,
+
+      phoneLoginEnabled:
+        true,
+
+      profileEditingEnabled:
+        true,
+
+      platformTimezone:
+        'Asia/Kolkata',
+
+      automaticDateTime:
+        true,
+
+      systemErrorLogging:
+        true
+
+    };
+
+
+    /* =========================================================
+       INITIALIZATION
+    ========================================================= */
+
+    document.addEventListener(
+      'DOMContentLoaded',
+      async () => {
+
+        initAdminLayout(
+          'settings',
+          'Platform Settings'
+        );
+
+        setupEvents();
+
+        await loadSettings();
+
+      }
+    );
+
+
+    /* =========================================================
+       LOAD SETTINGS
+    ========================================================= */
+
+    async function loadSettings() {
+
+      try {
+
+        const saved =
+          await getFirestoreSettings();
+
+        const s = {
+          ...DEFAULT_SETTINGS,
+          ...(saved || {})
+        };
+
+
+        /* General */
+
+        $('setting-name').value =
+          s.platformName ||
+          DEFAULT_SETTINGS.platformName;
+
+        $('setting-tagline').value =
+          s.brandTagline ||
+          DEFAULT_SETTINGS.brandTagline;
+
+        $('setting-email').value =
+          s.supportEmail ||
+          DEFAULT_SETTINGS.supportEmail;
+
+        $('setting-phone').value =
+          s.supportPhone ||
+          DEFAULT_SETTINGS.supportPhone;
+
+
+        /* Access */
+
+        $('setting-reg-enabled').checked =
+          s.enableRegistration !== false;
+
+        $('setting-maint-enabled').checked =
+          Boolean(
+            s.enableMaintenanceMode
+          );
+
+        $('setting-maint-admin-bypass').checked =
+          s.maintenanceAdminBypass !== false;
+
+        $('setting-maint-msg').value =
+          s.maintenanceMessage ||
+          DEFAULT_SETTINGS.maintenanceMessage;
+
+        $('setting-maint-return').value =
+          normalizeDateTimeLocal(
+            s.maintenanceReturnTime
+          );
+
+        $('setting-maint-show-time').value =
+          String(
+            s.showMaintenanceReturnTime !== false
+          );
+
+
+        /* Website status */
+
+        setRadioValue(
+          'website-status',
+          s.websiteStatus ||
+          (
+            s.enableMaintenanceMode
+              ? 'maintenance'
+              : 'online'
+          )
+        );
+
+
+        /* Appearance */
+
+        $('setting-theme').value =
+          s.theme ||
+          DEFAULT_SETTINGS.theme;
+
+        $('setting-primary-color').value =
+          s.primaryColor ||
+          DEFAULT_SETTINGS.primaryColor;
+
+        $('setting-compact-header').checked =
+          Boolean(
+            s.compactHeader
+          );
+
+        $('setting-animations').checked =
+          s.enableAnimations !== false;
+
+
+        /* Notifications */
+
+        $('setting-notifications-enabled').checked =
+          s.notificationsEnabled !== false;
+
+        $('setting-notification-bell').checked =
+          s.notificationBellEnabled !== false;
+
+        $('setting-notification-badge').checked =
+          s.notificationBadgeEnabled !== false;
+
+        $('setting-notification-realtime').checked =
+          s.notificationRealtimeEnabled !== false;
+
+        $('setting-notification-limit').value =
+          String(
+            s.notificationPopupLimit || 10
+          );
+
+
+        /* Exams */
+
+        $('setting-exams-enabled').checked =
+          s.examsEnabled !== false;
+
+        $('setting-mock-enabled').checked =
+          s.mockTestsEnabled !== false;
+
+        $('setting-results-visible').checked =
+          s.resultsVisible !== false;
+
+        $('setting-default-duration').value =
+          Number(
+            s.defaultTestDuration || 60
+          );
+
+        $('setting-default-attempts').value =
+          Number(
+            s.defaultTestAttempts || 1
+          );
+
+
+        /* Users */
+
+        $('setting-email-login').checked =
+          s.emailLoginEnabled !== false;
+
+        $('setting-google-login').checked =
+          s.googleLoginEnabled !== false;
+
+        $('setting-phone-login').checked =
+          s.phoneLoginEnabled !== false;
+
+        $('setting-profile-edit').checked =
+          s.profileEditingEnabled !== false;
+
+
+        /* System */
+
+        $('setting-timezone').value =
+          s.platformTimezone ||
+          DEFAULT_SETTINGS.platformTimezone;
+
+        $('setting-auto-time').checked =
+          s.automaticDateTime !== false;
+
+        $('setting-error-logging').checked =
+          s.systemErrorLogging !== false;
+
+
+        updateColorPreview();
+
+        updateMaintenanceUI();
+
+        updateWebsiteStatusFromMaintenance();
+
+
+        $('settings-save-status').textContent =
+          'Settings loaded from Firestore.';
+
+      } catch (error) {
+
+        console.error(
+          'Failed to load platform settings:',
+          error
+        );
+
+        showToast(
+          'Unable to load settings: ' +
+          error.message,
+          'error'
+        );
+
+      }
+
+    }
+
+
+    /* =========================================================
+       COLLECT SETTINGS
+    ========================================================= */
+
+    function collectSettings() {
+
+      let websiteStatus =
+        getRadioValue(
+          'website-status'
+        ) || 'online';
+
+      const maintenanceEnabled =
+        $('setting-maint-enabled').checked;
+
+
+      /*
+       * Keep website status logically consistent.
+       */
+
+      if (maintenanceEnabled) {
+        websiteStatus = 'maintenance';
+      }
+
+
+      return {
+
+        /* General */
+
+        platformName:
+          $('setting-name').value.trim(),
+
+        brandTagline:
+          $('setting-tagline').value.trim(),
+
+        supportEmail:
+          $('setting-email').value.trim(),
+
+        supportPhone:
+          $('setting-phone').value.trim(),
+
+
+        /* Access */
+
+        enableRegistration:
+          $('setting-reg-enabled').checked,
+
+        enableMaintenanceMode:
+          maintenanceEnabled,
+
+        maintenanceAdminBypass:
+          $('setting-maint-admin-bypass').checked,
+
+        maintenanceMessage:
+          $('setting-maint-msg').value.trim(),
+
+        maintenanceReturnTime:
+          $('setting-maint-return').value,
+
+        showMaintenanceReturnTime:
+          $('setting-maint-show-time').value === 'true',
+
+
+        /* Website */
+
+        websiteStatus:
+          websiteStatus,
+
+
+        /* Appearance */
+
+        theme:
+          $('setting-theme').value,
+
+        primaryColor:
+          normalizeColor(
+            $('setting-primary-color').value
+          ),
+
+        compactHeader:
+          $('setting-compact-header').checked,
+
+        enableAnimations:
+          $('setting-animations').checked,
+
+
+        /* Notifications */
+
+        notificationsEnabled:
+          $('setting-notifications-enabled').checked,
+
+        notificationBellEnabled:
+          $('setting-notification-bell').checked,
+
+        notificationBadgeEnabled:
+          $('setting-notification-badge').checked,
+
+        notificationRealtimeEnabled:
+          $('setting-notification-realtime').checked,
+
+        notificationPopupLimit:
+          clampNumber(
+            $('setting-notification-limit').value,
+            5,
+            20,
+            10
+          ),
+
+
+        /* Exams */
+
+        examsEnabled:
+          $('setting-exams-enabled').checked,
+
+        mockTestsEnabled:
+          $('setting-mock-enabled').checked,
+
+        resultsVisible:
+          $('setting-results-visible').checked,
+
+        defaultTestDuration:
+          clampNumber(
+            $('setting-default-duration').value,
+            1,
+            1440,
+            60
+          ),
+
+        defaultTestAttempts:
+          clampNumber(
+            $('setting-default-attempts').value,
+            1,
+            100,
+            1
+          ),
+
+
+        /* Users */
+
+        emailLoginEnabled:
+          $('setting-email-login').checked,
+
+        googleLoginEnabled:
+          $('setting-google-login').checked,
+
+        phoneLoginEnabled:
+          $('setting-phone-login').checked,
+
+        profileEditingEnabled:
+          $('setting-profile-edit').checked,
+
+
+        /* System */
+
+        platformTimezone:
+          $('setting-timezone').value,
+
+        automaticDateTime:
+          $('setting-auto-time').checked,
+
+        systemErrorLogging:
+          $('setting-error-logging').checked
+
+      };
+
+    }
+
+
+    /* =========================================================
+       SAVE SETTINGS
+    ========================================================= */
+
+    async function saveAllSettings() {
+
+      const topButton =
+        $('btn-save-all-settings');
+
+      const bottomButton =
+        $('btn-save-all-settings-bottom');
+
+
+      topButton.disabled = true;
+      bottomButton.disabled = true;
+
+
+      const originalTopHTML =
+        topButton.innerHTML;
+
+      const originalBottomHTML =
+        bottomButton.innerHTML;
+
+
+      topButton.innerHTML =
+        'Saving...';
+
+      bottomButton.innerHTML =
+        'Saving...';
+
+
+      try {
+
+        const payload =
+          collectSettings();
+
+
+        /*
+         * Basic validation
+         */
+
+        if (!payload.platformName) {
+
+          throw new Error(
+            'Platform name is required.'
+          );
+
+        }
+
+
+        if (
+          payload.supportEmail &&
+          !isValidEmail(
+            payload.supportEmail
+          )
+        ) {
+
+          throw new Error(
+            'Please enter a valid support email.'
+          );
+
+        }
+
+
+        if (
+          payload.primaryColor &&
+          !isValidHexColor(
+            payload.primaryColor
+          )
+        ) {
+
+          throw new Error(
+            'Primary color must be a valid HEX color.'
+          );
+
+        }
+
+
+        /*
+         * Save through existing Firestore
+         * settings helper.
+         */
+
+        await saveFirestoreSettings(
+          payload
+        );
+
+
+        $('settings-save-status').innerHTML =
+          '<strong>Saved successfully.</strong> All platform settings have been updated.';
+
+
+        showToast(
+          'Platform settings saved successfully!',
+          'success'
+        );
+
+
+        /*
+         * Keep maintenance UI synced.
+         */
+
+        updateMaintenanceUI();
+
+
+      } catch (error) {
+
+        console.error(
+          'Failed to save settings:',
+          error
+        );
+
+
+        $('settings-save-status').innerHTML =
+          '<strong>Save failed.</strong> Please check the error and try again.';
+
+
+        showToast(
+          'Failed to save settings: ' +
+          error.message,
+          'error'
+        );
+
+
+      } finally {
+
+        topButton.disabled = false;
+        bottomButton.disabled = false;
+
+        topButton.innerHTML =
+          originalTopHTML;
+
+        bottomButton.innerHTML =
+          originalBottomHTML;
+
+      }
+
+    }
+
+
+    /* =========================================================
+       EVENTS
+    ========================================================= */
+
+    function setupEvents() {
+
+      $('btn-save-all-settings').addEventListener(
+        'click',
+        saveAllSettings
+      );
+
+
+      $('btn-save-all-settings-bottom').addEventListener(
+        'click',
+        saveAllSettings
+      );
+
+
+      $('btn-run-diag').addEventListener(
+        'click',
+        runDiagnostic
+      );
+
+
+      $('setting-maint-enabled').addEventListener(
+        'change',
+        () => {
+
+          updateMaintenanceUI();
+
+          if (
+            $('setting-maint-enabled').checked
+          ) {
+
+            $('status-maintenance').checked =
+              true;
+
+          } else {
+
+            $('status-online').checked =
+              true;
+
+          }
+
+        }
+      );
+
+
+      document
+        .querySelectorAll(
+          'input[name="website-status"]'
+        )
+        .forEach(
+          radio => {
+
+            radio.addEventListener(
+              'change',
+              () => {
+
+                if (
+                  radio.value ===
+                  'maintenance'
+                ) {
+
+                  $('setting-maint-enabled').checked =
+                    true;
+
+                }
+
+                if (
+                  radio.value ===
+                  'online'
+                ) {
+
+                  $('setting-maint-enabled').checked =
+                    false;
+
+                }
+
+                updateMaintenanceUI();
+
+              }
+            );
+
+          }
+        );
+
+
+      $('setting-primary-color').addEventListener(
+        'input',
+        updateColorPreview
+      );
+
+    }
+
+
+    /* =========================================================
+       MAINTENANCE UI
+    ========================================================= */
+
+    function updateMaintenanceUI() {
+
+      const enabled =
+        $('setting-maint-enabled').checked;
+
+      const box =
+        $('maintenance-info');
+
+      box.hidden =
+        !enabled;
+
+    }
+
+
+    function updateWebsiteStatusFromMaintenance() {
+
+      if (
+        $('setting-maint-enabled').checked
+      ) {
+
+        $('status-maintenance').checked =
+          true;
+
+      }
+
+    }
+
+
+    /* =========================================================
+       COLOR PREVIEW
+    ========================================================= */
+
+    function updateColorPreview() {
+
+      const input =
+        $('setting-primary-color');
+
+      const preview =
+        $('primary-color-preview');
+
+      const color =
+        normalizeColor(
+          input.value
+        );
+
+
+      if (
+        isValidHexColor(color)
+      ) {
+
+        preview.style.background =
+          color;
+
+      } else {
+
+        preview.style.background =
+          'var(--primary-red)';
+
+      }
+
+    }
+
+
+    /* =========================================================
+       FIRESTORE DIAGNOSTIC
+    ========================================================= */
+
+    async function runDiagnostic() {
+
+      const box =
+        $('diag-results-box');
+
+      const button =
+        $('btn-run-diag');
+
+
+      button.disabled = true;
+
+      button.textContent =
+        'Running...';
+
+
+      box.innerHTML =
+        '[PROGRESS] Connecting to Firestore cluster...<br>';
+
+
+      try {
+
+        const startTime =
+          performance.now();
+
+
+        const stats =
+          await getDashboardStats();
+
+
+        const duration =
+          Math.round(
+            performance.now() -
+            startTime
+          );
+
+
+        box.innerHTML +=
+          `[SUCCESS] Database connection active in ${duration}ms.<br>`;
+
+
+        box.innerHTML +=
+          `[CHECK] Total Users indexed: ${safeNumber(stats.totalUsers)}<br>`;
+
+
+        box.innerHTML +=
+          `[CHECK] Total Exams registered: ${safeNumber(stats.totalExams)}<br>`;
+
+
+        box.innerHTML +=
+          `[CHECK] Total Questions in Bank: ${safeNumber(stats.totalQuestions)}<br>`;
+
+
+        box.innerHTML +=
+          `[CHECK] Total Mock Tests online: ${safeNumber(stats.totalMockTests)}<br>`;
+
+
+        box.innerHTML +=
+          `<span class="diag-success">[VERIFIED] Firestore connection and dashboard collection reads are operational.</span>`;
+
+
+        showToast(
+          'Database Diagnostic Passed!',
+          'success'
+        );
+
+
+      } catch (error) {
+
+        console.error(
+          'Firestore diagnostic failed:',
+          error
+        );
+
+
+        box.innerHTML +=
+          `<span class="diag-error">[ERROR] ${escapeHtml(error.message)}</span>`;
+
+
+        showToast(
+          'Diagnostic completed with warnings',
+          'warning'
+        );
+
+
+      } finally {
+
+        button.disabled = false;
+
+        button.textContent =
+          'Run Diagnostic Test';
+
+      }
+
+    }
+
+
+    /* =========================================================
+       HELPERS
+    ========================================================= */
+
+    function getRadioValue(name) {
+
+      const checked =
+        document.querySelector(
+          `input[name="${name}"]:checked`
+        );
+
+      return checked
+        ? checked.value
+        : '';
+
+    }
+
+
+    function setRadioValue(
+      name,
+      value
+    ) {
+
+      const radio =
+        document.querySelector(
+          `input[name="${name}"][value="${value}"]`
+        );
+
+      if (radio) {
+        radio.checked = true;
+      }
+
+    }
+
+
+    function clampNumber(
+      value,
+      min,
+      max,
+      fallback
+    ) {
+
+      const number =
+        Number(value);
+
+      if (
+        !Number.isFinite(number)
+      ) {
+
+        return fallback;
+
+      }
+
+      return Math.min(
+        max,
+        Math.max(
+          min,
+          Math.round(number)
+        )
+      );
+
+    }
+
+
+    function safeNumber(value) {
+
+      const number =
+        Number(value);
+
+      return Number.isFinite(number)
+        ? number
+        : 0;
+
+    }
+
+
+    function normalizeColor(value) {
+
+      const color =
+        String(
+          value || ''
+        ).trim();
+
+      return color || '#dc2626';
+
+    }
+
+
+    function isValidHexColor(value) {
+
+      return /^#[0-9a-fA-F]{6}$/.test(
+        String(value || '').trim()
+      );
+
+    }
+
+
+    function isValidEmail(value) {
+
+      return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(
+        String(value || '').trim()
+      );
+
+    }
+
+
+    function normalizeDateTimeLocal(value) {
+
+      if (!value) {
+        return '';
+      }
+
+
+      /*
+       * Existing datetime-local values can be
+       * returned in multiple formats.
+       */
+
+      if (
+        /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}$/.test(
+          String(value)
+        )
+      ) {
+
+        return value;
+
+      }
+
+
+      try {
+
+        const date =
+          value?.toDate
+            ? value.toDate()
+            : new Date(value);
+
+
+        if (
+          Number.isNaN(
+            date.getTime()
+          )
+        ) {
+
+          return '';
+
+        }
+
+
+        const pad =
+          number =>
+            String(number)
+              .padStart(2, '0');
+
+
+        return (
+          date.getFullYear() +
+          '-' +
+          pad(date.getMonth() + 1) +
+          '-' +
+          pad(date.getDate()) +
+          'T' +
+          pad(date.getHours()) +
+          ':' +
+          pad(date.getMinutes())
+        );
+
+      } catch {
+
+        return '';
+
+      }
+
+    }
+
+
+    function escapeHtml(value) {
+
+      return String(
+        value ?? ''
+      )
+        .replace(
+          /&/g,
+          '&amp;'
+        )
+        .replace(
+          /</g,
+          '&lt;'
+        )
+        .replace(
+          />/g,
+          '&gt;'
+        )
+        .replace(
+          /"/g,
+          '&quot;'
+        )
+        .replace(
+          /'/g,
+          '&#039;'
+        );
+
+    }
+
+  </script>
+
+</body>
+</html>

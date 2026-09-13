@@ -1,0 +1,1506 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>RankHub Admin — Current Affairs</title>
+
+    <!-- Existing Admin CSS -->
+    <link rel="stylesheet" href="./admin.css">
+
+    <style>
+        /* ============================================================
+           RANKHUB ADMIN — CURRENT AFFAIRS
+           COMPLETE PAGE CSS (SIDEBAR OVERLAP & RESPONSIVE FIX)
+           ============================================================ */
+
+        :root {
+            --ca-red: #dc2626;
+            --ca-red-dark: #b91c1c;
+            --ca-red-light: #fee2e2;
+
+            --ca-bg: #f5f6f8;
+            --ca-card: #ffffff;
+            --ca-border: #e5e7eb;
+
+            --ca-text: #111827;
+            --ca-muted: #6b7280;
+
+            --ca-green: #16a34a;
+            --ca-green-light: #dcfce7;
+
+            --ca-orange: #ea580c;
+            --ca-orange-light: #ffedd5;
+
+            --ca-blue: #2563eb;
+            --ca-blue-light: #dbeafe;
+
+            --ca-shadow: 0 8px 30px rgba(15, 23, 42, 0.06);
+            --ca-radius: 16px;
+        }
+
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            margin: 0;
+            background: var(--ca-bg);
+            color: var(--ca-text);
+            font-family: Inter, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+        }
+
+        button, input, select, textarea {
+            font: inherit;
+        }
+
+        button {
+            cursor: pointer;
+        }
+
+        /* ============================================================
+           PAGE CONTAINER (FIXED FOR SIDEBAR OVERLAP)
+           ============================================================ */
+
+        .ca-admin-page {
+            width: 100%;
+            max-width: 1450px;
+            margin: 0 auto;
+            padding: 24px;
+        }
+
+        /* Desktop par sidebar ke overlap ko rokne ke liye left margin */
+        @media (min-width: 1024px) {
+            .ca-admin-page {
+                margin-left: 260px; /* Aapke sidebar ki width ke mutabiq (agar 260px ya 280px ho toh yahan change kar sakte hain) */
+                width: calc(100% - 260px);
+            }
+        }
+
+        /* ============================================================
+           TOP HEADER
+           ============================================================ */
+
+        .ca-page-header {
+            display: flex;
+            align-items: flex-start;
+            justify-content: space-between;
+            gap: 20px;
+            margin-bottom: 24px;
+        }
+
+        .ca-page-title-wrap {
+            min-width: 0;
+        }
+
+        .ca-eyebrow {
+            display: inline-flex;
+            align-items: center;
+            gap: 7px;
+            color: var(--ca-red);
+            font-size: 12px;
+            font-weight: 800;
+            letter-spacing: 0.08em;
+            text-transform: uppercase;
+            margin-bottom: 7px;
+        }
+
+        .ca-page-title {
+            margin: 0;
+            font-size: 30px;
+            line-height: 1.15;
+            font-weight: 800;
+            letter-spacing: -0.025em;
+        }
+
+        .ca-page-subtitle {
+            margin: 8px 0 0;
+            color: var(--ca-muted);
+            font-size: 14px;
+            line-height: 1.6;
+            max-width: 720px;
+        }
+
+        .ca-header-actions {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            flex-shrink: 0;
+        }
+
+        /* ============================================================
+           BUTTONS
+           ============================================================ */
+
+        .ca-btn {
+            border: 1px solid transparent;
+            border-radius: 10px;
+            min-height: 42px;
+            padding: 0 16px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            font-size: 14px;
+            font-weight: 700;
+            transition: transform .15s ease, box-shadow .15s ease, background .15s ease, border-color .15s ease;
+        }
+
+        .ca-btn:hover {
+            transform: translateY(-1px);
+        }
+
+        .ca-btn:disabled {
+            cursor: not-allowed;
+            opacity: .55;
+            transform: none;
+        }
+
+        .ca-btn-primary {
+            color: #fff;
+            background: var(--ca-red);
+            box-shadow: 0 5px 16px rgba(220, 38, 38, .18);
+        }
+
+        .ca-btn-primary:hover {
+            background: var(--ca-red-dark);
+        }
+
+        .ca-btn-secondary {
+            color: var(--ca-text);
+            background: #fff;
+            border-color: var(--ca-border);
+        }
+
+        .ca-btn-secondary:hover {
+            background: #f9fafb;
+        }
+
+        .ca-btn-danger {
+            color: #fff;
+            background: var(--ca-red);
+        }
+
+        .ca-btn-small {
+            min-height: 36px;
+            padding: 0 12px;
+            font-size: 13px;
+            border-radius: 9px;
+        }
+
+        /* ============================================================
+           GENERATOR CARD
+           ============================================================ */
+
+        .ca-generator {
+            background: linear-gradient(135deg, rgba(220, 38, 38, .07), rgba(255, 255, 255, 1) 55%);
+            border: 1px solid #fecaca;
+            border-radius: var(--ca-radius);
+            box-shadow: var(--ca-shadow);
+            padding: 22px;
+            margin-bottom: 22px;
+        }
+
+        .ca-generator-top {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            gap: 20px;
+            margin-bottom: 18px;
+        }
+
+        .ca-section-title {
+            margin: 0;
+            font-size: 18px;
+            font-weight: 800;
+        }
+
+        .ca-section-description {
+            margin: 6px 0 0;
+            color: var(--ca-muted);
+            font-size: 13px;
+            line-height: 1.5;
+        }
+
+        .ca-common-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            padding: 7px 10px;
+            border-radius: 999px;
+            background: var(--ca-red-light);
+            color: var(--ca-red-dark);
+            font-size: 12px;
+            font-weight: 800;
+            white-space: nowrap;
+        }
+
+        .ca-generator-grid {
+            display: grid;
+            grid-template-columns: minmax(180px, 1fr) minmax(180px, 1fr) minmax(180px, 1fr) auto;
+            gap: 14px;
+            align-items: end;
+        }
+
+        /* ============================================================
+           FORM
+           ============================================================ */
+
+        .ca-field {
+            display: flex;
+            flex-direction: column;
+            gap: 7px;
+        }
+
+        .ca-label {
+            color: #374151;
+            font-size: 12px;
+            font-weight: 800;
+        }
+
+        .ca-input, .ca-select, .ca-textarea {
+            width: 100%;
+            border: 1px solid #d1d5db;
+            border-radius: 10px;
+            background: #fff;
+            color: var(--ca-text);
+            outline: none;
+            transition: border-color .15s ease, box-shadow .15s ease;
+        }
+
+        .ca-input, .ca-select {
+            height: 42px;
+            padding: 0 12px;
+        }
+
+        .ca-textarea {
+            min-height: 110px;
+            padding: 12px;
+            resize: vertical;
+            line-height: 1.5;
+        }
+
+        .ca-input:focus, .ca-select:focus, .ca-textarea:focus {
+            border-color: var(--ca-red);
+            box-shadow: 0 0 0 3px rgba(220, 38, 38, .10);
+        }
+
+        .ca-generate-button-wrap {
+            display: flex;
+            width: 100%;
+        }
+
+        .ca-generate-button {
+            width: 100%;
+            min-height: 42px;
+            white-space: nowrap;
+        }
+
+        .ca-generator-note {
+            margin-top: 13px;
+            padding: 11px 13px;
+            border-radius: 10px;
+            background: rgba(255, 255, 255, .75);
+            border: 1px solid #f3f4f6;
+            color: var(--ca-muted);
+            font-size: 12px;
+            line-height: 1.5;
+        }
+
+        /* ============================================================
+           STATS
+           ============================================================ */
+
+        .ca-stats {
+            display: grid;
+            grid-template-columns: repeat(4, minmax(0, 1fr));
+            gap: 15px;
+            margin-bottom: 22px;
+        }
+
+        .ca-stat {
+            background: var(--ca-card);
+            border: 1px solid var(--ca-border);
+            border-radius: var(--ca-radius);
+            padding: 18px;
+            box-shadow: var(--ca-shadow);
+        }
+
+        .ca-stat-label {
+            color: var(--ca-muted);
+            font-size: 12px;
+            font-weight: 700;
+            margin-bottom: 8px;
+        }
+
+        .ca-stat-value {
+            font-size: 27px;
+            font-weight: 850;
+            letter-spacing: -.03em;
+        }
+
+        .ca-stat-meta {
+            margin-top: 5px;
+            color: var(--ca-muted);
+            font-size: 11px;
+        }
+
+        /* ============================================================
+           MANAGE SECTION
+           ============================================================ */
+
+        .ca-manage {
+            background: var(--ca-card);
+            border: 1px solid var(--ca-border);
+            border-radius: var(--ca-radius);
+            box-shadow: var(--ca-shadow);
+            overflow: hidden;
+        }
+
+        .ca-manage-header {
+            padding: 20px;
+            border-bottom: 1px solid var(--ca-border);
+        }
+
+        .ca-manage-title-row {
+            display: flex;
+            align-items: flex-start;
+            justify-content: space-between;
+            gap: 15px;
+            margin-bottom: 16px;
+        }
+
+        .ca-manage-title {
+            margin: 0;
+            font-size: 18px;
+            font-weight: 800;
+        }
+
+        .ca-manage-subtitle {
+            margin: 5px 0 0;
+            color: var(--ca-muted);
+            font-size: 12px;
+        }
+
+        /* ============================================================
+           FILTERS
+           ============================================================ */
+
+        .ca-filters {
+            display: grid;
+            grid-template-columns: minmax(220px, 1.5fr) minmax(160px, 1fr) minmax(160px, 1fr) minmax(160px, 1fr) auto;
+            gap: 10px;
+            align-items: center;
+        }
+
+        .ca-filter-search {
+            position: relative;
+            width: 100%;
+        }
+
+        .ca-filter-search .ca-input {
+            padding-left: 38px;
+        }
+
+        .ca-search-icon {
+            position: absolute;
+            left: 13px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: #9ca3af;
+            pointer-events: none;
+            font-size: 15px;
+        }
+
+        .ca-reset {
+            height: 42px;
+            white-space: nowrap;
+            width: 100%;
+        }
+
+        /* ============================================================
+           TABLE
+           ============================================================ */
+
+        .ca-table-wrap {
+            width: 100%;
+            overflow-x: auto;
+        }
+
+        .ca-table {
+            width: 100%;
+            min-width: 1050px;
+            border-collapse: collapse;
+        }
+
+        .ca-table th {
+            background: #f9fafb;
+            color: #6b7280;
+            text-align: left;
+            padding: 12px 16px;
+            border-bottom: 1px solid var(--ca-border);
+            font-size: 11px;
+            font-weight: 800;
+            text-transform: uppercase;
+            letter-spacing: .04em;
+        }
+
+        .ca-table td {
+            padding: 15px 16px;
+            border-bottom: 1px solid #f0f1f3;
+            vertical-align: top;
+            font-size: 13px;
+        }
+
+        .ca-table tbody tr {
+            transition: background .15s ease;
+        }
+
+        .ca-table tbody tr:hover {
+            background: #fafafa;
+        }
+
+        .ca-question {
+            max-width: 470px;
+            color: #111827;
+            font-weight: 700;
+            line-height: 1.45;
+        }
+
+        .ca-id {
+            display: inline-block;
+            margin-top: 5px;
+            color: #9ca3af;
+            font-size: 10px;
+            font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+        }
+
+        .ca-date {
+            white-space: nowrap;
+            color: #4b5563;
+            font-weight: 650;
+        }
+
+        /* ============================================================
+           BADGES
+           ============================================================ */
+
+        .ca-badge {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            padding: 5px 9px;
+            border-radius: 999px;
+            font-size: 11px;
+            font-weight: 800;
+            white-space: nowrap;
+        }
+
+        .ca-badge-category {
+            color: #1d4ed8;
+            background: var(--ca-blue-light);
+        }
+
+        .ca-badge-published {
+            color: #15803d;
+            background: var(--ca-green-light);
+        }
+
+        .ca-badge-draft {
+            color: #c2410c;
+            background: var(--ca-orange-light);
+        }
+
+        .ca-badge-inactive {
+            color: #6b7280;
+            background: #f3f4f6;
+        }
+
+        /* ============================================================
+           ACTIONS
+           ============================================================ */
+
+        .ca-actions {
+            display: flex;
+            align-items: center;
+            gap: 7px;
+        }
+
+        .ca-action-btn {
+            min-width: 36px;
+            height: 36px;
+            padding: 0 10px;
+            border: 1px solid var(--ca-border);
+            border-radius: 8px;
+            background: #fff;
+            color: #374151;
+            font-size: 12px;
+            font-weight: 750;
+        }
+
+        .ca-action-btn:hover {
+            background: #f9fafb;
+        }
+
+        .ca-action-edit:hover {
+            color: var(--ca-blue);
+            border-color: #bfdbfe;
+        }
+
+        .ca-action-delete:hover {
+            color: var(--ca-red);
+            border-color: #fecaca;
+        }
+
+        /* ============================================================
+           LOADING & EMPTY
+           ============================================================ */
+
+        .ca-loading {
+            padding: 55px 20px;
+            text-align: center;
+            color: var(--ca-muted);
+        }
+
+        .ca-spinner {
+            width: 30px;
+            height: 30px;
+            margin: 0 auto 12px;
+            border-radius: 50%;
+            border: 3px solid #e5e7eb;
+            border-top-color: var(--ca-red);
+            animation: caSpin .8s linear infinite;
+        }
+
+        @keyframes caSpin {
+            to { transform: rotate(360deg); }
+        }
+
+        .ca-empty {
+            padding: 65px 20px;
+            text-align: center;
+        }
+
+        .ca-empty-icon {
+            width: 58px;
+            height: 58px;
+            margin: 0 auto 14px;
+            border-radius: 16px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: var(--ca-red-light);
+            color: var(--ca-red);
+            font-size: 25px;
+        }
+
+        .ca-empty h3 {
+            margin: 0;
+            font-size: 17px;
+        }
+
+        .ca-empty p {
+            max-width: 480px;
+            margin: 7px auto 0;
+            color: var(--ca-muted);
+            font-size: 13px;
+            line-height: 1.5;
+        }
+
+        /* ============================================================
+           MODAL & TOAST
+           ============================================================ */
+
+        .ca-modal-overlay {
+            position: fixed;
+            inset: 0;
+            z-index: 9999;
+            display: none;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+            background: rgba(15, 23, 42, .58);
+            backdrop-filter: blur(4px);
+        }
+
+        .ca-modal-overlay.open {
+            display: flex;
+        }
+
+        .ca-modal {
+            width: 100%;
+            max-width: 760px;
+            max-height: 92vh;
+            overflow-y: auto;
+            background: #fff;
+            border-radius: 18px;
+            box-shadow: 0 30px 80px rgba(15, 23, 42, .25);
+        }
+
+        .ca-modal-header {
+            position: sticky;
+            top: 0;
+            z-index: 2;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 18px 20px;
+            background: #fff;
+            border-bottom: 1px solid var(--ca-border);
+        }
+
+        .ca-modal-title {
+            margin: 0;
+            font-size: 18px;
+            font-weight: 800;
+        }
+
+        .ca-modal-close {
+            width: 36px;
+            height: 36px;
+            border: 1px solid var(--ca-border);
+            border-radius: 9px;
+            background: #fff;
+            color: #6b7280;
+            font-size: 18px;
+        }
+
+        .ca-modal-close:hover {
+            background: #f9fafb;
+            color: #111827;
+        }
+
+        .ca-modal-body {
+            padding: 20px;
+        }
+
+        .ca-form-grid {
+            display: grid;
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+            gap: 15px;
+        }
+
+        .ca-form-full {
+            grid-column: 1 / -1;
+        }
+
+        .ca-options {
+            display: grid;
+            gap: 10px;
+        }
+
+        .ca-option-row {
+            display: grid;
+            grid-template-columns: 42px 1fr;
+            gap: 10px;
+            align-items: center;
+        }
+
+        .ca-option-number {
+            width: 42px;
+            height: 42px;
+            border-radius: 10px;
+            background: #f3f4f6;
+            color: #374151;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 13px;
+            font-weight: 800;
+        }
+
+        .ca-modal-footer {
+            display: flex;
+            justify-content: flex-end;
+            gap: 10px;
+            padding: 16px 20px;
+            border-top: 1px solid var(--ca-border);
+            background: #fafafa;
+        }
+
+        .ca-toast-container {
+            position: fixed;
+            right: 20px;
+            bottom: 20px;
+            z-index: 10000;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .ca-toast {
+            min-width: 280px;
+            max-width: 420px;
+            padding: 13px 15px;
+            border-radius: 11px;
+            background: #111827;
+            color: #fff;
+            box-shadow: 0 12px 35px rgba(15, 23, 42, .2);
+            font-size: 13px;
+            line-height: 1.45;
+            animation: caToastIn .2s ease;
+        }
+
+        .ca-toast.success { background: #166534; }
+        .ca-toast.error { background: #991b1b; }
+
+        @keyframes caToastIn {
+            from { opacity: 0; transform: translateY(8px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* ============================================================
+           RESPONSIVE MEDIA QUERIES
+           ============================================================ */
+
+        @media (max-width: 1200px) {
+            .ca-generator-grid {
+                grid-template-columns: repeat(2, minmax(0, 1fr));
+            }
+            .ca-generate-button-wrap {
+                grid-column: 1 / -1;
+            }
+            .ca-filters {
+                grid-template-columns: repeat(2, minmax(0, 1fr));
+            }
+            .ca-filter-search {
+                grid-column: 1 / -1;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .ca-admin-page {
+                margin-left: 0 !important;
+                width: 100% !important;
+                padding: 12px;
+            }
+            .ca-page-header {
+                flex-direction: column;
+                align-items: stretch;
+                gap: 12px;
+            }
+            .ca-header-actions {
+                width: 100%;
+                justify-content: flex-end;
+            }
+            .ca-generator-grid, .ca-filters {
+                grid-template-columns: 1fr;
+            }
+            .ca-stats {
+                grid-template-columns: repeat(2, minmax(0, 1fr));
+                gap: 10px;
+            }
+            .ca-stat-value {
+                font-size: 22px;
+            }
+            .ca-form-grid {
+                grid-template-columns: 1fr;
+            }
+            .ca-form-full {
+                grid-column: auto;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .ca-stats {
+                grid-template-columns: 1fr;
+            }
+            .ca-page-title {
+                font-size: 24px;
+            }
+        }
+    </style>
+</head>
+
+<body>
+
+    <!-- ADMIN LAYOUT CONTAINER -->
+    <div id="admin-layout-container"></div>
+
+    <!-- MAIN PAGE -->
+    <main class="ca-admin-page">
+
+        <!-- HEADER -->
+        <header class="ca-page-header">
+            <div class="ca-page-title-wrap">
+                <div class="ca-eyebrow">RankHub Knowledge</div>
+                <h1 class="ca-page-title">Current Affairs</h1>
+                <p class="ca-page-subtitle">
+                    Manage common daily Current Affairs for the entire RankHub platform. These questions are not exam-wise and are available to all students.
+                </p>
+            </div>
+            <div class="ca-header-actions">
+                <button type="button" class="ca-btn ca-btn-secondary" id="refreshBtn">↻ Refresh</button>
+            </div>
+        </header>
+
+        <!-- GENERATOR -->
+        <section class="ca-generator">
+            <div class="ca-generator-top">
+                <div>
+                    <h2 class="ca-section-title">Generate Current Affairs</h2>
+                    <p class="ca-section-description">Generate fresh exam-relevant Current Affairs from reliable news/current-affairs sources.</p>
+                </div>
+                <span class="ca-common-badge">🌐 Common for All Exams</span>
+            </div>
+
+            <div class="ca-generator-grid">
+                <div class="ca-field">
+                    <label class="ca-label" for="generateDate">Date</label>
+                    <input type="date" id="generateDate" class="ca-input">
+                </div>
+
+                <div class="ca-field">
+                    <label class="ca-label" for="generateCategory">Category</label>
+                    <select id="generateCategory" class="ca-select">
+                        <option value="all">All Categories</option>
+                        <option value="National">National</option>
+                        <option value="International">International</option>
+                        <option value="State">State</option>
+                        <option value="Economy">Economy</option>
+                        <option value="Sports">Sports</option>
+                        <option value="Science & Technology">Science & Technology</option>
+                        <option value="Awards">Awards</option>
+                        <option value="Appointments">Appointments</option>
+                        <option value="Government Schemes">Government Schemes</option>
+                        <option value="Defence">Defence</option>
+                        <option value="Important Days">Important Days</option>
+                        <option value="Books & Authors">Books & Authors</option>
+                        <option value="Obituaries">Obituaries</option>
+                        <option value="Miscellaneous">Miscellaneous</option>
+                    </select>
+                </div>
+
+                <div class="ca-field">
+                    <label class="ca-label" for="generateCount">Question Count</label>
+                    <select id="generateCount" class="ca-select">
+                        <option value="0">All Relevant Available</option>
+                        <option value="10">10 Questions</option>
+                        <option value="20">20 Questions</option>
+                        <option value="30">30 Questions</option>
+                        <option value="50">50 Questions</option>
+                    </select>
+                </div>
+
+                <div class="ca-generate-button-wrap">
+                    <button type="button" class="ca-btn ca-btn-primary ca-generate-button" id="generateBtn">⚡ Generate Now</button>
+                </div>
+            </div>
+
+            <div class="ca-generator-note">
+                <strong>Automatic mode:</strong> “All Relevant Available” lets the backend determine how many useful, non-duplicate Current Affairs can be generated for the selected date. Existing questions are not deleted automatically.
+            </div>
+        </section>
+
+        <!-- STATS -->
+        <section class="ca-stats">
+            <div class="ca-stat">
+                <div class="ca-stat-label">Total Questions</div>
+                <div class="ca-stat-value" id="statTotal">0</div>
+                <div class="ca-stat-meta">All saved Current Affairs</div>
+            </div>
+            <div class="ca-stat">
+                <div class="ca-stat-label">Today's Questions</div>
+                <div class="ca-stat-value" id="statToday">0</div>
+                <div class="ca-stat-meta">Selected date</div>
+            </div>
+            <div class="ca-stat">
+                <div class="ca-stat-label">Published</div>
+                <div class="ca-stat-value" id="statPublished">0</div>
+                <div class="ca-stat-meta">Visible to students</div>
+            </div>
+            <div class="ca-stat">
+                <div class="ca-stat-label">Categories</div>
+                <div class="ca-stat-value" id="statCategories">0</div>
+                <div class="ca-stat-meta">Used categories</div>
+            </div>
+        </section>
+
+        <!-- MANAGE -->
+        <section class="ca-manage">
+            <div class="ca-manage-header">
+                <div class="ca-manage-title-row">
+                    <div>
+                        <h2 class="ca-manage-title">Manage Current Affairs</h2>
+                        <p class="ca-manage-subtitle">Search, filter, edit or delete saved Current Affairs.</p>
+                    </div>
+                </div>
+
+                <!-- FILTERS -->
+                <div class="ca-filters">
+                    <div class="ca-filter-search">
+                        <span class="ca-search-icon">🔍</span>
+                        <input type="search" id="searchInput" class="ca-input" placeholder="Search question, ID or source...">
+                    </div>
+
+                    <div class="ca-field">
+                        <input type="date" id="filterDate" class="ca-input">
+                    </div>
+
+                    <div class="ca-field">
+                        <select id="filterCategory" class="ca-select">
+                            <option value="all">All Categories</option>
+                            <option value="National">National</option>
+                            <option value="International">International</option>
+                            <option value="State">State</option>
+                            <option value="Economy">Economy</option>
+                            <option value="Sports">Sports</option>
+                            <option value="Science & Technology">Science & Technology</option>
+                            <option value="Awards">Awards</option>
+                            <option value="Appointments">Appointments</option>
+                            <option value="Government Schemes">Government Schemes</option>
+                            <option value="Defence">Defence</option>
+                            <option value="Important Days">Important Days</option>
+                            <option value="Books & Authors">Books & Authors</option>
+                            <option value="Obituaries">Obituaries</option>
+                            <option value="Miscellaneous">Miscellaneous</option>
+                        </select>
+                    </div>
+
+                    <div class="ca-field">
+                        <select id="filterStatus" class="ca-select">
+                            <option value="all">All Status</option>
+                            <option value="published">Published</option>
+                            <option value="draft">Draft</option>
+                            <option value="inactive">Inactive</option>
+                        </select>
+                    </div>
+
+                    <button type="button" class="ca-btn ca-btn-secondary ca-reset" id="resetFiltersBtn">Reset</button>
+                </div>
+            </div>
+
+            <!-- TABLE -->
+            <div class="ca-table-wrap" id="tableContainer">
+                <div class="ca-loading">
+                    <div class="ca-spinner"></div>
+                    Loading Current Affairs...
+                </div>
+            </div>
+        </section>
+
+    </main>
+
+    <!-- EDIT MODAL -->
+    <div class="ca-modal-overlay" id="editModal" aria-hidden="true">
+        <div class="ca-modal" role="dialog" aria-modal="true" aria-labelledby="editModalTitle">
+            <div class="ca-modal-header">
+                <h2 class="ca-modal-title" id="editModalTitle">Edit Current Affair</h2>
+                <button type="button" class="ca-modal-close" id="closeModalBtn" aria-label="Close">×</button>
+            </div>
+
+            <form id="editForm">
+                <div class="ca-modal-body">
+                    <div class="ca-form-grid">
+                        <div class="ca-field">
+                            <label class="ca-label">ID</label>
+                            <input type="text" id="editId" class="ca-input" readonly>
+                        </div>
+
+                        <div class="ca-field">
+                            <label class="ca-label" for="editDate">Date</label>
+                            <input type="date" id="editDate" class="ca-input" required>
+                        </div>
+
+                        <div class="ca-field">
+                            <label class="ca-label" for="editCategory">Category</label>
+                            <select id="editCategory" class="ca-select" required>
+                                <option value="National">National</option>
+                                <option value="International">International</option>
+                                <option value="State">State</option>
+                                <option value="Economy">Economy</option>
+                                <option value="Sports">Sports</option>
+                                <option value="Science & Technology">Science & Technology</option>
+                                <option value="Awards">Awards</option>
+                                <option value="Appointments">Appointments</option>
+                                <option value="Government Schemes">Government Schemes</option>
+                                <option value="Defence">Defence</option>
+                                <option value="Important Days">Important Days</option>
+                                <option value="Books & Authors">Books & Authors</option>
+                                <option value="Obituaries">Obituaries</option>
+                                <option value="Miscellaneous">Miscellaneous</option>
+                            </select>
+                        </div>
+
+                        <div class="ca-field">
+                            <label class="ca-label" for="editStatus">Status</label>
+                            <select id="editStatus" class="ca-select">
+                                <option value="published">Published</option>
+                                <option value="draft">Draft</option>
+                                <option value="inactive">Inactive</option>
+                            </select>
+                        </div>
+
+                        <div class="ca-field ca-form-full">
+                            <label class="ca-label" for="editQuestion">Question *</label>
+                            <textarea id="editQuestion" class="ca-textarea" required placeholder="Enter Current Affairs question..."></textarea>
+                        </div>
+
+                        <div class="ca-field ca-form-full">
+                            <label class="ca-label">Options *</label>
+                            <div class="ca-options">
+                                <div class="ca-option-row">
+                                    <div class="ca-option-number">A</div>
+                                    <input type="text" id="editOption0" class="ca-input" required placeholder="Option A">
+                                </div>
+                                <div class="ca-option-row">
+                                    <div class="ca-option-number">B</div>
+                                    <input type="text" id="editOption1" class="ca-input" required placeholder="Option B">
+                                </div>
+                                <div class="ca-option-row">
+                                    <div class="ca-option-number">C</div>
+                                    <input type="text" id="editOption2" class="ca-input" required placeholder="Option C">
+                                </div>
+                                <div class="ca-option-row">
+                                    <div class="ca-option-number">D</div>
+                                    <input type="text" id="editOption3" class="ca-input" required placeholder="Option D">
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="ca-field">
+                            <label class="ca-label" for="editAnswerIndex">Correct Answer *</label>
+                            <select id="editAnswerIndex" class="ca-select" required>
+                                <option value="0">A</option>
+                                <option value="1">B</option>
+                                <option value="2">C</option>
+                                <option value="3">D</option>
+                            </select>
+                        </div>
+
+                        <div class="ca-field">
+                            <label class="ca-label" for="editSource">Source</label>
+                            <input type="text" id="editSource" class="ca-input" placeholder="Source name">
+                        </div>
+
+                        <div class="ca-field ca-form-full">
+                            <label class="ca-label" for="editSourceUrl">Source URL</label>
+                            <input type="url" id="editSourceUrl" class="ca-input" placeholder="https://...">
+                        </div>
+
+                        <div class="ca-field ca-form-full">
+                            <label class="ca-label" for="editExplanation">Explanation *</label>
+                            <textarea id="editExplanation" class="ca-textarea" required placeholder="Explain the correct answer..."></textarea>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="ca-modal-footer">
+                    <button type="button" class="ca-btn ca-btn-secondary" id="cancelEditBtn">Cancel</button>
+                    <button type="submit" class="ca-btn ca-btn-primary" id="saveEditBtn">Save Changes</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- TOAST CONTAINER -->
+    <div class="ca-toast-container" id="toastContainer"></div>
+
+    <!-- JAVASCRIPT -->
+    <script type="module">
+        import {
+            getFirestoreCurrentAffairs,
+            saveCurrentAffair,
+            deleteFirestoreCurrentAffair,
+            generateCurrentAffairs
+        } from "./admin-db.js";
+
+        window.addEventListener("rankhub:bulk-delete-complete", () => loadCurrentAffairs());
+
+        const TIME_ZONE = "Asia/Kolkata";
+
+        const tableContainer = document.getElementById("tableContainer");
+        const refreshBtn = document.getElementById("refreshBtn");
+        const generateBtn = document.getElementById("generateBtn");
+        const generateDate = document.getElementById("generateDate");
+        const generateCategory = document.getElementById("generateCategory");
+        const generateCount = document.getElementById("generateCount");
+        const searchInput = document.getElementById("searchInput");
+        const filterDate = document.getElementById("filterDate");
+        const filterCategory = document.getElementById("filterCategory");
+        const filterStatus = document.getElementById("filterStatus");
+        const resetFiltersBtn = document.getElementById("resetFiltersBtn");
+        const editModal = document.getElementById("editModal");
+        const editForm = document.getElementById("editForm");
+        const closeModalBtn = document.getElementById("closeModalBtn");
+        const cancelEditBtn = document.getElementById("cancelEditBtn");
+        const saveEditBtn = document.getElementById("saveEditBtn");
+
+        let allItems = [];
+        let currentEditItem = null;
+
+        function getIndiaDate() {
+            return new Intl.DateTimeFormat("en-CA", { timeZone: TIME_ZONE }).format(new Date());
+        }
+
+        function escapeHTML(value) {
+            return String(value ?? "").replaceAll("&", "&amp;").replaceAll("<", "&lt;").replaceAll(">", "&gt;").replaceAll('"', "&quot;").replaceAll("'", "&#039;");
+        }
+
+        function safeString(value, fallback = "") {
+            if (value === null || value === undefined) return fallback;
+            const text = String(value).trim();
+            return text || fallback;
+        }
+
+        function normalizeItems(result) {
+            if (Array.isArray(result)) return result;
+            if (result && Array.isArray(result.items)) return result.items;
+            if (result && Array.isArray(result.data)) return result.data;
+            if (result && Array.isArray(result.questions)) return result.questions;
+            return [];
+        }
+
+        function showToast(message, type = "") {
+            const container = document.getElementById("toastContainer");
+            const toast = document.createElement("div");
+            toast.className = `ca-toast ${type}`;
+            toast.textContent = message;
+            container.appendChild(toast);
+            setTimeout(() => toast.remove(), 3500);
+        }
+
+        function showLoading() {
+            tableContainer.innerHTML = `
+                <div class="ca-loading">
+                    <div class="ca-spinner"></div>
+                    Loading Current Affairs...
+                </div>
+            `;
+        }
+
+        async function loadCurrentAffairs() {
+            showLoading();
+            try {
+                const result = await getFirestoreCurrentAffairs();
+                allItems = normalizeItems(result).map(item => ({
+                    ...item,
+                    id: item.id || item.docId || ""
+                })).filter(item => item.id);
+
+                updateStats();
+                renderTable();
+            } catch (error) {
+                console.error("Current Affairs load error:", error);
+                tableContainer.innerHTML = `
+                    <div class="ca-empty">
+                        <div class="ca-empty-icon">⚠</div>
+                        <h3>Unable to Load Current Affairs</h3>
+                        <p>${escapeHTML(error?.message || "Please check the Admin API and Firebase connection.")}</p>
+                        <br>
+                        <button type="button" class="ca-btn ca-btn-primary" id="retryLoadBtn">Try Again</button>
+                    </div>
+                `;
+                document.getElementById("retryLoadBtn")?.addEventListener("click", loadCurrentAffairs);
+            }
+        }
+
+        function updateStats() {
+            const today = getIndiaDate();
+            const total = allItems.length;
+            const todayCount = allItems.filter(item => safeString(item.date) === today).length;
+            const published = allItems.filter(item => safeString(item.status, "published").toLowerCase() === "published").length;
+            const categories = new Set(allItems.map(item => safeString(item.category)).filter(Boolean)).size;
+
+            document.getElementById("statTotal").textContent = total;
+            document.getElementById("statToday").textContent = todayCount;
+            document.getElementById("statPublished").textContent = published;
+            document.getElementById("statCategories").textContent = categories;
+        }
+
+        function getFilteredItems() {
+            const search = safeString(searchInput.value).toLowerCase();
+            const date = safeString(filterDate.value);
+            const category = filterCategory.value;
+            const status = filterStatus.value;
+
+            return allItems.filter(item => {
+                const question = safeString(item.question || item.title).toLowerCase();
+                const id = safeString(item.id).toLowerCase();
+                const source = safeString(item.source).toLowerCase();
+                const itemCategory = safeString(item.category);
+                const itemDate = safeString(item.date);
+                const itemStatus = safeString(item.status, "published").toLowerCase();
+
+                const matchesSearch = !search || question.includes(search) || id.includes(search) || source.includes(search);
+                const matchesDate = !date || itemDate === date;
+                const matchesCategory = category === "all" || itemCategory === category;
+                const matchesStatus = status === "all" || itemStatus === status;
+
+                return matchesSearch && matchesDate && matchesCategory && matchesStatus;
+            });
+        }
+
+        function renderTable() {
+            const items = getFilteredItems();
+
+            if (items.length === 0) {
+                tableContainer.innerHTML = `
+                    <div class="ca-empty">
+                        <div class="ca-empty-icon">📰</div>
+                        <h3>No Current Affairs Found</h3>
+                        <p>No records match the selected filters.</p>
+                    </div>
+                `;
+                return;
+            }
+
+            const rows = items.map((item, index) => {
+                const status = safeString(item.status, "published").toLowerCase();
+                let statusClass = "ca-badge-published";
+                if (status === "draft") statusClass = "ca-badge-draft";
+                if (status === "inactive") statusClass = "ca-badge-inactive";
+
+                const question = safeString(item.question || item.title, "Question unavailable");
+
+                return `
+                    <tr>
+                        <td><strong>${index + 1}</strong></td>
+                        <td>
+                            <div class="ca-question">${escapeHTML(question)}</div>
+                            <span class="ca-id">${escapeHTML(item.id)}</span>
+                        </td>
+                        <td><span class="ca-date">${escapeHTML(safeString(item.date, "—"))}</span></td>
+                        <td><span class="ca-badge ca-badge-category">${escapeHTML(safeString(item.category, "Miscellaneous"))}</span></td>
+                        <td><span class="ca-badge ${statusClass}">${escapeHTML(status)}</span></td>
+                        <td>${escapeHTML(safeString(item.source, "—"))}</td>
+                        <td>
+                            <div class="ca-actions">
+                                <button type="button" class="ca-action-btn ca-action-edit" data-action="edit" data-id="${escapeHTML(item.id)}">Edit</button>
+                                <button type="button" class="ca-action-btn ca-action-delete" data-action="delete" data-id="${escapeHTML(item.id)}">Delete</button>
+                            </div>
+                        </td>
+                    </tr>
+                `;
+            }).join("");
+
+            tableContainer.innerHTML = `
+                <table class="ca-table">
+                    <thead>
+                        <tr>
+                            <th>#</th>
+                            <th>Question</th>
+                            <th>Date</th>
+                            <th>Category</th>
+                            <th>Status</th>
+                            <th>Source</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>${rows}</tbody>
+                </table>
+            `;
+
+            tableContainer.querySelectorAll("[data-action='edit']").forEach(button => {
+                button.addEventListener("click", () => openEditModal(button.dataset.id));
+            });
+
+            tableContainer.querySelectorAll("[data-action='delete']").forEach(button => {
+                button.addEventListener("click", () => deleteItem(button.dataset.id));
+            });
+        }
+
+        function openEditModal(id) {
+            const item = allItems.find(current => current.id === id);
+            if (!item) {
+                showToast("Current Affair not found.", "error");
+                return;
+            }
+
+            currentEditItem = item;
+
+            document.getElementById("editId").value = safeString(item.id);
+            document.getElementById("editDate").value = safeString(item.date);
+            document.getElementById("editCategory").value = safeString(item.category, "Miscellaneous");
+            document.getElementById("editStatus").value = safeString(item.status, "published").toLowerCase();
+            document.getElementById("editQuestion").value = safeString(item.question || item.title);
+
+            const options = Array.isArray(item.options) ? item.options : [];
+            for (let i = 0; i < 4; i++) {
+                document.getElementById(`editOption${i}`).value = safeString(options[i]);
+            }
+
+            let answerIndex = Number(item.answerIndex);
+            if (!Number.isInteger(answerIndex) || answerIndex < 0 || answerIndex > 3) {
+                answerIndex = Number(item.correctOption);
+            }
+            if (!Number.isInteger(answerIndex) || answerIndex < 0 || answerIndex > 3) {
+                const answer = safeString(item.answer || item.correctAnswer).toLowerCase();
+                answerIndex = options.findIndex(option => safeString(option).toLowerCase() === answer);
+            }
+            if (answerIndex < 0 || answerIndex > 3) answerIndex = 0;
+
+            document.getElementById("editAnswerIndex").value = String(answerIndex);
+            document.getElementById("editSource").value = safeString(item.source);
+            document.getElementById("editSourceUrl").value = safeString(item.sourceUrl);
+            document.getElementById("editExplanation").value = safeString(item.explanation);
+
+            editModal.classList.add("open");
+            editModal.setAttribute("aria-hidden", "false");
+            document.body.style.overflow = "hidden";
+        }
+
+        function closeEditModal() {
+            editModal.classList.remove("open");
+            editModal.setAttribute("aria-hidden", "true");
+            document.body.style.overflow = "";
+            currentEditItem = null;
+        }
+
+        async function handleEditSubmit(event) {
+            event.preventDefault();
+            if (!currentEditItem) return;
+
+            const question = safeString(document.getElementById("editQuestion").value);
+            const options = [
+                safeString(document.getElementById("editOption0").value),
+                safeString(document.getElementById("editOption1").value),
+                safeString(document.getElementById("editOption2").value),
+                safeString(document.getElementById("editOption3").value)
+            ];
+            const answerIndex = Number(document.getElementById("editAnswerIndex").value);
+            const explanation = safeString(document.getElementById("editExplanation").value);
+
+            if (!question) {
+                showToast("Question is required.", "error");
+                return;
+            }
+            if (options.length !== 4 || options.some(option => !option)) {
+                showToast("All 4 options are required.", "error");
+                return;
+            }
+            if (!Number.isInteger(answerIndex) || answerIndex < 0 || answerIndex > 3) {
+                showToast("Select a valid correct answer.", "error");
+                return;
+            }
+            if (!explanation) {
+                showToast("Explanation is required.", "error");
+                return;
+            }
+
+            const payload = {
+                id: currentEditItem.id,
+                date: safeString(document.getElementById("editDate").value),
+                question,
+                options,
+                answerIndex,
+                answer: options[answerIndex],
+                explanation,
+                category: safeString(document.getElementById("editCategory").value),
+                status: safeString(document.getElementById("editStatus").value, "published"),
+                source: safeString(document.getElementById("editSource").value),
+                sourceUrl: safeString(document.getElementById("editSourceUrl").value)
+            };
+
+            saveEditBtn.disabled = true;
+            saveEditBtn.textContent = "Saving...";
+
+            try {
+                await saveCurrentAffair(payload, { edit: true, id: currentEditItem.id });
+                showToast("Current Affair updated successfully.", "success");
+                closeEditModal();
+                await loadCurrentAffairs();
+            } catch (error) {
+                console.error("Save Current Affair error:", error);
+                showToast(error?.message || "Unable to save Current Affair.", "error");
+            } finally {
+                saveEditBtn.disabled = false;
+                saveEditBtn.textContent = "Save Changes";
+            }
+        }
+
+        async function deleteItem(id) {
+            const item = allItems.find(current => current.id === id);
+            if (!item) return;
+
+            const question = safeString(item.question || item.title, "this Current Affair");
+            const confirmed = window.confirm(`Delete this Current Affair?\n\n${question}\n\nID: ${id}`);
+            if (!confirmed) return;
+
+            try {
+                await deleteFirestoreCurrentAffair(id);
+                showToast("Current Affair deleted.", "success");
+                await loadCurrentAffairs();
+            } catch (error) {
+                console.error("Delete Current Affair error:", error);
+                showToast(error?.message || "Unable to delete Current Affair.", "error");
+            }
+        }
+
+        async function handleGenerate() {
+            const date = safeString(generateDate.value);
+            const category = safeString(generateCategory.value, "all");
+            const count = Number(generateCount.value);
+
+            if (!date) {
+                showToast("Select a date first.", "error");
+                return;
+            }
+
+            generateBtn.disabled = true;
+            generateBtn.textContent = "Generating...";
+
+            try {
+                const result = await generateCurrentAffairs({ date, category, count });
+                const generated = normalizeItems(result);
+
+                if (generated.length > 0) {
+                    showToast(`${generated.length} Current Affairs generated successfully.`, "success");
+                } else {
+                    showToast("Generation completed. Refreshing saved records...", "success");
+                }
+
+                await loadCurrentAffairs();
+            } catch (error) {
+                console.error("Generate Current Affairs error:", error);
+                showToast(error?.message || "Current Affairs generation failed.", "error");
+            } finally {
+                generateBtn.disabled = false;
+                generateBtn.textContent = "⚡ Generate Now";
+            }
+        }
+
+        function resetFilters() {
+            searchInput.value = "";
+            filterDate.value = "";
+            filterCategory.value = "all";
+            filterStatus.value = "all";
+            renderTable();
+        }
+
+        refreshBtn.addEventListener("click", loadCurrentAffairs);
+        generateBtn.addEventListener("click", handleGenerate);
+        searchInput.addEventListener("input", renderTable);
+        filterDate.addEventListener("change", renderTable);
+        filterCategory.addEventListener("change", renderTable);
+        filterStatus.addEventListener("change", renderTable);
+        resetFiltersBtn.addEventListener("click", resetFilters);
+        editForm.addEventListener("submit", handleEditSubmit);
+        closeModalBtn.addEventListener("click", closeEditModal);
+        cancelEditBtn.addEventListener("click", closeEditModal);
+
+        editModal.addEventListener("click", event => {
+            if (event.target === editModal) closeEditModal();
+        });
+
+        document.addEventListener("keydown", event => {
+            if (event.key === "Escape" && editModal.classList.contains("open")) {
+                closeEditModal();
+            }
+        });
+
+        generateDate.value = getIndiaDate();
+
+        try {
+            const module = await import("./admin-sidebar.js");
+            if (typeof module.initAdminLayout === "function") {
+                await module.initAdminLayout();
+            }
+        } catch (error) {
+            console.warn("Admin layout initialization warning:", error);
+        }
+
+        loadCurrentAffairs();
+    </script>
+</body>
+</html>

@@ -1,0 +1,1806 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+  <title>Previous Year Papers (PYQ) - RankHub Admin</title>
+
+  <link rel="stylesheet" href="./admin.css">
+
+  <style>
+    /* =========================================================
+       PYQ PAGE SCROLL FIX
+       ========================================================= */
+
+    html,
+    body {
+      width: 100%;
+      min-height: 100%;
+      height: auto !important;
+      margin: 0;
+      padding: 0;
+      overflow-x: hidden !important;
+      overflow-y: auto !important;
+    }
+
+    body {
+      min-height: 100vh;
+    }
+
+    .admin-layout {
+      width: 100%;
+      min-height: 100vh !important;
+      height: auto !important;
+      overflow: visible !important;
+    }
+
+    .admin-main {
+      min-height: 100vh !important;
+      height: auto !important;
+      overflow: visible !important;
+    }
+
+    .admin-content {
+      min-height: calc(100vh - 70px);
+      height: auto !important;
+      overflow: visible !important;
+      padding-bottom: 120px !important;
+    }
+
+    /* =========================================================
+       TABLE SCROLL
+       ========================================================= */
+
+    .table-responsive {
+      width: 100%;
+      max-width: 100%;
+      overflow-x: auto !important;
+      overflow-y: visible !important;
+      -webkit-overflow-scrolling: touch;
+    }
+
+    .data-table {
+      min-width: 1000px;
+    }
+
+    /* =========================================================
+       MODAL SCROLL
+       ========================================================= */
+
+    .modal-backdrop {
+      position: fixed !important;
+      inset: 0 !important;
+
+      display: flex !important;
+      align-items: flex-start !important;
+      justify-content: center !important;
+
+      width: 100%;
+      height: 100%;
+      min-height: 100vh;
+
+      padding: 30px 20px !important;
+      box-sizing: border-box;
+
+      overflow-y: auto !important;
+      overflow-x: hidden !important;
+
+      -webkit-overflow-scrolling: touch;
+    }
+
+    .modal-container {
+      position: relative;
+
+      width: 100%;
+      max-width: 700px;
+
+      max-height: calc(100vh - 60px) !important;
+
+      margin: 0 auto 30px auto !important;
+
+      display: flex !important;
+      flex-direction: column !important;
+
+      overflow: hidden !important;
+
+      box-sizing: border-box;
+    }
+
+    .modal-header {
+      flex: 0 0 auto;
+    }
+
+    .modal-body {
+      flex: 1 1 auto;
+
+      min-height: 0;
+
+      overflow-y: auto !important;
+      overflow-x: hidden !important;
+
+      -webkit-overflow-scrolling: touch;
+
+      scrollbar-width: thin;
+    }
+
+    .modal-footer {
+      flex: 0 0 auto;
+    }
+
+    /* =========================================================
+       FORM SAFETY
+       ========================================================= */
+
+    #pyq-form {
+      display: flex;
+      flex-direction: column;
+      min-height: 0;
+      height: 100%;
+    }
+
+    #pyq-form .modal-body {
+      min-height: 0;
+    }
+
+    .form-control,
+    select,
+    input {
+      max-width: 100%;
+      box-sizing: border-box;
+    }
+
+    /* =========================================================
+       MOBILE
+       ========================================================= */
+
+    @media (max-width: 768px) {
+
+      .admin-content {
+        padding-bottom: 140px !important;
+      }
+
+      .modal-backdrop {
+        padding: 15px 10px !important;
+      }
+
+      .modal-container {
+        width: 100% !important;
+        max-width: 100% !important;
+
+        max-height: calc(100vh - 30px) !important;
+
+        margin-bottom: 15px !important;
+      }
+
+      .modal-body {
+        padding: 16px !important;
+      }
+
+      .modal-footer {
+        padding: 12px 16px !important;
+      }
+
+      .form-row {
+        display: flex;
+        flex-direction: column;
+      }
+
+      .form-row .form-group {
+        width: 100%;
+      }
+    }
+
+    /* =========================================================
+       EXTRA SAFETY AGAINST ADMIN.CSS OVERFLOW RULES
+       ========================================================= */
+
+    .admin-layout,
+    .admin-main,
+    .admin-content {
+      overscroll-behavior: auto !important;
+    }
+
+    body.modal-open {
+      overflow: hidden !important;
+    }
+  </style>
+
+</head>
+
+<body>
+
+  <div class="admin-layout">
+
+    
+    <main class="admin-main">
+
+      <header class="admin-header"></header>
+
+      <div class="admin-content">
+
+        <!-- PAGE TOOLBAR -->
+        <div class="page-toolbar">
+
+          <div class="page-toolbar-info">
+            <h1>Previous Year Papers (PYQ)</h1>
+
+            <p>
+              Publish official past question papers, answer keys,
+              and shift-wise solved PDFs.
+            </p>
+          </div>
+
+          <div class="page-toolbar-actions">
+
+            <button type="button" class="btn btn-primary" id="btn-open-add-pyq">
+
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+
+                <line x1="12" y1="5" x2="12" y2="19" />
+                <line x1="5" y1="12" x2="19" y2="12" />
+
+              </svg>
+
+              Upload PYQ Paper
+
+            </button>
+
+          </div>
+
+        </div>
+
+
+        <!-- PYQ TABLE CARD -->
+        <div class="card">
+
+          <div class="filter-bar">
+
+            <div class="search-input-wrapper">
+
+              <span class="search-icon">🔍</span>
+
+              <input type="text" id="pyq-search" placeholder="Search PYQ papers by exam, year, shift...">
+
+            </div>
+
+
+            <select id="filter-exam" class="filter-select">
+
+              <option value="">
+                All Exams
+              </option>
+
+            </select>
+
+          </div>
+
+
+          <div class="table-responsive">
+
+            <table class="data-table">
+
+              <thead>
+
+                <tr>
+
+                  <th>Paper Title</th>
+
+                  <th>Exam</th>
+
+                  <th>Stage / Tier</th>
+
+                  <th>Year & Shift</th>
+
+                  <th>Questions</th>
+
+                  <th>Answer Key</th>
+
+                  <th>PDF Link</th>
+
+                  <th>Status</th>
+
+                  <th style="text-align:right;">
+                    Actions
+                  </th>
+
+                </tr>
+
+              </thead>
+
+
+              <tbody id="pyq-table-body">
+
+                <tr>
+
+                  <td colspan="9" class="loading-state">
+
+                    <div class="spinner"></div>
+
+                    <p>
+                      Loading previous year papers from Firestore...
+                    </p>
+
+                  </td>
+
+                </tr>
+
+              </tbody>
+
+            </table>
+
+          </div>
+
+        </div>
+
+      </div>
+
+    </main>
+    
+
+  </div>
+
+  <!-- =========================================================
+       ADD / EDIT PYQ MODAL
+       ========================================================= -->
+
+  <div class="modal-backdrop" id="pyq-modal" style="display:none;">
+
+    
+    <div class="modal-container modal-md">
+
+      <!-- HEADER -->
+
+      <div class="modal-header">
+
+        <h3 class="modal-title" id="pyq-modal-title">
+
+          Upload Previous Year Paper
+
+        </h3>
+
+
+        <button type="button" class="modal-close" id="btn-close-pyq-modal">
+
+          ✕
+
+        </button>
+
+      </div>
+
+
+      <!-- FORM -->
+
+      <form id="pyq-form">
+
+        <!-- SCROLLABLE BODY -->
+
+        <div class="modal-body">
+
+          <input type="hidden" id="pyq-id">
+
+          <div class="form-group">
+            <label class="form-label">
+              PYQ ID <span class="required">*</span>
+            </label>
+            <input type="text" id="pyq-code" class="form-control" placeholder="Generated from Paper Title" required readonly>
+          </div>
+
+
+          <!-- EXAM -->
+
+          <div class="form-group">
+
+            <label class="form-label">
+
+              Target Exam
+
+              <span class="required">
+                *
+              </span>
+
+            </label>
+
+
+            <select id="pyq-exam-id" class="form-control" required>
+
+              <option value="">
+                -- Select Exam --
+              </option>
+
+            </select>
+
+          </div>
+
+
+          <!-- STAGE / TIER (Added to match Mock Test) -->
+
+          <div class="form-group">
+
+            <label class="form-label">
+              Stage / Tier
+            </label>
+
+            <select id="pyq-stage-id" class="form-control">
+
+              <option value="">
+                No Stage / Tier
+              </option>
+
+            </select>
+
+            <div class="field-help" style="margin-top: 5px; font-size: 11.5px; color: #64748b;">
+              Only stages saved for the selected exam are available.
+            </div>
+
+          </div>
+
+
+          <!-- TITLE -->
+
+          <div class="form-group">
+
+            <label class="form-label">
+
+              Paper Title
+
+              <span class="required">
+                *
+              </span>
+
+            </label>
+
+
+            <input type="text" id="pyq-title" class="form-control"
+              placeholder="e.g. SSC CGL 2024 Tier-1 Official Question Paper with Answer Key" required>
+
+          </div>
+
+
+          <!-- YEAR + SHIFT -->
+
+          <div class="form-row">
+
+            <div class="form-group">
+
+              <label class="form-label">
+
+                Exam Year
+
+                <span class="required">
+                  *
+                </span>
+
+              </label>
+
+
+              <input type="number" id="pyq-year" class="form-control" value="2024" min="2000" max="2030" required>
+
+            </div>
+
+
+            <div class="form-group">
+
+              <label class="form-label">
+                Shift / Slot
+              </label>
+
+
+              <input type="text" id="pyq-shift" class="form-control" placeholder="e.g. Shift 1 (9 AM to 10 AM)">
+
+            </div>
+
+          </div>
+
+
+          <!-- QUESTIONS + ANSWER KEY -->
+
+          <div class="form-row">
+
+            <div class="form-group">
+
+              <label class="form-label">
+                Total Questions
+              </label>
+
+
+              <input type="number" id="pyq-total-q" class="form-control" value="100" min="1">
+
+            </div>
+
+
+            <div class="form-group">
+
+              <label class="form-label">
+                Answer Key Included?
+              </label>
+
+
+              <select id="pyq-has-key" class="form-control">
+
+                <option value="true">
+                  Yes, with Official Key
+                </option>
+
+                <option value="false">
+                  No Key / Questions Only
+                </option>
+
+              </select>
+
+            </div>
+
+          </div>
+
+
+          <!-- PDF -->
+
+          <div class="form-group">
+
+            <label class="form-label">
+              PDF Download / Viewer URL
+            </label>
+
+
+            <input type="url" id="pyq-pdf-url" class="form-control"
+              placeholder="https://storage.googleapis.com/.../ssc-cgl-2024-shift1.pdf">
+
+          </div>
+
+
+          <!-- STATUS -->
+
+          <div class="form-group">
+
+            <label class="form-label">
+              Status
+            </label>
+
+
+            <select id="pyq-status" class="form-control">
+
+              <option value="active">
+                Active
+              </option>
+
+              <option value="draft">
+                Draft
+              </option>
+
+            </select>
+
+          </div>
+
+        </div>
+
+
+        <!-- FOOTER -->
+
+        <div class="modal-footer">
+
+          <button type="button" class="btn btn-secondary" id="btn-cancel-pyq">
+
+            Cancel
+
+          </button>
+
+
+          <button type="submit" class="btn btn-primary" id="btn-save-pyq">
+
+            Save Paper
+
+          </button>
+
+        </div>
+
+      </form>
+
+    </div>
+    
+
+  </div>
+
+  <!-- =========================================================
+       JAVASCRIPT
+       ========================================================= -->
+
+  <script type="module">
+
+    import {
+      initAdminLayout
+    } from './admin-sidebar.js';
+
+
+    import {
+      getFirestoreExams,
+      getFirestorePYQ,
+      savePYQ,
+      deleteFirestorePYQ
+    } from './admin-db.js';
+
+    import { generateIdFromName } from './id-utils.js';
+
+
+    import {
+      ICONS,
+      escapeHtml,
+      showToast,
+      showConfirmDialog,
+      openModal,
+      closeModal,
+      debounce
+    } from './admin.js';
+
+
+    let allExams = [];
+
+    let allPYQ = [];
+
+    let filteredPYQ = [];
+
+    window.addEventListener('rankhub:bulk-delete-complete', () => loadPYQ());
+
+
+    /* =========================================================
+       PAGE INITIALIZATION
+       ========================================================= */
+
+    document.addEventListener(
+      'DOMContentLoaded',
+      () => {
+
+        initAdminLayout(
+          'pyq',
+          'Previous Year Papers'
+        );
+
+        initPage();
+
+        setupEvents();
+
+      }
+    );
+
+
+    /* =========================================================
+       STAGE NORMALIZATION (Copied safely from Mock Tests)
+       ========================================================= */
+
+    function normalizeExamStages(exam) {
+      let rawStages = [];
+      if (Array.isArray(exam?.stages)) {
+        rawStages = exam.stages;
+      } else if (exam?.stages) {
+        rawStages = [exam.stages];
+      } else if (exam?.stage ?? exam?.stageName) {
+        rawStages = [exam.stage ?? exam.stageName];
+      }
+
+      const normalized = [];
+      rawStages.forEach((rawStage, index) => {
+        const stage = typeof rawStage === 'string' ? { name: rawStage } : rawStage && typeof rawStage === 'object' ? rawStage : null;
+        if (!stage) return;
+
+        const status = stage.status ?? (stage.active === false ? 'inactive' : 'active');
+        if (String(status).toLowerCase() === 'inactive') return;
+
+        const name = String(stage.name ?? stage.title ?? stage.stage ?? stage.stageName ?? stage.label ?? '').trim();
+        if (!name) return;
+
+        normalized.push({
+          id: String(stage.id ?? stage.stageId ?? stage.tierId ?? '').trim(),
+          name,
+          code: String(stage.code ?? '').trim(),
+          order: stage.order ?? index
+        });
+      });
+
+      const legacyStage = exam?.stageName ?? exam?.stage;
+      if (!normalized.length && typeof legacyStage === 'string' && legacyStage.trim()) {
+        normalized.push({
+          id: String(exam?.stageId ?? '').trim(),
+          name: legacyStage.trim(),
+          code: '',
+          order: 0
+        });
+      }
+
+      return normalized.sort((left, right) => Number(left.order) - Number(right.order));
+    }
+
+    function getExamStages(examId) {
+      const exam = allExams.find(item => String(item.id) === String(examId));
+      return exam ? normalizeExamStages(exam) : [];
+    }
+
+    function resolvePYQStage(p) {
+      const stages = getExamStages(p.examId);
+      const stageId = String(p.stageId ?? '').trim();
+      const savedName = String(p.stageName ?? p.stage ?? '').trim();
+
+      const matched = stages.find(stage =>
+        (stageId && stage.id === stageId) ||
+        (savedName && stage.name === savedName) ||
+        (savedName && stage.code === savedName)
+      );
+
+      return {
+        stageId: matched?.id || stageId || null,
+        stageName: matched?.name || savedName || ''
+      };
+    }
+
+    function populateStageDropdown(examId, selectedStageId = '', selectedStageName = '') {
+      const select = document.getElementById('pyq-stage-id');
+      if (!select) return;
+
+      const stages = getExamStages(examId);
+      select.innerHTML =
+        '<option value="">No Stage / Tier</option>' +
+        stages.map(stage => `
+          <option value="${escapeHtml(stage.id || stage.name)}">
+            ${escapeHtml(stage.name)}
+          </option>
+        `).join('');
+
+      const selected = stages.find(stage =>
+        (selectedStageId && stage.id === String(selectedStageId)) ||
+        (selectedStageName && stage.name === String(selectedStageName))
+      );
+
+      select.value = selected ? selected.id || selected.name : '';
+    }
+
+
+    /* =========================================================
+       INIT PAGE
+       ========================================================= */
+
+    async function initPage() {
+
+      try {
+
+        allExams =
+          await getFirestoreExams();
+
+        if (!Array.isArray(allExams)) {
+          allExams = [];
+        }
+
+
+        /* FILTER EXAM */
+
+        const fExam =
+          document.getElementById(
+            'filter-exam'
+          );
+
+
+        fExam.innerHTML =
+          '<option value="">All Exams</option>' +
+
+          allExams
+            .map(
+              e =>
+                `<option value="${escapeHtml(e.id)}">
+                  ${escapeHtml(e.name || e.title)}
+                </option>`
+            )
+            .join('');
+
+
+        /* MODAL EXAM */
+
+        const mExam =
+          document.getElementById(
+            'pyq-exam-id'
+          );
+
+
+        mExam.innerHTML =
+          '<option value="">-- Select Exam --</option>' +
+
+          allExams
+            .map(
+              e =>
+                `<option value="${escapeHtml(e.id)}">
+                  ${escapeHtml(e.name || e.title)}
+                </option>`
+            )
+            .join('');
+
+
+        await loadPYQ();
+
+      } catch (error) {
+
+        console.error(
+          'PYQ page initialization failed:',
+          error
+        );
+
+        showToast(
+          error.message ||
+          'Failed to initialize PYQ page',
+          'error'
+        );
+
+      }
+
+    }
+
+
+    /* =========================================================
+       LOAD PYQ
+       ========================================================= */
+
+    async function loadPYQ() {
+
+      const tbody =
+        document.getElementById(
+          'pyq-table-body'
+        );
+
+
+      tbody.innerHTML = `
+        <tr>
+          <td
+            colspan="9"
+            class="loading-state">
+
+            <div class="spinner"></div>
+
+            <p>
+              Loading previous year papers from Firestore...
+            </p>
+
+          </td>
+        </tr>
+      `;
+
+
+      try {
+
+        const rawPYQ =
+          await getFirestorePYQ(
+            document.getElementById('filter-exam')?.value ||
+            new URLSearchParams(window.location.search).get('examId')
+          );
+
+
+        const list =
+          Array.isArray(rawPYQ)
+            ? rawPYQ
+            : [];
+
+
+        allPYQ = list.map(p => {
+          const exam = allExams.find(e => String(e.id) === String(p.examId));
+          const resolvedStage = resolvePYQStage(p);
+          return {
+            ...p,
+            examName: p.examName || exam?.name || exam?.title || 'Unknown Exam',
+            resolvedStageId: resolvedStage.stageId,
+            resolvedStageName: resolvedStage.stageName
+          };
+        });
+
+
+        applyFilters();
+
+
+      } catch (error) {
+
+        console.error(
+          'Error loading PYQ papers:',
+          error
+        );
+
+
+        showToast(
+          'Error loading PYQ papers from Firestore',
+          'error'
+        );
+
+
+        tbody.innerHTML = `
+
+          <tr>
+
+            <td
+              colspan="9"
+              class="empty-state"
+              style="color:var(--danger-text);">
+
+              <div class="empty-icon">
+                ${ICONS.alertCircle}
+              </div>
+
+              <h4 class="empty-title">
+                Failed to load PYQ papers
+              </h4>
+
+              <p class="empty-desc">
+                Check browser console for Firebase connection details.
+              </p>
+
+            </td>
+
+          </tr>
+
+        `;
+
+      }
+
+    }
+
+
+    /* =========================================================
+       FILTERS
+       ========================================================= */
+
+    function applyFilters() {
+
+      const q =
+        (
+          document.getElementById(
+            'pyq-search'
+          ).value || ''
+        )
+          .toLowerCase()
+          .trim();
+
+
+      const examId =
+        document.getElementById(
+          'filter-exam'
+        ).value;
+
+
+      filteredPYQ =
+        allPYQ.filter(
+          p => {
+
+            const title =
+              String(
+                p.title || ''
+              ).toLowerCase();
+
+
+            const examName =
+              String(
+                p.examName || ''
+              ).toLowerCase();
+
+
+            const shift =
+              String(
+                p.shift || ''
+              ).toLowerCase();
+
+
+            const year =
+              String(
+                p.year || ''
+              );
+
+
+            const matchesQ =
+              !q ||
+              title.includes(q) ||
+              examName.includes(q) ||
+              shift.includes(q) ||
+              year.includes(q);
+
+
+            const matchesExam =
+              !examId ||
+              p.examId === examId;
+
+
+            return (
+              matchesQ &&
+              matchesExam
+            );
+
+          }
+        );
+
+
+      renderTable();
+
+    }
+
+
+    /* =========================================================
+       RENDER TABLE
+       ========================================================= */
+
+    function renderTable() {
+
+      const tbody =
+        document.getElementById(
+          'pyq-table-body'
+        );
+
+
+      if (!filteredPYQ.length) {
+
+        tbody.innerHTML = `
+
+          <tr>
+
+            <td
+              colspan="9"
+              class="empty-state">
+
+              <div class="empty-icon">
+                ${ICONS.pyq}
+              </div>
+
+              <h4 class="empty-title">
+                No PYQ Papers Found
+              </h4>
+
+              <p class="empty-desc">
+                Upload past question papers to help students practice official patterns.
+              </p>
+
+            </td>
+
+          </tr>
+
+        `;
+
+        return;
+
+      }
+
+
+      tbody.innerHTML =
+        filteredPYQ
+          .map(
+            p => {
+
+              const safeTitle =
+                escapeHtml(
+                  p.title || 'Untitled PYQ'
+                );
+
+
+              const safeExam =
+                escapeHtml(
+                  p.examName || 'Exam'
+                );
+
+
+              const safeShift =
+                escapeHtml(
+                  p.shift || 'General'
+                );
+
+
+              const year =
+                escapeHtml(
+                  String(
+                    p.year || ''
+                  )
+                );
+
+
+              const totalQuestions =
+                Number(
+                  p.totalQuestions
+                ) || 100;
+
+
+              const hasAnswerKey =
+                p.hasAnswerKey === true;
+
+
+              const status =
+                String(
+                  p.status || 'active'
+                ).toLowerCase();
+
+
+              return `
+
+                <tr>
+
+                  <td>
+                    <strong>
+                      ${safeTitle}
+                    </strong>
+                  </td>
+
+
+                  <td>
+
+                    <span class="badge badge-info">
+                      ${safeExam}
+                    </span>
+
+                  </td>
+
+
+                  <td>
+                    ${p.resolvedStageName
+                      ? `<span class="badge badge-neutral" style="background:#f8fafc; color:#475569; border:1px solid #e2e8f0; font-size:11px;">${escapeHtml(p.resolvedStageName)}</span>`
+                      : '<span style="color:#94a3b8; font-size:12px;">None</span>'
+                    }
+                  </td>
+
+
+                  <td>
+
+                    <strong>
+                      ${year}
+                    </strong>
+
+                    <div
+                      style="
+                        font-size:12px;
+                        color:#64748b;
+                      ">
+
+                      ${safeShift}
+
+                    </div>
+
+                  </td>
+
+
+                  <td>
+                    ${totalQuestions} Qs
+                  </td>
+
+
+                  <td>
+
+                    <span
+                      class="badge ${hasAnswerKey
+                      ? 'badge-success'
+                      : 'badge-neutral'
+                    }">
+
+                      ${hasAnswerKey
+                      ? '✓ Solved'
+                      : 'Unsolved'
+                    }
+
+                    </span>
+
+                  </td>
+
+
+                  <td>
+
+                    ${p.pdfUrl
+
+                      ? `
+
+                          <a
+                            href="${escapeHtml(
+                        String(p.pdfUrl)
+                      )}"
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            style="
+                              color:#e11d48;
+                              text-decoration:none;
+                              font-weight:600;
+                              font-size:13px;
+                            ">
+
+                            Download PDF
+
+                          </a>
+
+                        `
+
+                      : `
+
+                          <span class="badge badge-neutral">
+                            Not provided
+                          </span>
+
+                        `
+                    }
+
+                  </td>
+
+
+                  <td>
+
+                    <span
+                      class="badge ${status === 'active'
+                      ? 'badge-success'
+                      : 'badge-neutral'
+                    }">
+
+                      ${status === 'active'
+                      ? 'Active'
+                      : 'Draft'
+                    }
+
+                    </span>
+
+                  </td>
+
+
+                  <td
+                    style="text-align:right;">
+
+                    <div
+                      class="action-buttons"
+                      style="justify-content:flex-end;">
+
+                      <button
+                        type="button"
+                        class="action-btn btn-edit-pyq"
+                        data-id="${escapeHtml(
+                        String(p.id)
+                      )}"
+                        title="Edit PYQ">
+
+                        ${ICONS.edit}
+
+                      </button>
+
+
+                      <button
+                        type="button"
+                        class="action-btn delete btn-delete-pyq"
+                        data-id="${escapeHtml(
+                        String(p.id)
+                      )}"
+                        data-title="${safeTitle}"
+                        title="Delete PYQ">
+
+                        ${ICONS.trash}
+
+                      </button>
+
+                    </div>
+
+                  </td>
+
+                </tr>
+
+              `;
+
+            }
+          )
+          .join('');
+
+
+      attachRowEvents();
+
+    }
+
+
+    /* =========================================================
+       ROW EVENTS
+       ========================================================= */
+
+    function attachRowEvents() {
+
+      document
+        .querySelectorAll(
+          '.btn-edit-pyq'
+        )
+        .forEach(
+          btn => {
+
+            btn.onclick = () => {
+
+              const id =
+                btn.getAttribute(
+                  'data-id'
+                );
+
+
+              const p =
+                allPYQ.find(
+                  x =>
+                    String(x.id) ===
+                    String(id)
+                );
+
+
+              if (!p) {
+
+                showToast(
+                  'PYQ record not found',
+                  'error'
+                );
+
+                return;
+
+              }
+
+
+              document.getElementById(
+                'pyq-id'
+              ).value =
+                p.id || '';
+
+              document.getElementById('pyq-code').value = p.id || p.code || '';
+              document.getElementById('pyq-code').readOnly = true;
+
+
+              const examId =
+                p.examId ||
+                p.examID ||
+                p.exam_id ||
+                p.targetExamId ||
+                '';
+
+
+              document.getElementById(
+                'pyq-exam-id'
+              ).value =
+                examId;
+
+              const resolvedStage = resolvePYQStage(p);
+              populateStageDropdown(examId, resolvedStage.stageId, resolvedStage.stageName);
+
+
+              document.getElementById(
+                'pyq-title'
+              ).value =
+                p.title || '';
+
+
+              document.getElementById(
+                'pyq-year'
+              ).value =
+                p.year || 2024;
+
+
+              document.getElementById(
+                'pyq-shift'
+              ).value =
+                p.shift || '';
+
+
+              document.getElementById(
+                'pyq-total-q'
+              ).value =
+                p.totalQuestions || 100;
+
+
+              document.getElementById(
+                'pyq-has-key'
+              ).value =
+                p.hasAnswerKey
+                  ? 'true'
+                  : 'false';
+
+
+              document.getElementById(
+                'pyq-pdf-url'
+              ).value =
+                p.pdfUrl || '';
+
+
+              document.getElementById(
+                'pyq-status'
+              ).value =
+                String(
+                  p.status || 'active'
+                ).toLowerCase() === 'active'
+                  ? 'active'
+                  : 'draft';
+
+
+              document.getElementById(
+                'pyq-modal-title'
+              ).textContent =
+                'Edit PYQ Paper';
+
+
+              openModal(
+                'pyq-modal'
+              );
+
+            };
+
+          }
+        );
+
+
+      document
+        .querySelectorAll(
+          '.btn-delete-pyq'
+        )
+        .forEach(
+          btn => {
+
+            btn.onclick = () => {
+
+              const id =
+                btn.getAttribute(
+                  'data-id'
+                );
+
+
+              const title =
+                btn.getAttribute(
+                  'data-title'
+                ) ||
+                'this PYQ';
+              const pyq = allPYQ.find(item => item.id === id);
+
+
+              showConfirmDialog({
+
+                title:
+                  'Delete PYQ Paper',
+
+                message:
+                  `Are you sure you want to delete "${title}"?`,
+
+                confirmText:
+                  'Delete Paper',
+
+                isDanger:
+                  true,
+
+                onConfirm:
+                  async () => {
+
+                    try {
+
+                      await deleteFirestorePYQ(
+                        id,
+                        pyq?.examId
+                      );
+
+
+                      showToast(
+                        'PYQ deleted'
+                      );
+
+
+                      await loadPYQ();
+
+                    } catch (error) {
+
+                      console.error(
+                        'Failed to delete PYQ:',
+                        error
+                      );
+
+
+                      showToast(
+                        error.message ||
+                        'Failed to delete PYQ',
+                        'error'
+                      );
+
+                    }
+
+                  }
+
+              });
+
+            };
+
+          }
+        );
+
+    }
+
+
+    /* =========================================================
+       EVENTS
+       ========================================================= */
+
+    function setupEvents() {
+
+      document.getElementById(
+        'pyq-search'
+      ).oninput =
+        debounce(
+          applyFilters,
+          250
+        );
+
+
+      document.getElementById(
+        'filter-exam'
+      ).onchange =
+        applyFilters;
+
+
+      // Exam change event to update Tiers dynamically
+      document.getElementById('pyq-exam-id').onchange = () => {
+        const examId = document.getElementById('pyq-exam-id').value;
+        populateStageDropdown(examId);
+      };
+
+
+      /* ADD */
+
+      document.getElementById(
+        'btn-open-add-pyq'
+      ).onclick = () => {
+
+        document.getElementById(
+          'pyq-form'
+        ).reset();
+
+
+        document.getElementById(
+          'pyq-id'
+        ).value =
+          '';
+
+        document.getElementById('pyq-code').value = '';
+        document.getElementById('pyq-code').readOnly = true;
+
+
+        if (allExams.length > 0) {
+          document.getElementById('pyq-exam-id').value = allExams[0].id;
+          populateStageDropdown(allExams[0].id);
+        } else {
+          populateStageDropdown('');
+        }
+
+
+        document.getElementById(
+          'pyq-modal-title'
+        ).textContent =
+          'Upload PYQ Paper';
+
+
+        openModal(
+          'pyq-modal'
+        );
+
+      };
+
+
+      /* CLOSE */
+
+      document.getElementById(
+        'btn-close-pyq-modal'
+      ).onclick =
+        () =>
+          closeModal(
+            'pyq-modal'
+          );
+
+
+      document.getElementById(
+        'btn-cancel-pyq'
+      ).onclick =
+        () =>
+          closeModal(
+            'pyq-modal'
+          );
+
+      document.getElementById('pyq-title').addEventListener('input', () => {
+        if (document.getElementById('pyq-id').value) return;
+        document.getElementById('pyq-code').value = generateIdFromName(
+          document.getElementById('pyq-title').value
+        );
+      });
+
+
+      /* SAVE */
+
+      document.getElementById(
+        'pyq-form'
+      ).onsubmit =
+        async e => {
+
+          e.preventDefault();
+
+
+          const examId =
+            document.getElementById(
+              'pyq-exam-id'
+            ).value;
+
+
+          const exam =
+            allExams.find(
+              x =>
+                x.id === examId
+            );
+
+          const stageSelect = document.getElementById('pyq-stage-id');
+          const selectedStage = getExamStages(examId).find(
+            stage => (stage.id || stage.name) === stageSelect?.value
+          );
+
+
+          const payload = {
+
+            id:
+              document.getElementById(
+                'pyq-id'
+              ).value || null,
+
+            code:
+              document.getElementById(
+                'pyq-code'
+              ).value.trim(),
+
+            examId,
+
+            examName:
+              exam
+                ? (exam.name || exam.title)
+                : '',
+
+            stageId: selectedStage?.id || null,
+            stageName: selectedStage?.name || null,
+            stage: selectedStage?.name || null,
+
+            title:
+              document.getElementById(
+                'pyq-title'
+              ).value.trim(),
+
+            year:
+              Number(
+                document.getElementById(
+                  'pyq-year'
+                ).value
+              ),
+
+            shift:
+              document.getElementById(
+                'pyq-shift'
+              ).value.trim(),
+
+            totalQuestions:
+              Number(
+                document.getElementById(
+                  'pyq-total-q'
+                ).value
+              ),
+
+            hasAnswerKey:
+              document.getElementById(
+                'pyq-has-key'
+              ).value === 'true',
+
+            pdfUrl:
+              document.getElementById(
+                'pyq-pdf-url'
+              ).value.trim(),
+
+            status:
+              document.getElementById(
+                'pyq-status'
+              ).value
+
+          };
+
+
+          if (!examId || !exam) {
+
+            showToast(
+              'Select an existing exam before saving the PYQ.',
+              'error'
+            );
+
+            return;
+
+          }
+
+          const existingId = payload.id || '';
+          const generatedPYQId = existingId || generateIdFromName(payload.title);
+
+          if (!generatedPYQId) {
+            showToast('PYQ title is required to generate an ID.', 'error');
+            return;
+          }
+
+          payload.code = generatedPYQId;
+
+          if (!existingId && allPYQ.some(item => {
+            const itemExamId = item.examId || item.examID || item.exam_id || item.targetExamId;
+            return itemExamId === examId && item.id === generatedPYQId;
+          })) {
+            showToast('An item with this generated ID already exists. Please use a different name.', 'error');
+            return;
+          }
+
+
+          if (
+            !payload.title ||
+            !Number.isInteger(
+              payload.year
+            ) ||
+            !Number.isInteger(
+              payload.totalQuestions
+            ) ||
+            payload.totalQuestions < 1
+          ) {
+
+            showToast(
+              'Enter a valid title, year, and total question count.',
+              'error'
+            );
+
+            return;
+
+          }
+
+
+          const saveButton =
+            document.getElementById(
+              'btn-save-pyq'
+            );
+
+
+          const originalText =
+            saveButton.textContent;
+
+
+          saveButton.disabled =
+            true;
+
+
+          saveButton.textContent =
+            'Saving...';
+
+
+          try {
+
+            await savePYQ(
+              payload
+            );
+
+
+            closeModal(
+              'pyq-modal'
+            );
+
+
+            showToast(
+              'PYQ paper saved successfully!'
+            );
+
+
+            await loadPYQ();
+
+          } catch (error) {
+
+            console.error(
+              'Failed to save PYQ:',
+              error
+            );
+
+
+            showToast(
+              error.message ||
+              'Failed to save PYQ',
+              'error'
+            );
+
+          } finally {
+
+            saveButton.disabled =
+              false;
+
+            saveButton.textContent =
+              originalText;
+
+          }
+
+        };
+
+    }
+
+  </script>
+
+</body>
+
+</html>

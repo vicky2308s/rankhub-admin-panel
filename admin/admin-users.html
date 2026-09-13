@@ -1,0 +1,403 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Users Management - RankHub Admin</title>
+  <link rel="stylesheet" href="./admin.css">
+</head>
+<body>
+  <div class="admin-layout">
+    <main class="admin-main">
+      <header class="admin-header"></header>
+
+      <div class="admin-content">
+        <div class="page-toolbar">
+          <div class="page-toolbar-info">
+            <h1>User Accounts</h1>
+            <p>Manage registered candidates, subscriptions, account permissions, and activity.</p>
+          </div>
+          <div class="page-toolbar-actions">
+            <button type="button" class="btn btn-secondary" id="btn-export-users-csv">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" x2="12" y1="15" y2="3"/></svg>
+              Export CSV
+            </button>
+            <button type="button" class="btn btn-primary" id="btn-add-user-modal">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+              Add User
+            </button>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="filter-bar">
+            <div class="search-input-wrapper">
+              <span class="search-icon">🔍</span>
+              <input type="text" id="user-search" placeholder="Search by candidate name, email, or phone...">
+            </div>
+            <select id="filter-plan" class="filter-select">
+              <option value="">All Plans (Free & Pro)</option>
+              <option value="premium">Premium Pro Only</option>
+              <option value="free">Free Users Only</option>
+            </select>
+            <select id="filter-status" class="filter-select">
+              <option value="">All Account Statuses</option>
+              <option value="active">Active</option>
+              <option value="suspended">Suspended</option>
+            </select>
+          </div>
+
+          <div class="table-responsive">
+            <table class="data-table">
+              <thead>
+                <tr>
+                  <th>Student Info</th>
+                  <th>Target Exam</th>
+                  <th>Plan & Status</th>
+                  <th>Subscription Expiry</th>
+                  <th>Joined Date</th>
+                  <th style="text-align: right;">Actions</th>
+                </tr>
+              </thead>
+              <tbody id="users-table-body">
+                <tr>
+                  <td colspan="6" class="loading-state">
+                    <div class="spinner"></div>
+                    <p>Loading real users from Firestore...</p>
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+
+          <div class="pagination-wrapper" id="users-pagination"></div>
+        </div>
+      </div>
+    </main>
+  </div>
+
+  <div class="modal-backdrop" id="user-modal">
+    <div class="modal-container">
+      <div class="modal-header">
+        <h3 class="modal-title" id="user-modal-title">Student Profile</h3>
+        <button type="button" class="modal-close" id="btn-close-user-modal">✕</button>
+      </div>
+      <form id="user-form">
+        <div class="modal-body">
+          <input type="hidden" id="user-id">
+          <div class="form-row">
+            <div class="form-group">
+              <label class="form-label">Full Name <span class="required">*</span></label>
+              <input type="text" id="user-name" class="form-control" required placeholder="e.g. Ramesh Kumar">
+            </div>
+            <div class="form-group">
+              <label class="form-label">Email Address <span class="required">*</span></label>
+              <input type="email" id="user-email" class="form-control" required placeholder="candidate@example.com">
+            </div>
+          </div>
+          <div class="form-row">
+            <div class="form-group">
+              <label class="form-label">Phone Number</label>
+              <input type="tel" id="user-phone" class="form-control" placeholder="+91 98765 43210">
+            </div>
+            <div class="form-group">
+              <label class="form-label">Target Exam</label>
+              <input type="text" id="user-target-exam" class="form-control" placeholder="e.g. SSC CGL 2026">
+            </div>
+          </div>
+          <div class="form-row">
+            <div class="form-group">
+              <label class="form-label">Account Status</label>
+              <select id="user-status" class="form-control">
+                <option value="active">Active</option>
+                <option value="suspended">Suspended</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label class="form-label">Subscription Tier</label>
+              <select id="user-premium" class="form-control">
+                <option value="false">Free Tier</option>
+                <option value="true">Premium Pro Tier</option>
+              </select>
+            </div>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" id="btn-cancel-user">Cancel</button>
+          <button type="submit" class="btn btn-primary" id="btn-save-user">Save User Record</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <script type="module">
+    import { initAdminLayout } from './admin-sidebar.js';
+    import { getFirestoreUsers, saveUser, updateUserStatus, toggleUserPremium, deleteFirestoreUser } from './admin-db.js';
+    import { ICONS, formatDate, escapeHtml, showToast, showConfirmDialog, openModal, closeModal, paginateArray, renderPaginationControls, exportToCsv, debounce } from './admin.js';
+
+    let allUsers = [];
+    let filteredUsers = [];
+    let currentPage = 1;
+    const PAGE_SIZE = 10;
+
+    window.addEventListener('rankhub:bulk-delete-complete', () => loadUsers());
+
+    document.addEventListener('DOMContentLoaded', () => {
+      initAdminLayout('users', 'Users & Students');
+      loadUsers();
+      setupEvents();
+    });
+
+    async function loadUsers() {
+      const tbody = document.getElementById('users-table-body');
+      tbody.innerHTML = `
+        <tr>
+          <td colspan="6" class="loading-state">
+            <div class="spinner"></div>
+            <p>Loading registered student accounts from Firestore...</p>
+          </td>
+        </tr>
+      `;
+      try {
+        allUsers = await getFirestoreUsers();
+        applyFilters();
+      } catch (err) {
+        console.error('Error loading users:', err);
+        showToast('Error loading users from Firestore', 'error');
+        tbody.innerHTML = `
+          <tr>
+            <td colspan="6" class="empty-state" style="color:var(--danger-text);">
+              <div class="empty-icon">${ICONS.alertCircle}</div>
+              <h4 class="empty-title">Failed to load users</h4>
+              <p class="empty-desc">Check browser console for Firebase connection details.</p>
+            </td>
+          </tr>
+        `;
+      }
+    }
+
+    function applyFilters() {
+      const query = (document.getElementById('user-search').value || '').toLowerCase().trim();
+      const plan = document.getElementById('filter-plan').value;
+      const status = document.getElementById('filter-status').value;
+
+      filteredUsers = allUsers.filter(u => {
+        const matchesQuery = !query || 
+          (u.name && u.name.toLowerCase().includes(query)) ||
+          (u.email && u.email.toLowerCase().includes(query)) ||
+          (u.phone && u.phone.includes(query));
+        
+        const matchesPlan = !plan || (plan === 'premium' ? u.isPremium : !u.isPremium);
+        const matchesStatus = !status || u.status === status;
+
+        return matchesQuery && matchesPlan && matchesStatus;
+      });
+
+      currentPage = 1;
+      renderTable();
+    }
+
+    function renderTable() {
+      const tbody = document.getElementById('users-table-body');
+      const paginated = paginateArray(filteredUsers, currentPage, PAGE_SIZE);
+
+      if (paginated.data.length === 0) {
+        tbody.innerHTML = `
+          <tr>
+            <td colspan="6" class="empty-state">
+              <div class="empty-icon">${ICONS.users}</div>
+              <h4 class="empty-title">No Users Found</h4>
+              <p class="empty-desc">No candidate accounts matched the selected search or filters.</p>
+            </td>
+          </tr>
+        `;
+        renderPaginationControls('users-pagination', paginated, (p) => { currentPage = p; renderTable(); });
+        return;
+      }
+
+      tbody.innerHTML = paginated.data.map(u => `
+        <tr>
+          <td>
+            <div style="display:flex; align-items:center; gap:12px;">
+              <div class="user-avatar" style="width:34px; height:34px; font-size:13px; background:#e11d48;">
+                ${(u.name || 'U').charAt(0).toUpperCase()}
+              </div>
+              <div>
+                <strong>${escapeHtml(u.name || 'Student')}</strong>
+                <div style="font-size:12px; color:#64748b;">${escapeHtml(u.email || '-')}</div>
+                ${u.phone ? `<div style="font-size:11px; color:#94a3b8;">${escapeHtml(u.phone)}</div>` : ''}
+              </div>
+            </div>
+          </td>
+          <td>
+            <span class="badge badge-neutral">${escapeHtml(u.targetExam || 'General Prep')}</span>
+          </td>
+          <td>
+            <div style="display:flex; flex-direction:column; gap:4px;">
+              <span class="badge ${u.isPremium ? 'badge-primary' : 'badge-neutral'}">
+                ${u.isPremium ? '★ Premium Pro' : 'Free Member'}
+              </span>
+              <span class="badge ${u.status === 'suspended' ? 'badge-danger' : 'badge-success'}">
+                ${u.status === 'suspended' ? 'Suspended' : 'Active'}
+              </span>
+            </div>
+          </td>
+          <td style="font-size:13px; color:#475569;">
+            ${u.subscriptionExpiry ? formatDate(u.subscriptionExpiry) : (u.isPremium ? 'Lifetime' : 'N/A')}
+          </td>
+          <td style="font-size:13px; color:#64748b;">
+            ${formatDate(u.createdAt)}
+          </td>
+          <td style="text-align: right;">
+            <div class="action-buttons" style="justify-content: flex-end;">
+              <button type="button" class="action-btn btn-toggle-premium" data-id="${u.id}" data-premium="${u.isPremium}" title="${u.isPremium ? 'Revoke Premium' : 'Grant 30-Day Pro'}">
+                ${u.isPremium ? '⭐' : '☆'}
+              </button>
+              <button type="button" class="action-btn btn-toggle-status" data-id="${u.id}" data-status="${u.status}" title="${u.status === 'suspended' ? 'Restore User' : 'Suspend User'}">
+                ${u.status === 'suspended' ? '🔓' : '🚫'}
+              </button>
+              <button type="button" class="action-btn delete btn-delete-user" data-id="${u.id}" data-name="${escapeHtml(u.name || '')}" title="Delete User">
+                ${ICONS.trash}
+              </button>
+            </div>
+          </td>
+        </tr>
+      `).join('');
+
+      renderPaginationControls('users-pagination', paginated, (p) => {
+        currentPage = p;
+        renderTable();
+      });
+
+      attachRowHandlers();
+    }
+
+    function attachRowHandlers() {
+      document.querySelectorAll('.btn-toggle-premium').forEach(btn => {
+        btn.onclick = async () => {
+          const id = btn.getAttribute('data-id');
+          const isCurrentlyPremium = btn.getAttribute('data-premium') === 'true';
+          const newStatus = !isCurrentlyPremium;
+
+          showConfirmDialog({
+            title: newStatus ? 'Grant Premium Subscription' : 'Revoke Premium Access',
+            message: newStatus ? 'Grant candidate 30-days of all-access Pro pass?' : 'Revoke candidate Pro tier back to Free plan?',
+            confirmText: newStatus ? 'Grant Pro Access' : 'Revoke Access',
+            isDanger: !newStatus,
+            onConfirm: async () => {
+              await toggleUserPremium(id, newStatus, 30);
+              showToast(`User is now ${newStatus ? 'Premium Pro' : 'Free tier'}`);
+              await loadUsers();
+            }
+          });
+        };
+      });
+
+      document.querySelectorAll('.btn-toggle-status').forEach(btn => {
+        btn.onclick = async () => {
+          const id = btn.getAttribute('data-id');
+          const currentStatus = btn.getAttribute('data-status');
+          const newStatus = currentStatus === 'suspended' ? 'active' : 'suspended';
+
+          showConfirmDialog({
+            title: newStatus === 'suspended' ? 'Suspend Candidate Account' : 'Restore Candidate Account',
+            message: `Are you sure you want to ${newStatus === 'suspended' ? 'suspend' : 'restore'} this student?`,
+            confirmText: newStatus === 'suspended' ? 'Yes, Suspend' : 'Yes, Restore',
+            isDanger: newStatus === 'suspended',
+            onConfirm: async () => {
+              await updateUserStatus(id, newStatus);
+              showToast(`Account status updated to ${newStatus}`);
+              await loadUsers();
+            }
+          });
+        };
+      });
+
+      document.querySelectorAll('.btn-delete-user').forEach(btn => {
+        btn.onclick = () => {
+          const id = btn.getAttribute('data-id');
+          const name = btn.getAttribute('data-name');
+          showConfirmDialog({
+            title: 'Delete User Account',
+            message: `Are you sure you want to permanently delete account for ${name}?`,
+            confirmText: 'Delete User',
+            isDanger: true,
+            onConfirm: async () => {
+              await deleteFirestoreUser(id);
+              showToast('User deleted successfully');
+              await loadUsers();
+            }
+          });
+        };
+      });
+    }
+
+    function setupEvents() {
+      document.getElementById('user-search').oninput = debounce(applyFilters, 250);
+      document.getElementById('filter-plan').onchange = applyFilters;
+      document.getElementById('filter-status').onchange = applyFilters;
+
+      document.getElementById('btn-export-users-csv').onclick = () => {
+        const exportData = filteredUsers.map(u => ({
+          ID: u.id,
+          Name: u.name,
+          Email: u.email,
+          Phone: u.phone || '',
+          TargetExam: u.targetExam || '',
+          Status: u.status || 'active',
+          IsPremium: u.isPremium ? 'Yes' : 'No',
+          SubscriptionExpiry: u.subscriptionExpiry || '',
+          CreatedAt: u.createdAt || ''
+        }));
+        exportToCsv('rankhub_users_list.csv', exportData);
+      };
+
+      document.getElementById('btn-add-user-modal').onclick = () => {
+        document.getElementById('user-form').reset();
+        document.getElementById('user-id').value = '';
+        document.getElementById('user-modal-title').textContent = 'Add New Candidate Account';
+        openModal('user-modal');
+      };
+
+      document.getElementById('btn-close-user-modal').onclick = () => closeModal('user-modal');
+      document.getElementById('btn-cancel-user').onclick = () => closeModal('user-modal');
+
+      document.getElementById('user-form').onsubmit = async (e) => {
+        e.preventDefault();
+        const btn = document.getElementById('btn-save-user');
+        btn.disabled = true;
+
+        const name = document.getElementById('user-name').value;
+        const email = document.getElementById('user-email').value;
+        const phone = document.getElementById('user-phone').value;
+        const targetExam = document.getElementById('user-target-exam').value;
+        const status = document.getElementById('user-status').value;
+        const isPremium = document.getElementById('user-premium').value === 'true';
+        const userId = document.getElementById('user-id').value || null;
+
+        const userData = {
+          id: userId,
+          name,
+          email,
+          phone,
+          targetExam,
+          status,
+          isPremium,
+          createdAt: new Date().toISOString()
+        };
+
+        try {
+          await saveUser(userData);
+          closeModal('user-modal');
+          showToast('User account saved to Firestore!');
+          await loadUsers();
+        } catch (err) {
+          showToast(err.message || 'Failed to save user', 'error');
+        } finally {
+          btn.disabled = false;
+        }
+      };
+    }
+  </script>
+</body>
+</html>

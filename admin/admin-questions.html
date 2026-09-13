@@ -1,0 +1,6422 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+
+    <meta charset="UTF-8">
+
+    <meta
+        name="viewport"
+        content="width=device-width, initial-scale=1.0"
+    >
+
+    <title>Question Bank - RankHub Admin</title>
+
+    <link rel="stylesheet" href="./admin.css">
+
+    <style>
+
+        /* =====================================================
+           RANKHUB QUESTION BANK
+           ===================================================== */
+
+        * {
+            box-sizing: border-box;
+        }
+
+        html,
+        body {
+            margin: 0;
+            padding: 0;
+            width: 100%;
+            min-height: 100%;
+        }
+
+        body {
+            overflow-x: hidden;
+        }
+
+        /* =====================================================
+           PAGE LAYOUT
+           ===================================================== */
+
+        .question-page {
+            width: 100%;
+            min-width: 0;
+            position: relative;
+        }
+
+        .question-content {
+            width: 100%;
+            max-width: 100%;
+            min-width: 0;
+            padding: 24px;
+            position: relative;
+            z-index: 1;
+        }
+
+        @media (min-width: 769px) {
+
+            .question-page {
+                margin-left: 260px;
+                width: calc(100% - 260px);
+            }
+
+            .admin-content.question-content {
+                width: auto;
+                margin-left: 0;
+            }
+
+        }
+
+        /* =====================================================
+           HEADER
+           ===================================================== */
+
+        .q-page-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 18px;
+            margin-bottom: 24px;
+            flex-wrap: wrap;
+        }
+
+        .q-title-area h1 {
+            margin: 0;
+            font-size: 28px;
+            font-weight: 800;
+            color: var(--text-primary, #111827);
+        }
+
+        .q-title-area p {
+            margin: 6px 0 0;
+            color: var(--text-secondary, #6b7280);
+            font-size: 14px;
+        }
+
+        .q-header-actions {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+
+        .q-btn {
+            border: 0;
+            border-radius: 10px;
+            padding: 11px 16px;
+            font-size: 14px;
+            font-weight: 700;
+            cursor: pointer;
+            transition: 0.2s ease;
+            white-space: nowrap;
+        }
+
+        .q-btn:hover {
+            transform: translateY(-1px);
+        }
+
+        .q-btn-primary {
+            background: #e11d48;
+            color: #fff;
+        }
+
+        .q-btn-secondary {
+            background: #f3f4f6;
+            color: #111827;
+        }
+
+        .q-btn-danger {
+            background: #fee2e2;
+            color: #b91c1c;
+        }
+
+        .q-btn-success {
+            background: #16a34a;
+            color: #fff;
+        }
+
+        .q-btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        /* =====================================================
+           STATS
+           ===================================================== */
+
+        .q-stats {
+            display: grid;
+            grid-template-columns: repeat(5, minmax(0, 1fr));
+            gap: 16px;
+            margin-bottom: 20px;
+        }
+
+        .q-stat-card {
+            background: #fff;
+            border: 1px solid #e5e7eb;
+            border-radius: 14px;
+            padding: 18px;
+            min-width: 0;
+        }
+
+        .q-stat-label {
+            font-size: 13px;
+            color: #6b7280;
+            margin-bottom: 8px;
+        }
+
+        .q-stat-value {
+            font-size: 25px;
+            font-weight: 800;
+            color: #111827;
+        }
+
+        /* =====================================================
+           CARDS
+           ===================================================== */
+
+        .q-card {
+            background: #fff;
+            border: 1px solid #e5e7eb;
+            border-radius: 14px;
+            margin-bottom: 20px;
+            overflow: hidden;
+        }
+
+        .q-card-header {
+            padding: 18px 20px;
+            border-bottom: 1px solid #e5e7eb;
+        }
+
+        .q-card-header h2 {
+            margin: 0;
+            font-size: 17px;
+            color: #111827;
+        }
+
+        .q-card-body {
+            padding: 20px;
+        }
+
+        /* =====================================================
+           FILTER
+           ===================================================== */
+
+        .q-filter-grid {
+            display: grid;
+            grid-template-columns:
+                minmax(220px, 2fr)
+                repeat(3, minmax(150px, 1fr));
+            gap: 12px;
+        }
+
+        .q-input,
+        .q-select {
+            width: 100%;
+            min-width: 0;
+            height: 44px;
+            border: 1px solid #d1d5db;
+            border-radius: 9px;
+            padding: 0 12px;
+            background: #fff;
+            color: #111827;
+            outline: none;
+            font-size: 14px;
+        }
+
+        .q-input:focus,
+        .q-select:focus {
+            border-color: #e11d48;
+            box-shadow:
+                0 0 0 3px
+                rgba(225, 29, 72, 0.08);
+        }
+
+        .q-select:disabled {
+            background: #f3f4f6;
+            cursor: not-allowed;
+            color: #9ca3af;
+        }
+
+        /* =====================================================
+           TABLE
+           ===================================================== */
+
+        .q-table-wrap {
+            width: 100%;
+            overflow-x: auto;
+            overflow-y: visible;
+        }
+
+        .q-table {
+            width: 100%;
+            min-width: 900px;
+            border-collapse: collapse;
+        }
+
+        .q-table th {
+            text-align: left;
+            padding: 13px 16px;
+            background: #f9fafb;
+            border-bottom: 1px solid #e5e7eb;
+            color: #4b5563;
+            font-size: 12px;
+            text-transform: uppercase;
+            letter-spacing: 0.04em;
+            white-space: nowrap;
+        }
+
+        .q-table td {
+            padding: 15px 16px;
+            border-bottom: 1px solid #f1f5f9;
+            vertical-align: top;
+            color: #374151;
+            font-size: 14px;
+        }
+
+        .q-question {
+            max-width: 360px;
+            line-height: 1.5;
+            color: #111827;
+            font-weight: 600;
+        }
+
+        .q-group-title {
+            color: #111827;
+            font-weight: 800;
+        }
+
+        .q-group-meta {
+            margin-top: 4px;
+            color: #6b7280;
+            font-size: 12px;
+            line-height: 1.45;
+        }
+
+        .q-question-card {
+            padding: 16px 0;
+            border-bottom: 1px solid #e5e7eb;
+        }
+
+        .q-question-card:last-child {
+            border-bottom: 0;
+        }
+
+        .q-question-card p {
+            margin: 7px 0;
+            line-height: 1.5;
+            color: #111827;
+        }
+
+        .q-option-line {
+            margin-top: 4px;
+            color: #374151;
+            font-size: 13px;
+        }
+
+        .q-question-card .q-actions {
+            margin-top: 12px;
+        }
+
+        .q-subtext {
+            margin-top: 4px;
+            color: #6b7280;
+            font-size: 12px;
+        }
+
+        .q-badge {
+            display: inline-flex;
+            align-items: center;
+            padding: 5px 9px;
+            border-radius: 999px;
+            font-size: 11px;
+            font-weight: 700;
+        }
+
+        .q-badge-active {
+            background: #dcfce7;
+            color: #166534;
+        }
+
+        .q-badge-easy {
+            background: #dcfce7;
+            color: #166534;
+        }
+
+        .q-badge-medium {
+            background: #fef3c7;
+            color: #92400e;
+        }
+
+        .q-badge-hard {
+            background: #fee2e2;
+            color: #991b1b;
+        }
+
+        .q-actions {
+            display: flex;
+            gap: 7px;
+        }
+
+        .q-icon-btn {
+            width: 34px;
+            height: 34px;
+            border: 0;
+            border-radius: 8px;
+            cursor: pointer;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            background: #f3f4f6;
+            color: #374151;
+        }
+
+        .q-icon-btn:hover {
+            transform: translateY(-1px);
+        }
+
+        .q-icon-btn.delete {
+            background: #fee2e2;
+            color: #b91c1c;
+        }
+
+        /* =====================================================
+           EMPTY / LOADING
+           ===================================================== */
+
+        .q-empty {
+            padding: 50px 20px !important;
+            text-align: center;
+            color: #6b7280 !important;
+        }
+
+        .q-empty strong {
+            display: block;
+            margin-bottom: 7px;
+            color: #111827;
+            font-size: 16px;
+        }
+
+        .q-loading {
+            padding: 45px !important;
+            text-align: center;
+            color: #6b7280 !important;
+        }
+
+        /* =====================================================
+           PAGINATION
+           ===================================================== */
+
+        .q-pagination {
+            display: flex;
+            justify-content: flex-end;
+            align-items: center;
+            gap: 8px;
+            padding: 15px 20px;
+        }
+
+        /* =====================================================
+           MODAL
+           ===================================================== */
+
+        .q-modal {
+            position: fixed;
+            inset: 0;
+            background: rgba(15, 23, 42, 0.6);
+            display: none;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+            z-index: 99999;
+        }
+
+        .q-modal.open {
+            display: flex;
+        }
+
+        .q-modal-box {
+            width: min(750px, 100%);
+            max-height: calc(100vh - 40px);
+            overflow-y: auto;
+            background: #fff;
+            border-radius: 16px;
+            box-shadow:
+                0 25px 70px
+                rgba(0, 0, 0, 0.2);
+        }
+
+        .q-modal-large {
+            width: min(1100px, 100%);
+        }
+
+        .q-modal-header {
+            padding: 18px 20px;
+            border-bottom: 1px solid #e5e7eb;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 12px;
+            position: sticky;
+            top: 0;
+            background: #fff;
+            z-index: 2;
+        }
+
+        .q-modal-header h2 {
+            margin: 0;
+            font-size: 19px;
+            color: #111827;
+        }
+
+        .q-close {
+            width: 34px;
+            height: 34px;
+            border: 0;
+            border-radius: 8px;
+            background: #f3f4f6;
+            cursor: pointer;
+            font-size: 18px;
+            color: #111827;
+        }
+
+        .q-close:hover {
+            background: #fee2e2;
+            color: #b91c1c;
+        }
+
+        .q-modal-body {
+            padding: 20px;
+        }
+
+        .q-modal-footer {
+            padding: 15px 20px;
+            border-top: 1px solid #e5e7eb;
+            display: flex;
+            justify-content: flex-end;
+            gap: 10px;
+            position: sticky;
+            bottom: 0;
+            background: #fff;
+            z-index: 2;
+        }
+
+        /* =====================================================
+           STEPS
+           ===================================================== */
+
+        .q-step {
+            margin-bottom: 20px;
+        }
+
+        .q-step-title {
+            font-size: 13px;
+            font-weight: 800;
+            color: #374151;
+            margin-bottom: 9px;
+        }
+
+        .q-choice-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr); /* Updated to 4 columns */
+            gap: 12px;
+        }
+
+        .q-choice {
+            border: 2px solid #e5e7eb;
+            border-radius: 12px;
+            background: #fff;
+            padding: 17px;
+            cursor: pointer;
+            text-align: left;
+            transition: 0.2s ease;
+        }
+
+        .q-choice:hover {
+            border-color: #e11d48;
+        }
+
+        .q-choice.selected {
+            border-color: #e11d48;
+            background: #fff1f2;
+            box-shadow:
+                0 0 0 2px
+                rgba(225, 29, 72, 0.08);
+        }
+
+        .q-choice-title {
+            font-weight: 800;
+            color: #111827;
+            margin-bottom: 5px;
+        }
+
+        .q-choice-desc {
+            font-size: 12px;
+            color: #6b7280;
+            line-height: 1.4;
+        }
+
+        /* =====================================================
+           PATH
+           ===================================================== */
+
+        .q-path {
+            padding: 12px 14px;
+            border-radius: 10px;
+            background: #f8fafc;
+            color: #475569;
+            font-size: 13px;
+            line-height: 1.5;
+            margin-top: 15px;
+        }
+
+        .q-path strong {
+            color: #111827;
+        }
+
+        /* =====================================================
+           DESTINATION PANELS
+           ===================================================== */
+
+        .destination-panel {
+            display: none;
+            margin-top: 18px;
+            padding-top: 18px;
+            border-top: 1px solid #e5e7eb;
+        }
+
+        .destination-panel.active {
+            display: block;
+        }
+
+        .q-form-grid {
+            display: grid;
+            grid-template-columns:
+                repeat(2, minmax(0, 1fr));
+            gap: 14px;
+        }
+
+        .q-form-grid.three {
+            grid-template-columns:
+                repeat(3, minmax(0, 1fr));
+        }
+
+        .q-field label {
+            display: block;
+            font-size: 12px;
+            font-weight: 700;
+            color: #374151;
+            margin-bottom: 7px;
+        }
+
+        /* =====================================================
+           CSV
+           ===================================================== */
+
+        .q-csv-box {
+            margin-top: 18px;
+            padding: 18px;
+            border: 2px dashed #d1d5db;
+            border-radius: 12px;
+            background: #f9fafb;
+        }
+
+        .q-csv-box input[type="file"] {
+            width: 100%;
+            padding: 8px;
+            border: 1px solid #d1d5db;
+            border-radius: 8px;
+            background: #fff;
+        }
+
+        .q-csv-help {
+            margin-top: 9px;
+            font-size: 12px;
+            line-height: 1.5;
+            color: #6b7280;
+        }
+
+        .q-file-status {
+            margin-top: 10px;
+            font-size: 13px;
+            font-weight: 700;
+        }
+
+        .q-file-status.success {
+            color: #15803d;
+        }
+
+        .q-file-status.error {
+            color: #b91c1c;
+        }
+
+        /* =====================================================
+           PREVIEW
+           ===================================================== */
+
+        .q-preview-wrap {
+            width: 100%;
+            overflow-x: auto;
+            max-height: 55vh;
+            overflow-y: auto;
+        }
+
+        .q-preview-table {
+            width: 100%;
+            min-width: 1000px;
+            border-collapse: collapse;
+        }
+
+        .q-preview-table th,
+        .q-preview-table td {
+            border: 1px solid #e5e7eb;
+            padding: 9px;
+            font-size: 12px;
+            vertical-align: top;
+        }
+
+        .q-preview-table th {
+            background: #f9fafb;
+            white-space: nowrap;
+            position: sticky;
+            top: 0;
+            z-index: 1;
+        }
+
+        /* =====================================================
+           RESPONSIVE
+           ===================================================== */
+
+        @media (max-width: 1100px) {
+
+            .q-stats {
+                grid-template-columns: repeat(2, 1fr);
+            }
+
+            .q-filter-grid {
+                grid-template-columns:
+                    repeat(2, minmax(0, 1fr));
+            }
+
+        }
+
+        @media (max-width: 768px) {
+
+            .question-page {
+                margin-left: 0;
+                width: 100%;
+            }
+
+            .question-content {
+                padding: 16px;
+            }
+
+            .q-page-header {
+                align-items: flex-start;
+            }
+
+            .q-title-area h1 {
+                font-size: 23px;
+            }
+
+            .q-header-actions {
+                width: 100%;
+            }
+
+            .q-header-actions .q-btn {
+                flex: 1;
+            }
+
+            .q-stats {
+                grid-template-columns: 1fr 1fr;
+                gap: 10px;
+            }
+
+            .q-filter-grid,
+            .q-form-grid,
+            .q-form-grid.three {
+                grid-template-columns: 1fr;
+            }
+
+            .q-choice-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .q-modal {
+                padding: 10px;
+            }
+
+            .q-modal-box {
+                max-height: calc(100vh - 20px);
+            }
+
+        }
+
+        @media (max-width: 480px) {
+
+            .q-stats {
+                grid-template-columns: 1fr;
+            }
+
+            .q-card-body {
+                padding: 14px;
+            }
+
+            .q-pagination {
+                justify-content: center;
+            }
+
+            .q-modal-footer {
+                flex-wrap: wrap;
+            }
+
+            .q-modal-footer .q-btn {
+                flex: 1;
+            }
+
+        }
+
+    </style>
+
+</head>
+
+
+<body>
+
+
+<!-- =========================================================
+     ADMIN LAYOUT
+     ========================================================= -->
+
+<div id="admin-layout">
+
+    <main class="admin-main question-page">
+
+        <div class="admin-content question-content">
+
+
+            <!-- =================================================
+                 HEADER
+                 ================================================= -->
+
+            <div class="q-page-header">
+
+                <div class="q-title-area">
+
+                    <h1>
+                        Question Bank
+                    </h1>
+
+                    <p>
+                        Manage Mock Test, Subject Practice, PYQ and Test Series questions.
+                    </p>
+
+                </div>
+
+
+                <div class="q-header-actions">
+
+                    <button
+                        type="button"
+                        class="q-btn q-btn-secondary"
+                        id="btn-download-template"
+                    >
+                        CSV Template
+                    </button>
+
+
+                    <button
+                        type="button"
+                        class="q-btn q-btn-secondary"
+                        id="btn-export-questions"
+                    >
+                        Export CSV
+                    </button>
+
+
+                    <button
+                        type="button"
+                        class="q-btn q-btn-primary"
+                        id="btn-open-add-question"
+                    >
+                        + Add Questions
+                    </button>
+
+                </div>
+
+            </div>
+
+
+            <!-- =================================================
+                 STATS
+                 ================================================= -->
+
+            <div class="q-stats">
+
+                <div class="q-stat-card">
+
+                    <div class="q-stat-label">
+                        Total Questions
+                    </div>
+
+                    <div
+                        class="q-stat-value"
+                        id="stat-total"
+                    >
+                        0
+                    </div>
+
+                </div>
+
+
+                <div class="q-stat-card">
+
+                    <div class="q-stat-label">
+                        Mock Test
+                    </div>
+
+                    <div
+                        class="q-stat-value"
+                        id="stat-mock"
+                    >
+                        0
+                    </div>
+
+                </div>
+
+
+                <div class="q-stat-card">
+
+                    <div class="q-stat-label">
+                        Subject Practice
+                    </div>
+
+                    <div
+                        class="q-stat-value"
+                        id="stat-subject"
+                    >
+                        0
+                    </div>
+
+                </div>
+
+
+                <div class="q-stat-card">
+
+                    <div class="q-stat-label">
+                        PYQ
+                    </div>
+
+                    <div
+                        class="q-stat-value"
+                        id="stat-pyq"
+                    >
+                        0
+                    </div>
+
+                </div>
+
+
+                <div class="q-stat-card">
+
+                    <div class="q-stat-label">
+                        Test Series
+                    </div>
+
+                    <div
+                        class="q-stat-value"
+                        id="stat-test-series"
+                    >
+                        0
+                    </div>
+
+                </div>
+
+            </div>
+
+
+            <!-- =================================================
+                 FILTERS
+                 ================================================= -->
+
+            <section class="q-card">
+
+                <div class="q-card-header">
+
+                    <h2>
+                        Search & Filters
+                    </h2>
+
+                </div>
+
+
+                <div class="q-card-body">
+
+                    <div class="q-filter-grid">
+
+                        <input
+                            type="search"
+                            id="q-search"
+                            class="q-input"
+                            placeholder="Search question..."
+                        >
+
+
+                        <select
+                            id="filter-exam"
+                            class="q-select"
+                        >
+
+                            <option value="">
+                                All Exams
+                            </option>
+
+                        </select>
+
+
+                        <select
+                            id="filter-subject"
+                            class="q-select"
+                        >
+
+                            <option value="">
+                                All Subjects
+                            </option>
+
+                        </select>
+
+
+                        <select
+                            id="filter-difficulty"
+                            class="q-select"
+                        >
+
+                            <option value="">
+                                All Difficulty
+                            </option>
+
+                            <option value="easy">
+                                Easy
+                            </option>
+
+                            <option value="medium">
+                                Medium
+                            </option>
+
+                            <option value="hard">
+                                Hard
+                            </option>
+
+                        </select>
+
+                        <select
+                            id="filter-type"
+                            class="q-select"
+                        >
+
+                            <option value="">
+                                All Destinations
+                            </option>
+
+                            <option value="mocktest">
+                                Mock Test
+                            </option>
+
+                            <option value="subject_practice">
+                                Subject Practice
+                            </option>
+
+                            <option value="pyq">
+                                PYQ
+                            </option>
+
+                            <option value="test_series">
+                                Test Series
+                            </option>
+
+                        </select>
+
+                        <select
+                            id="filter-stage"
+                            class="q-select"
+                        >
+
+                            <option value="">
+                                All Stages
+                            </option>
+
+                        </select>
+
+                    </div>
+
+                </div>
+
+            </section>
+
+
+            <!-- =================================================
+                 QUESTIONS TABLE
+                 ================================================= -->
+
+            <section class="q-card">
+
+                <div class="q-card-header">
+
+                    <h2>
+                        Question Groups
+                    </h2>
+
+                </div>
+
+
+                <div class="q-table-wrap">
+
+                    <table class="q-table">
+
+                        <thead>
+
+                            <tr>
+
+                                <th>
+                                    Group / Test
+                                </th>
+
+                                <th>
+                                    Type
+                                </th>
+
+                                <th>
+                                    Exam
+                                </th>
+
+                                <th>
+                                    Stage / Scope
+                                </th>
+
+                                <th>
+                                    Questions
+                                </th>
+
+                                <th>
+                                    Actions
+                                </th>
+
+                            </tr>
+
+                        </thead>
+
+
+                        <tbody id="questions-table-body">
+
+                            <tr>
+
+                                <td
+                                    colspan="6"
+                                    class="q-loading"
+                                >
+                                    Loading questions...
+                                </td>
+
+                            </tr>
+
+                        </tbody>
+
+                    </table>
+
+                </div>
+
+
+                <div
+                    id="questions-pagination"
+                    class="q-pagination"
+                ></div>
+
+            </section>
+
+        </div>
+
+    </main>
+
+</div>
+
+
+<!-- =========================================================
+     QUESTION GROUP VIEW MODAL
+     ========================================================= -->
+
+<div
+    id="question-group-modal"
+    class="q-modal"
+    aria-hidden="true"
+>
+
+    <div class="q-modal-box q-modal-large">
+
+        <div class="q-modal-header">
+            <h2 id="question-group-title">Questions</h2>
+            <button type="button" class="q-close" id="btn-close-group-modal" aria-label="Close">×</button>
+        </div>
+
+        <div class="q-modal-body">
+            <div id="question-group-summary" class="q-path" style="margin-top:0;"></div>
+            <div id="question-group-body"></div>
+            <div id="question-group-pagination" class="q-pagination"></div>
+        </div>
+
+    </div>
+
+</div>
+
+
+<!-- =========================================================
+     QUESTION GROUP EDIT MODAL (VIEW & EDIT ALL QUESTIONS IN GROUP)
+     ========================================================= -->
+
+<div
+    id="question-group-edit-modal"
+    class="q-modal"
+    aria-hidden="true"
+>
+
+    <div class="q-modal-box q-modal-large">
+
+        <div class="q-modal-header">
+            <h2 id="question-group-edit-title">Edit Question Group</h2>
+            <button type="button" class="q-close" id="btn-close-group-edit-modal" aria-label="Close">×</button>
+        </div>
+
+        <div class="q-modal-body" id="question-group-edit-body">
+            <!-- Dynamic fields for group questions editing -->
+        </div>
+
+        <div class="q-modal-footer">
+            <button type="button" class="q-btn q-btn-secondary" id="btn-cancel-group-edit">Cancel</button>
+            <button type="button" class="q-btn q-btn-success" id="btn-save-group-edit">Save Changes</button>
+        </div>
+
+    </div>
+
+</div>
+
+
+<!-- =========================================================
+     QUESTION EDIT MODAL
+     ========================================================= -->
+
+<div
+    id="question-edit-modal"
+    class="q-modal"
+    aria-hidden="true"
+>
+
+    <div class="q-modal-box">
+
+        <div class="q-modal-header">
+            <h2>Edit Question</h2>
+            <button type="button" class="q-close" id="btn-close-edit-modal" aria-label="Close">×</button>
+        </div>
+
+        <form id="question-edit-form">
+            <div class="q-modal-body">
+                <input type="hidden" id="edit-question-id">
+
+                <div class="q-field">
+                    <label for="edit-question-text">Question</label>
+                    <textarea id="edit-question-text" class="q-input" rows="4" required></textarea>
+                </div>
+
+                <div class="q-form-grid">
+                    <div class="q-field"><label for="edit-option-a">Option A</label><input id="edit-option-a" class="q-input" required></div>
+                    <div class="q-field"><label for="edit-option-b">Option B</label><input id="edit-option-b" class="q-input" required></div>
+                    <div class="q-field"><label for="edit-option-c">Option C</label><input id="edit-option-c" class="q-input" required></div>
+                    <div class="q-field"><label for="edit-option-d">Option D</label><input id="edit-option-d" class="q-input" required></div>
+                </div>
+
+                <div class="q-form-grid">
+                    <div class="q-field">
+                        <label for="edit-correct-answer">Correct Answer</label>
+                        <select id="edit-correct-answer" class="q-select" required>
+                            <option value="A">A</option><option value="B">B</option><option value="C">C</option><option value="D">D</option>
+                        </select>
+                    </div>
+                    <div class="q-field"><label for="edit-hindi-question">Hindi Question</label><textarea id="edit-hindi-question" class="q-input" rows="2"></textarea></div>
+                    <div class="q-field"><label for="edit-explanation">Explanation</label><textarea id="edit-explanation" class="q-input" rows="2"></textarea></div>
+                    <div class="q-field"><label for="edit-hindi-explanation">Hindi Explanation</label><textarea id="edit-hindi-explanation" class="q-input" rows="2"></textarea></div>
+                    <div class="q-field"><label for="edit-difficulty">Difficulty</label><select id="edit-difficulty" class="q-select"><option value="easy">Easy</option><option value="medium">Medium</option><option value="hard">Hard</option></select></div>
+                    <div class="q-field"><label for="edit-marks">Marks</label><input id="edit-marks" class="q-input" type="number" step="0.25"></div>
+                    <div class="q-field"><label for="edit-negative-marks">Negative Marks</label><input id="edit-negative-marks" class="q-input" type="number" step="0.25"></div>
+                </div>
+            </div>
+
+            <div class="q-modal-footer">
+                <button type="button" class="q-btn q-btn-secondary" id="btn-cancel-edit">Cancel</button>
+                <button type="submit" class="q-btn q-btn-primary" id="btn-save-edit">Save Changes</button>
+            </div>
+        </form>
+
+    </div>
+
+</div>
+
+
+<!-- =========================================================
+     ADD QUESTIONS MODAL
+     ========================================================= -->
+
+<div
+    id="add-question-modal"
+    class="q-modal"
+    aria-hidden="true"
+>
+
+    <div class="q-modal-box">
+
+
+        <div class="q-modal-header">
+
+            <h2>
+                Add Questions
+            </h2>
+
+            <button
+                type="button"
+                class="q-close"
+                id="btn-close-add-modal"
+                aria-label="Close"
+            >
+                ×
+            </button>
+
+        </div>
+
+
+        <div class="q-modal-body">
+
+
+            <!-- =================================================
+                 STEP 1
+                 ================================================= -->
+
+            <div class="q-step">
+
+                <div class="q-step-title">
+                    1. Select Exam
+                </div>
+
+
+                <select
+                    id="add-exam-id"
+                    class="q-select"
+                >
+
+                    <option value="">
+                        Select Exam
+                    </option>
+
+                </select>
+
+            </div>
+
+
+            <div
+                class="q-field"
+                id="add-tier-field"
+                hidden
+            >
+
+                <label>
+                    Stage
+                </label>
+
+                <select
+                    id="add-tier-id"
+                    class="q-select"
+                >
+
+                    <option value="">
+                        Select Stage
+                    </option>
+
+                </select>
+
+            </div>
+
+
+            <!-- =================================================
+                 STEP 2
+                 ================================================= -->
+
+            <div class="q-step">
+
+                <div class="q-step-title">
+                    2. What do you want to add?
+                </div>
+
+
+                <div class="q-choice-grid">
+
+
+                    <button
+                        type="button"
+                        class="q-choice"
+                        id="choice-mocktest"
+                        data-target="mocktest"
+                    >
+
+                        <div class="q-choice-title">
+                            Mock Test
+                        </div>
+
+                        <div class="q-choice-desc">
+                            Add questions to a specific Mock Test.
+                        </div>
+
+                    </button>
+
+
+                    <button
+                        type="button"
+                        class="q-choice"
+                        id="choice-subject"
+                        data-target="subject"
+                    >
+
+                        <div class="q-choice-title">
+                            Subject Practice
+                        </div>
+
+                        <div class="q-choice-desc">
+                            Add questions inside Subject → Topic.
+                        </div>
+
+                    </button>
+
+
+                    <button
+                        type="button"
+                        class="q-choice"
+                        id="choice-pyq"
+                        data-target="pyq"
+                    >
+
+                        <div class="q-choice-title">
+                            PYQ
+                        </div>
+
+                        <div class="q-choice-desc">
+                            Add questions to an existing Year / Paper.
+                        </div>
+
+                    </button>
+
+
+                    <button
+                        type="button"
+                        class="q-choice"
+                        id="choice-testseries"
+                        data-target="testseries"
+                    >
+
+                        <div class="q-choice-title">
+                            Test Series
+                        </div>
+
+                        <div class="q-choice-desc">
+                            Add questions to a specific Test Series test.
+                        </div>
+
+                    </button>
+
+                </div>
+
+            </div>
+
+
+            <!-- =================================================
+                 MOCK TEST
+                 ================================================= -->
+
+            <div
+                id="mocktest-panel"
+                class="destination-panel"
+            >
+
+                <div class="q-form-grid">
+
+                    <div class="q-field">
+
+                        <label>
+                            Mock Test
+                        </label>
+
+                        <select
+                            id="add-mocktest-id"
+                            class="q-select"
+                        >
+
+                            <option value="">
+                                Select Mock Test
+                            </option>
+
+                        </select>
+
+                    </div>
+
+                </div>
+
+            </div>
+
+
+            <!-- =================================================
+                 SUBJECT PRACTICE
+                 ================================================= -->
+
+            <div
+                id="subject-panel"
+                class="destination-panel"
+            >
+
+                <div class="q-form-grid">
+
+
+                    <div class="q-field">
+
+                        <label>
+                            Subject
+                        </label>
+
+                        <select
+                            id="add-subject-id"
+                            class="q-select"
+                        >
+
+                            <option value="">
+                                Select Subject
+                            </option>
+
+                        </select>
+
+                    </div>
+
+
+                    <div class="q-field">
+
+                        <label>
+                            Topic
+                        </label>
+
+                        <select
+                            id="add-topic-id"
+                            class="q-select"
+                            disabled
+                        >
+
+                            <option value="">
+                                Select Topic
+                            </option>
+
+                        </select>
+
+                    </div>
+
+                </div>
+
+            </div>
+
+
+            <!-- =================================================
+                 TEST SERIES
+                 ================================================= -->
+
+            <div
+                id="testseries-panel"
+                class="destination-panel"
+            >
+
+                <div class="q-form-grid">
+
+                    <div class="q-field">
+
+                        <label>
+                            Test Series
+                        </label>
+
+                        <select
+                            id="add-testseries-id"
+                            class="q-select"
+                        >
+
+                            <option value="">
+                                Select Test Series
+                            </option>
+
+                        </select>
+
+                    </div>
+
+                    <div class="q-field">
+
+                        <label>
+                            Test
+                        </label>
+
+                        <select
+                            id="add-testseries-test-id"
+                            class="q-select"
+                            disabled
+                        >
+
+                            <option value="">
+                                Select Test
+                            </option>
+
+                        </select>
+
+                    </div>
+
+                </div>
+
+            </div>
+
+
+            <!-- =================================================
+                 PYQ
+                 ================================================= -->
+
+            <div
+                id="pyq-panel"
+                class="destination-panel"
+            >
+
+                <div class="q-form-grid">
+
+
+                    <div class="q-field">
+
+                        <label>
+                            Year / Paper
+                        </label>
+
+                        <select
+                            id="add-pyq-id"
+                            class="q-select"
+                        >
+
+                            <option value="">
+                                Select Year / Paper
+                            </option>
+
+                        </select>
+
+                    </div>
+
+
+                </div>
+
+            </div>
+
+
+            <!-- =================================================
+                 CSV
+                 ================================================= -->
+
+            <div
+                id="csv-panel"
+                class="destination-panel"
+            >
+
+                <div class="q-csv-box">
+
+
+                    <div class="q-step-title">
+                        Upload Questions CSV
+                    </div>
+
+
+                    <input
+                        type="file"
+                        id="csv-file"
+                        accept=".csv,text/csv"
+                    >
+
+
+                    <div class="q-csv-help">
+
+                        CSV destination columns are NOT required.
+                        Destination is selected above.
+
+                        <br><br>
+
+                        Required columns:
+
+                        <br>
+
+                        <strong>
+                            questionText,
+                            optionA,
+                            optionB,
+                            optionC,
+                            optionD,
+                            correctAnswer
+                        </strong>
+
+                        <br><br>
+
+                        Optional:
+
+                        <strong>
+                            hindiQuestionText,
+                            explanation,
+                            hindiExplanation,
+                            difficulty,
+                            marks,
+                            negativeMarks
+                        </strong>
+
+                    </div>
+
+
+                    <div
+                        id="csv-file-status"
+                        class="q-file-status"
+                    ></div>
+
+
+                </div>
+
+            </div>
+
+
+            <!-- =================================================
+                 SELECTED PATH
+                 ================================================= -->
+
+            <div
+                id="selected-path"
+                class="q-path"
+                style="display:none;"
+            ></div>
+
+
+        </div>
+
+
+        <div class="q-modal-footer">
+
+
+            <button
+                type="button"
+                class="q-btn q-btn-secondary"
+                id="btn-cancel-add"
+            >
+                Cancel
+            </button>
+
+
+            <button
+                type="button"
+                class="q-btn q-btn-primary"
+                id="btn-preview-csv"
+                disabled
+            >
+                Preview CSV
+            </button>
+
+
+        </div>
+
+    </div>
+
+</div>
+
+
+<!-- =========================================================
+     CSV PREVIEW MODAL
+     ========================================================= -->
+
+<div
+    id="csv-preview-modal"
+    class="q-modal"
+    aria-hidden="true"
+>
+
+    <div class="q-modal-box q-modal-large">
+
+
+        <div class="q-modal-header">
+
+            <h2>
+                CSV Preview
+            </h2>
+
+
+            <button
+                type="button"
+                class="q-close"
+                id="btn-close-preview"
+                aria-label="Close preview"
+            >
+                ×
+            </button>
+
+        </div>
+
+
+        <div class="q-modal-body">
+
+
+            <div
+                id="preview-summary"
+                class="q-path"
+                style="margin-top:0;margin-bottom:15px;"
+            ></div>
+
+
+            <div class="q-preview-wrap">
+
+                <table class="q-preview-table">
+
+                    <thead id="preview-head"></thead>
+
+                    <tbody id="preview-body"></tbody>
+
+                </table>
+
+            </div>
+
+
+        </div>
+
+
+        <div class="q-modal-footer">
+
+
+            <button
+                type="button"
+                class="q-btn q-btn-secondary"
+                id="btn-back-preview"
+            >
+                Back
+            </button>
+
+
+            <button
+                type="button"
+                class="q-btn q-btn-success"
+                id="btn-import-confirm"
+            >
+                Import Questions
+            </button>
+
+
+        </div>
+
+    </div>
+
+</div>
+
+
+<!-- =========================================================
+     JAVASCRIPT
+     ========================================================= -->
+
+<script type="module">
+
+
+/* =========================================================
+   IMPORTS
+   ========================================================= */
+
+import {
+    initAdminLayout
+} from './admin-sidebar.js';
+
+
+import {
+    getFirestoreExams,
+    getFirestoreSubjects,
+    getFirestoreTopics,
+    getFirestorePYQ,
+    getFirestoreQuestions,
+    saveQuestion,
+    deleteFirestoreQuestion,
+    bulkImportQuestions,
+    getFirestoreMockTests,
+    saveMockTest,
+    getFirestoreTestSeries
+} from './admin-db.js';
+
+
+import {
+    escapeHtml,
+    showToast,
+    showConfirmDialog,
+    paginateArray,
+    renderPaginationControls,
+    exportToCsv,
+    debounce
+} from './admin.js';
+
+
+/* =========================================================
+   STATE
+   ========================================================= */
+
+let allExams = [];
+
+let allSubjects = [];
+
+let allTopics = [];
+
+let allQuestions = [];
+
+let allMockTests = [];
+
+let allPYQ = [];
+
+let examMockTests = [];
+
+let examPYQ = [];
+
+let allTestSeries = [];
+
+let examTestSeries = [];
+
+let selectedTestSeriesTests = [];
+
+let filteredQuestions = [];
+
+let questionGroups = [];
+
+let filteredGroups = [];
+
+let openGroupKey = '';
+
+let groupViewPage = 1;
+
+let currentPage = 1;
+
+const PAGE_SIZE = 10;
+
+const GROUP_VIEW_PAGE_SIZE = 5;
+
+let selectedDestination = null;
+
+window.addEventListener('rankhub:bulk-delete-complete', () => loadQuestions());
+
+let parsedCSVQuestions = [];
+
+
+/* =========================================================
+   DOM HELPER
+   ========================================================= */
+
+const $ = id => document.getElementById(id);
+
+
+/* =========================================================
+   INIT
+   ========================================================= */
+
+async function initPage() {
+
+    try {
+
+        await initAdminLayout();
+
+        await loadBaseData();
+
+        await loadQuestions();
+
+        setupEvents();
+
+    } catch (error) {
+
+        console.error(
+            'Question page initialization error:',
+            error
+        );
+
+        showToast(
+            error.message ||
+            'Failed to load Question Bank.',
+            'error'
+        );
+
+    }
+
+}
+
+
+/* =========================================================
+   LOAD BASE DATA
+   ========================================================= */
+
+async function loadBaseData() {
+
+    const [
+        exams,
+        subjects,
+        topics
+    ] = await Promise.all([
+
+        getFirestoreExams(),
+
+        getFirestoreSubjects(),
+
+        getFirestoreTopics()
+
+    ]);
+
+
+    allExams =
+        Array.isArray(exams)
+            ? exams
+            : [];
+
+
+    allSubjects =
+        Array.isArray(subjects)
+            ? subjects
+            : [];
+
+
+    allTopics =
+        Array.isArray(topics)
+            ? topics
+            : [];
+
+
+    populateExamDropdowns();
+
+}
+
+
+/* =========================================================
+   EXAM DROPDOWNS
+   ========================================================= */
+
+function populateExamDropdowns() {
+
+    const filter = $('filter-exam');
+
+    const add = $('add-exam-id');
+
+    if (!filter || !add) return;
+
+
+    filter.innerHTML =
+        '<option value="">All Exams</option>';
+
+
+    add.innerHTML =
+        '<option value="">Select Exam</option>';
+
+
+    allExams.forEach(exam => {
+
+        const id =
+            String(exam.id || '');
+
+
+        const name =
+            String(
+                exam.name ||
+                exam.title ||
+                id
+            );
+
+
+        filter.insertAdjacentHTML(
+            'beforeend',
+            `
+            <option value="${escapeHtml(id)}">
+                ${escapeHtml(name)}
+            </option>
+            `
+        );
+
+
+        add.insertAdjacentHTML(
+            'beforeend',
+            `
+            <option value="${escapeHtml(id)}">
+                ${escapeHtml(name)}
+            </option>
+            `
+        );
+
+    });
+
+}
+
+
+/* =========================================================
+   SUBJECT DROPDOWNS
+   ========================================================= */
+
+function populateSubjects(
+    examId,
+    targetId
+) {
+
+    const select = $(targetId);
+
+    if (!select) return;
+
+
+    select.innerHTML =
+        '<option value="">Select Subject</option>';
+
+
+    if (!examId) {
+
+        select.disabled = true;
+
+        return;
+
+    }
+
+
+    const subjects =
+        allSubjects.filter(
+            subject =>
+                String(subject.examId) ===
+                String(examId)
+        );
+
+
+    subjects.forEach(subject => {
+
+        const id =
+            String(subject.id || '');
+
+
+        const name =
+            String(
+                subject.name ||
+                subject.title ||
+                id
+            );
+
+
+        select.insertAdjacentHTML(
+            'beforeend',
+            `
+            <option value="${escapeHtml(id)}">
+                ${escapeHtml(name)}
+            </option>
+            `
+        );
+
+    });
+
+
+    select.disabled =
+        subjects.length === 0;
+
+}
+
+
+/* =========================================================
+   TOPIC DROPDOWN
+   ========================================================= */
+
+function populateTopics(subjectId) {
+
+    const select =
+        $('add-topic-id');
+
+    if (!select) return;
+
+
+    select.innerHTML =
+        '<option value="">Select Topic</option>';
+
+
+    if (!subjectId) {
+
+        select.disabled = true;
+
+        return;
+
+    }
+
+
+    const topics =
+        allTopics.filter(
+            topic =>
+                String(topic.subjectId) ===
+                String(subjectId)
+        );
+
+
+    topics.forEach(topic => {
+
+        const id =
+            String(topic.id || '');
+
+
+        const name =
+            String(
+                topic.name ||
+                topic.title ||
+                id
+            );
+
+
+        select.insertAdjacentHTML(
+            'beforeend',
+            `
+            <option value="${escapeHtml(id)}">
+                ${escapeHtml(name)}
+            </option>
+            `
+        );
+
+    });
+
+
+    select.disabled =
+        topics.length === 0;
+
+}
+
+
+/* =========================================================
+   YEARS
+   ========================================================= */
+
+function normalizeExamStages(exam) {
+
+    let rawStages = [];
+
+    if (Array.isArray(exam?.stages)) {
+        rawStages = exam.stages;
+    } else if (exam?.stages) {
+        rawStages = [exam.stages];
+    } else if (exam?.stage ?? exam?.stageName) {
+        rawStages = [exam.stage ?? exam.stageName];
+    }
+
+    const stages = rawStages
+        .map((rawStage, index) => {
+            const stage = typeof rawStage === 'string'
+                ? { name: rawStage }
+                : rawStage && typeof rawStage === 'object'
+                    ? rawStage
+                    : null;
+
+            if (!stage) return null;
+
+            const status = stage.status ?? (stage.active === false ? 'inactive' : 'active');
+            const name = String(
+                stage.name ?? stage.title ?? stage.stage ?? stage.stageName ?? stage.label ?? ''
+            ).trim();
+
+            if (!name || String(status).toLowerCase() === 'inactive') return null;
+
+            return {
+                id: String(stage.id ?? stage.stageId ?? stage.tierId ?? '').trim(),
+                name,
+                code: String(stage.code ?? '').trim(),
+                order: stage.order ?? index
+            };
+        })
+        .filter(Boolean);
+
+    const legacyStage = exam?.stageName ?? exam?.stage;
+    if (!stages.length && typeof legacyStage === 'string' && legacyStage.trim()) {
+        stages.push({
+            id: String(exam?.stageId ?? '').trim(),
+            name: legacyStage.trim(),
+            code: '',
+            order: 0
+        });
+    }
+
+    return stages.sort((left, right) => Number(left.order) - Number(right.order));
+}
+
+function getExamStages(examId) {
+    const exam = allExams.find(item => String(item.id) === String(examId));
+    return exam ? normalizeExamStages(exam) : [];
+}
+
+function getSelectedStage() {
+    const examId = $('add-exam-id')?.value || '';
+    const selectedValue = $('add-tier-id')?.value || '';
+    const stage = getExamStages(examId).find(item =>
+        String(item.id || item.name) === String(selectedValue)
+    );
+
+    return {
+        stageId: stage?.id || '',
+        stageName: stage?.name || ''
+    };
+}
+
+function populateStageDropdown(examId, selectedValue = '') {
+    const field = $('add-tier-field');
+    const select = $('add-tier-id');
+    if (!field || !select) return;
+
+    const stages = getExamStages(examId);
+    select.innerHTML = '<option value="">Select Stage</option>' + stages.map(stage => `
+        <option value="${escapeHtml(stage.id || stage.name)}">
+            ${escapeHtml(stage.name)}
+        </option>
+    `).join('');
+
+    field.hidden = stages.length === 0;
+    select.value = stages.some(stage => String(stage.id || stage.name) === String(selectedValue))
+        ? selectedValue
+        : '';
+}
+
+function recordHasStage(record) {
+    return Boolean(
+        String(record?.stageId ?? record?.tierId ?? '').trim() ||
+        String(record?.stageName ?? record?.stage ?? record?.tier ?? '').trim()
+    );
+}
+
+function shouldShowStage() {
+    const examId = $('add-exam-id')?.value || '';
+    if (!getExamStages(examId).length) return false;
+
+    if (selectedDestination === 'mocktest' || selectedDestination === 'pyq') {
+        return true;
+    }
+
+    return selectedDestination === 'testseries' &&
+        selectedTestSeriesTests.some(recordHasStage);
+}
+
+function syncStageVisibility() {
+    const field = $('add-tier-field');
+    if (!field) return;
+
+    field.hidden = !shouldShowStage();
+    if (field.hidden && $('add-tier-id')) {
+        $('add-tier-id').value = '';
+    }
+}
+
+
+/* =========================================================
+   LOAD QUESTIONS
+   ========================================================= */
+
+async function loadQuestions() {
+
+    const tbody =
+        $('questions-table-body');
+
+    if (!tbody) return;
+
+
+    tbody.innerHTML =
+        `
+        <tr>
+            <td colspan="6" class="q-loading">
+                Loading questions...
+            </td>
+        </tr>
+        `;
+
+
+    try {
+
+        const response =
+            await getFirestoreQuestions();
+
+
+        const questions =
+            Array.isArray(response)
+                ? response
+                : Array.isArray(response?.questions)
+                    ? response.questions
+                    : Array.isArray(response?.data)
+                        ? response.data
+                        : null;
+
+
+        if (!questions) {
+            throw new Error(
+                'Admin API returned an invalid questions response.'
+            );
+        }
+
+
+        allQuestions =
+            questions;
+
+
+        populateQuestionStageFilter();
+
+        updateStats();
+
+        applyFilters();
+
+    } catch (error) {
+
+        console.error(
+            'Failed loading questions:',
+            error
+        );
+
+
+        tbody.innerHTML =
+            `
+            <tr>
+                <td
+                    colspan="6"
+                    class="q-empty"
+                >
+                    <strong>
+                        Failed to load questions
+                    </strong>
+
+                    ${escapeHtml(
+                        error.message ||
+                        'Please try again.'
+                    )}
+                </td>
+            </tr>
+            `;
+
+    }
+
+}
+
+
+/* =========================================================
+   STATS
+   ========================================================= */
+
+function updateStats() {
+
+    if ($('stat-total')) $('stat-total').textContent = allQuestions.length;
+
+
+    if ($('stat-mock')) $('stat-mock').textContent =
+        allQuestions.filter(
+            q =>
+                q.type === 'mocktest' ||
+                q.mockTestId
+        ).length;
+
+
+    if ($('stat-subject')) $('stat-subject').textContent =
+        allQuestions.filter(
+            q =>
+                q.type === 'subject' ||
+                q.type === 'subject_practice' ||
+                q.topicId
+        ).length;
+
+
+    if ($('stat-pyq')) $('stat-pyq').textContent =
+        allQuestions.filter(
+            q =>
+                q.type === 'pyq' ||
+                q.pyqId ||
+                q.pyqYear
+        ).length;
+
+    if ($('stat-test-series')) $('stat-test-series').textContent =
+        allQuestions.filter(
+            q =>
+                q.type === 'test_series' ||
+                q.testSeriesId
+        ).length;
+
+}
+
+
+/* =========================================================
+   FILTERS
+   ========================================================= */
+
+function applyFilters() {
+
+    const searchInput = $('q-search');
+    const examFilter = $('filter-exam');
+    const subjectFilter = $('filter-subject');
+    const difficultyFilter = $('filter-difficulty');
+    const typeFilter = $('filter-type');
+    const stageFilter = $('filter-stage');
+
+    const search =
+        String(
+            searchInput?.value || ''
+        )
+        .trim()
+        .toLowerCase();
+
+
+    const examId =
+        examFilter?.value || '';
+
+
+    const subjectId =
+        subjectFilter?.value || '';
+
+
+    const difficulty =
+        difficultyFilter?.value || '';
+
+    const type =
+        typeFilter?.value || '';
+
+    const stage =
+        stageFilter?.value || '';
+
+
+    const matchingQuestions =
+        (allQuestions || []).filter(q => {
+
+            const questionText =
+                String(
+                    q.questionText ||
+                    q.question ||
+                    ''
+                )
+                .toLowerCase();
+
+
+            const hindiText =
+                String(
+                    q.hindiQuestionText ||
+                    q.questionHi ||
+                    ''
+                )
+                .toLowerCase();
+
+
+            if (
+                search &&
+                !questionText.includes(search) &&
+                !hindiText.includes(search)
+            ) {
+
+                return false;
+
+            }
+
+
+            if (
+                examId &&
+                String(q.examId) !==
+                String(examId)
+            ) {
+
+                return false;
+
+            }
+
+
+            if (
+                subjectId &&
+                String(q.subjectId) !==
+                String(subjectId)
+            ) {
+
+                return false;
+
+            }
+
+
+            if (
+                difficulty &&
+                String(q.difficulty).toLowerCase() !==
+                String(difficulty).toLowerCase()
+            ) {
+
+                return false;
+
+            }
+
+            if (type && getQuestionTypeKey(q) !== type) {
+                return false;
+            }
+
+            if (stage && getQuestionStage(q) !== stage) {
+                return false;
+            }
+
+
+            return true;
+
+        });
+
+    questionGroups = buildQuestionGroups(allQuestions || []);
+    filteredGroups = questionGroups.filter(group => {
+        const groupText = [
+            group.title,
+            group.examName,
+            group.scope,
+            group.stageName,
+            group.typeLabel
+        ].join(' ').toLowerCase();
+
+        const matchesSearch = !search ||
+            groupText.includes(search) ||
+            group.questions.some(question => matchingQuestions.includes(question));
+
+        const matchesGroupScope = group.questions.some(question =>
+            (!examId || String(question.examId) === String(examId)) &&
+            (!subjectId || String(question.subjectId) === String(subjectId)) &&
+            (!difficulty || String(question.difficulty).toLowerCase() === String(difficulty).toLowerCase()) &&
+            (!type || getQuestionTypeKey(question) === type) &&
+            (!stage || getQuestionStage(question) === stage)
+        );
+
+        return matchesGroupScope && matchesSearch && (
+            group.questions.some(question => matchingQuestions.includes(question)) ||
+            Boolean(search && groupText.includes(search))
+        );
+    });
+
+    filteredQuestions = filteredGroups.flatMap(group => group.questions);
+
+
+    currentPage = 1;
+
+    renderQuestions();
+
+}
+
+function getQuestionTypeKey(question) {
+    if (question.type === 'pyq' || question.pyqId || question.pyqYear) return 'pyq';
+    if (question.type === 'subject' || question.type === 'subject_practice' || question.topicId) return 'subject_practice';
+    if (question.type === 'test_series' || question.testSeriesId) return 'test_series';
+    return 'mocktest';
+}
+
+function getQuestionStage(question) {
+    return String(
+        question.stageName ||
+        question.stage ||
+        question.tier ||
+        question.stageId ||
+        question.tierId ||
+        ''
+    ).trim();
+}
+
+function getQuestionGroupKey(question) {
+    const type = getQuestionTypeKey(question);
+    const examId = String(question.examId || '').trim();
+
+    if (type === 'mocktest') {
+        return `mocktest:${question.mockTestId || question.mockId || `${examId}:${getQuestionStage(question)}:${question.mockTestName || 'unassigned'}`}`;
+    }
+
+    if (type === 'subject_practice') {
+        return `subject_practice:${examId}:${question.subjectId || ''}:${question.topicId || ''}:${question.testId || ''}`;
+    }
+
+    if (type === 'pyq') {
+        return `pyq:${question.pyqId || `${examId}:${getQuestionStage(question)}:${question.pyqYear || question.year || ''}:${question.pyqShift || question.shift || ''}`}`;
+    }
+
+    return `test_series:${question.testSeriesId || ''}:${question.testId || question.mockTestId || question.mockId || ''}`;
+}
+
+function buildQuestionGroups(questions) {
+    const groups = new Map();
+
+    questions.forEach(question => {
+        const type = getQuestionTypeKey(question);
+        const key = getQuestionGroupKey(question);
+        const existing = groups.get(key);
+
+        if (existing) {
+            existing.questions.push(question);
+            return;
+        }
+
+        const subjectName = question.subjectName || findSubjectName(question.subjectId);
+        const topicName = question.topicName || findTopicName(question.topicId);
+        const stageName = getQuestionStage(question);
+        const examName = question.examName || findExamName(question.examId);
+        const testName = question.testName || question.mockTestName || question.mockTestId || question.testId || '';
+        let title = testName || 'Question Group';
+        let scope = stageName;
+
+        if (type === 'subject_practice') {
+            title = [subjectName, topicName, testName].filter(Boolean).join(' → ') || 'Subject Practice';
+            scope = [subjectName, topicName].filter(Boolean).join(' → ');
+        } else if (type === 'pyq') {
+            title = question.pyqName || question.title || `PYQ ${question.pyqYear || question.year || ''}`.trim();
+            scope = [stageName, question.pyqYear || question.year || '', question.pyqShift || question.shift || '']
+                .filter(Boolean)
+                .join(' • ');
+        } else if (type === 'test_series') {
+            title = testName || question.testSeriesName || question.testSeriesId || 'Test Series Test';
+            scope = [question.testSeriesName || question.testSeriesId, stageName].filter(Boolean).join(' • ');
+        }
+
+        groups.set(key, {
+            key,
+            type,
+            typeLabel: getQuestionType(question),
+            title,
+            examName,
+            stageName,
+            scope,
+            questions: [question]
+        });
+    });
+
+    return Array.from(groups.values());
+}
+
+function populateQuestionStageFilter() {
+    const select = $('filter-stage');
+    if (!select) return;
+
+    const currentValue = select.value;
+    const stages = [...new Set((allQuestions || []).map(getQuestionStage).filter(Boolean))].sort();
+    select.innerHTML = '<option value="">All Stages</option>' + stages.map(stage => `
+        <option value="${escapeHtml(stage)}">${escapeHtml(stage)}</option>
+    `).join('');
+    select.value = stages.includes(currentValue) ? currentValue : '';
+}
+
+
+/* =========================================================
+   RENDER QUESTIONS (SAFEGUARDED AGAINST UNDEFINED)
+   ========================================================= */
+
+function renderQuestions(groups = filteredGroups) {
+
+    const tbody =
+        $('questions-table-body');
+
+    const paginationEl =
+        $('questions-pagination');
+
+    if (!tbody) return;
+
+
+    if (!Array.isArray(groups)) {
+        groups = [];
+    }
+
+
+    if (!groups.length) {
+
+        tbody.innerHTML =
+            `
+            <tr>
+                <td
+                    colspan="6"
+                    class="q-empty"
+                >
+
+                    <strong>
+                        No questions found
+                    </strong>
+
+                    Add questions using CSV upload.
+
+                </td>
+            </tr>
+            `;
+
+
+        if (paginationEl) {
+            paginationEl.innerHTML = '';
+        }
+
+
+        return;
+
+    }
+
+
+    const pageData =
+        paginateArray(
+            groups,
+            currentPage,
+            PAGE_SIZE
+        );
+
+    const items =
+        Array.isArray(pageData?.items)
+            ? pageData.items
+            : Array.isArray(pageData?.data)
+                ? pageData.data
+                : [];
+
+    if (!items.length) {
+        tbody.innerHTML = `<tr><td colspan="6" class="q-empty"><strong>No question groups found on this page</strong></td></tr>`;
+        if (paginationEl) paginationEl.innerHTML = '';
+        return;
+    }
+
+
+    tbody.innerHTML =
+        items
+            .map(renderQuestionGroupRow)
+            .join('');
+
+
+    attachGroupEvents();
+
+
+    if (paginationEl) {
+        paginationEl.innerHTML =
+            renderPaginationControls(
+                'questions-pagination',
+                pageData,
+                page => {
+                    currentPage = page;
+                    renderQuestions();
+                }
+            );
+    }
+
+}
+
+
+/* =========================================================
+   QUESTION ROW
+   ========================================================= */
+
+function renderQuestionGroupRow(group) {
+    const stage = group.stageName
+        ? `<span class="q-badge">${escapeHtml(group.stageName)}</span>`
+        : '';
+
+    return `
+        <tr>
+            <td>
+                <div class="q-group-title">${escapeHtml(group.title)}</div>
+                <div class="q-group-meta">${escapeHtml(group.scope || '')}</div>
+            </td>
+            <td><span class="q-badge">${escapeHtml(group.typeLabel)}</span></td>
+            <td>${escapeHtml(group.examName || '—')}</td>
+            <td>${stage || escapeHtml(group.scope || '—')}</td>
+            <td><strong>${group.questions.length}</strong> Question${group.questions.length === 1 ? '' : 's'}</td>
+            <td>
+                <div class="q-actions">
+                    <button type="button" class="q-icon-btn" data-view-group="${escapeHtml(group.key)}" title="View">👁</button>
+                    <button type="button" class="q-icon-btn" data-edit-group="${escapeHtml(group.key)}" title="Edit">✏️</button>
+                    <button type="button" class="q-icon-btn delete" data-delete-group="${escapeHtml(group.key)}" title="Delete">🗑</button>
+                </div>
+            </td>
+        </tr>
+    `;
+}
+
+function attachGroupEvents() {
+    document.querySelectorAll('[data-view-group]').forEach(button => {
+        button.addEventListener('click', () => openQuestionGroup(button.dataset.viewGroup));
+    });
+    document.querySelectorAll('[data-edit-group]').forEach(button => {
+        button.addEventListener('click', () => openQuestionGroupEditModal(button.dataset.editGroup));
+    });
+    document.querySelectorAll('[data-delete-group]').forEach(button => {
+        button.addEventListener('click', () => deleteQuestionGroup(button.dataset.deleteGroup));
+    });
+}
+
+function openQuestionGroup(groupKey) {
+    openGroupKey = groupKey;
+    groupViewPage = 1;
+    renderQuestionGroupView();
+
+    const modal = $('question-group-modal');
+    if (modal) {
+        modal.classList.add('open');
+        modal.setAttribute('aria-hidden', 'false');
+    }
+}
+
+function closeQuestionGroup() {
+    const modal = $('question-group-modal');
+    if (modal) {
+        modal.classList.remove('open');
+        modal.setAttribute('aria-hidden', 'true');
+    }
+    openGroupKey = '';
+}
+
+function renderQuestionGroupView() {
+    const group = questionGroups.find(item => item.key === openGroupKey);
+    const body = $('question-group-body');
+    const summary = $('question-group-summary');
+    const pagination = $('question-group-pagination');
+
+    if (!group || !body) {
+        if (body) body.innerHTML = '<div class="q-empty"><strong>No questions found in this group.</strong></div>';
+        if (pagination) pagination.innerHTML = '';
+        return;
+    }
+
+    if ($('question-group-title')) $('question-group-title').textContent = group.title;
+    if (summary) {
+        summary.innerHTML = `
+            <strong>${escapeHtml(group.examName || 'Exam')}</strong>
+            ${group.scope ? ` · ${escapeHtml(group.scope)}` : ''}
+            · ${group.questions.length} question${group.questions.length === 1 ? '' : 's'}
+        `;
+    }
+
+    const pageData = paginateArray(group.questions, groupViewPage, GROUP_VIEW_PAGE_SIZE);
+    const items = Array.isArray(pageData?.items)
+        ? pageData.items
+        : Array.isArray(pageData?.data)
+            ? pageData.data
+            : [];
+
+    body.innerHTML = items.map((question, index) => {
+        const options = Array.isArray(question.options) ? question.options : [];
+        const optionText = ['A', 'B', 'C', 'D'].map(letter => {
+            const option = options.find(item => item?.id === letter) || options['ABCD'.indexOf(letter)];
+            return `<div class="q-option-line"><strong>${letter}.</strong> ${escapeHtml(option?.text || '')}</div>`;
+        }).join('');
+
+        return `
+            <article class="q-question-card">
+                <strong>Question ${((groupViewPage - 1) * GROUP_VIEW_PAGE_SIZE) + index + 1}</strong>
+                <p>${escapeHtml(question.questionText || question.question || '')}</p>
+                ${question.hindiQuestionText ? `<p class="q-subtext">${escapeHtml(question.hindiQuestionText)}</p>` : ''}
+                ${optionText}
+                <div class="q-subtext"><strong>Correct Answer:</strong> ${escapeHtml(question.correctAnswer || '')}</div>
+                ${question.explanation ? `<div class="q-subtext"><strong>Explanation:</strong> ${escapeHtml(question.explanation)}</div>` : ''}
+                <div class="q-actions">
+                    <button type="button" class="q-btn q-btn-secondary" data-edit-question="${escapeHtml(String(question.id || ''))}">Edit</button>
+                    <button type="button" class="q-btn q-btn-danger" data-delete-question="${escapeHtml(String(question.id || ''))}">Delete</button>
+                </div>
+            </article>
+        `;
+    }).join('');
+
+    body.querySelectorAll('[data-edit-question]').forEach(button => {
+        button.addEventListener('click', () => {
+            const question = group.questions.find(item => String(item.id) === String(button.dataset.editQuestion));
+            if (question) openQuestionEdit(question);
+        });
+    });
+
+    body.querySelectorAll('[data-delete-question]').forEach(button => {
+        button.addEventListener('click', async () => {
+            const question = group.questions.find(item => String(item.id) === String(button.dataset.deleteQuestion));
+            if (question) await deleteQuestion(question);
+        });
+    });
+
+    if (pagination) {
+        pagination.innerHTML = renderPaginationControls(
+            'question-group-pagination',
+            pageData,
+            page => {
+                groupViewPage = page;
+                renderQuestionGroupView();
+            }
+        );
+    }
+}
+
+let activeEditGroupKey = '';
+
+function openQuestionGroupEditModal(groupKey) {
+    const group = questionGroups.find(item => item.key === groupKey);
+    if (!group) {
+        showToast('Question group not found.', 'error');
+        return;
+    }
+
+    activeEditGroupKey = groupKey;
+    if ($('question-group-edit-title')) {
+        $('question-group-edit-title').textContent = `Edit Group: ${group.title}`;
+    }
+
+    const editBody = $('question-group-edit-body');
+    if (!editBody) return;
+
+    const questions = Array.isArray(group.questions) ? group.questions : [];
+    if (questions.length === 0) {
+        editBody.innerHTML = '<div class="q-empty"><strong>No questions found in this group.</strong></div>';
+    } else {
+        editBody.innerHTML = questions.map((q, index) => {
+            const qId = q.id || '';
+            const qText = q.questionText || q.question || '';
+            const hiText = q.hindiQuestionText || '';
+            const optA = q.options?.find(o => o?.id === 'A')?.text || q.options?.[0]?.text || q.options?.[0] || '';
+            const optB = q.options?.find(o => o?.id === 'B')?.text || q.options?.[1]?.text || q.options?.[1] || '';
+            const optC = q.options?.find(o => o?.id === 'C')?.text || q.options?.[2]?.text || q.options?.[2] || '';
+            const optD = q.options?.find(o => o?.id === 'D')?.text || q.options?.[3]?.text || q.options?.[3] || '';
+            const correct = String(q.correctAnswer || 'A').toUpperCase();
+            const diff = q.difficulty || 'medium';
+            const marks = q.marks ?? 1;
+            const negMarks = q.negativeMarks ?? 0;
+            const explanation = q.explanation || '';
+            const hiExplanation = q.hindiExplanation || '';
+
+            return `
+                <div class="q-card" style="margin-bottom: 20px; padding: 15px; border: 1px solid #e5e7eb;" data-qid="${escapeHtml(qId)}">
+                    <div class="q-step-title">Question ${index + 1} (ID: ${escapeHtml(qId)})</div>
+
+                    <div class="q-field" style="margin-bottom: 10px;">
+                        <label>Question (English)</label>
+                        <textarea class="q-input group-edit-qtext" rows="2" required>${escapeHtml(qText)}</textarea>
+                    </div>
+
+                    <div class="q-field" style="margin-bottom: 10px;">
+                        <label>Question (Hindi)</label>
+                        <textarea class="q-input group-edit-hitext" rows="2">${escapeHtml(hiText)}</textarea>
+                    </div>
+
+                    <div class="q-form-grid" style="margin-bottom: 10px;">
+                        <div class="q-field"><label>Option A</label><input type="text" class="q-input group-edit-opta" value="${escapeHtml(optA)}" required></div>
+                        <div class="q-field"><label>Option B</label><input type="text" class="q-input group-edit-optb" value="${escapeHtml(optB)}" required></div>
+                        <div class="q-field"><label>Option C</label><input type="text" class="q-input group-edit-optc" value="${escapeHtml(optC)}" required></div>
+                        <div class="q-field"><label>Option D</label><input type="text" class="q-input group-edit-optd" value="${escapeHtml(optD)}" required></div>
+                    </div>
+
+                    <div class="q-form-grid three" style="margin-bottom: 10px;">
+                        <div class="q-field">
+                            <label>Correct Answer</label>
+                            <select class="q-select group-edit-correct">
+                                <option value="A" ${correct === 'A' ? 'selected' : ''}>A</option>
+                                <option value="B" ${correct === 'B' ? 'selected' : ''}>B</option>
+                                <option value="C" ${correct === 'C' ? 'selected' : ''}>C</option>
+                                <option value="D" ${correct === 'D' ? 'selected' : ''}>D</option>
+                            </select>
+                        </div>
+                        <div class="q-field">
+                            <label>Difficulty</label>
+                            <select class="q-select group-edit-diff">
+                                <option value="easy" ${diff === 'easy' ? 'selected' : ''}>Easy</option>
+                                <option value="medium" ${diff === 'medium' ? 'selected' : ''}>Medium</option>
+                                <option value="hard" ${diff === 'hard' ? 'selected' : ''}>Hard</option>
+                            </select>
+                        </div>
+                        <div class="q-field">
+                            <label>Marks / Negative</label>
+                            <div style="display:flex; gap:5px;">
+                                <input type="number" class="q-input group-edit-marks" value="${marks}" step="0.25" placeholder="Marks">
+                                <input type="number" class="q-input group-edit-neg" value="${negMarks}" step="0.25" placeholder="Negative">
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="q-form-grid" style="margin-top: 10px;">
+                        <div class="q-field"><label>Explanation</label><textarea class="q-input group-edit-exp" rows="2">${escapeHtml(explanation)}</textarea></div>
+                        <div class="q-field"><label>Hindi Explanation</label><textarea class="q-input group-edit-hiexp" rows="2">${escapeHtml(hiExplanation)}</textarea></div>
+                    </div>
+                </div>
+            `;
+        }).join('');
+    }
+
+    const modal = $('question-group-edit-modal');
+    if (modal) {
+        modal.classList.add('open');
+        modal.setAttribute('aria-hidden', 'false');
+    }
+}
+
+function closeQuestionGroupEditModal() {
+    const modal = $('question-group-edit-modal');
+    if (modal) {
+        modal.classList.remove('open');
+        modal.setAttribute('aria-hidden', 'true');
+    }
+    activeEditGroupKey = '';
+}
+
+async function saveQuestionGroupEdits() {
+    if (!activeEditGroupKey) return;
+    const group = questionGroups.find(item => item.key === activeEditGroupKey);
+    if (!group) return;
+
+    const cards = document.querySelectorAll('#question-group-edit-body .q-card');
+    if (!cards.length) return;
+
+    const saveBtn = $('btn-save-group-edit');
+    if (saveBtn) saveBtn.disabled = true;
+
+    try {
+        for (const card of cards) {
+            const originalId = card.dataset.qid;
+            const originalQuestion = group.questions.find(q => String(q.id) === String(originalId));
+            if (!originalQuestion) continue;
+
+            const payload = {
+                ...originalQuestion,
+                id: originalId, // Original question ID remains strictly preserved
+                questionText: card.querySelector('.group-edit-qtext')?.value.trim() || '',
+                hindiQuestionText: card.querySelector('.group-edit-hitext')?.value.trim() || '',
+                options: [
+                    { id: 'A', text: card.querySelector('.group-edit-opta')?.value.trim() || '' },
+                    { id: 'B', text: card.querySelector('.group-edit-optb')?.value.trim() || '' },
+                    { id: 'C', text: card.querySelector('.group-edit-optc')?.value.trim() || '' },
+                    { id: 'D', text: card.querySelector('.group-edit-optd')?.value.trim() || '' }
+                ],
+                correctAnswer: card.querySelector('.group-edit-correct')?.value || 'A',
+                difficulty: card.querySelector('.group-edit-diff')?.value || 'medium',
+                marks: Number(card.querySelector('.group-edit-marks')?.value || 1),
+                negativeMarks: Number(card.querySelector('.group-edit-neg')?.value || 0),
+                explanation: card.querySelector('.group-edit-exp')?.value.trim() || '',
+                hindiExplanation: card.querySelector('.group-edit-hiexp')?.value.trim() || ''
+            };
+
+            await saveQuestion(payload);
+
+            const globalIndex = allQuestions.findIndex(item => String(item.id) === String(payload.id));
+            if (globalIndex >= 0) {
+                allQuestions[globalIndex] = payload;
+            }
+        }
+
+        closeQuestionGroupEditModal();
+        updateStats();
+        populateQuestionStageFilter();
+        applyFilters();
+        showToast('Question group updated successfully.', 'success');
+    } catch (error) {
+        console.error('Failed to save group edits:', error);
+        showToast(error.message || 'Failed to update question group.', 'error');
+    } finally {
+        if (saveBtn) saveBtn.disabled = false;
+    }
+}
+
+async function deleteQuestionGroup(groupKey) {
+    const group = questionGroups.find(item => item.key === groupKey);
+    if (!group) return;
+
+    const confirmed = await showConfirmDialog(`Delete all ${group.questions.length} questions in this group permanently?`);
+    if (!confirmed) return;
+
+    try {
+        for (const question of group.questions) {
+            await deleteFirestoreQuestion(question.id);
+            try {
+                await removeQuestionFromMapping(question);
+            } catch (mapErr) {
+                console.error('Mapping cleanup warning:', mapErr);
+            }
+        }
+
+        await loadQuestions();
+        updateStats();
+        populateQuestionStageFilter();
+        applyFilters();
+        showToast('Question group deleted successfully.', 'success');
+    } catch (error) {
+        console.error('Failed to delete question group:', error);
+        showToast(error.message || 'Failed to delete question group.', 'error');
+    }
+}
+
+let editingQuestion = null;
+
+function openQuestionEdit(question) {
+    editingQuestion = question;
+    const options = Array.isArray(question.options) ? question.options : [];
+    const option = letter => options.find(item => item?.id === letter)?.text || options['ABCD'.indexOf(letter)]?.text || '';
+
+    $('edit-question-id').value = question.id || '';
+    $('edit-question-text').value = question.questionText || question.question || '';
+    $('edit-option-a').value = option('A');
+    $('edit-option-b').value = option('B');
+    $('edit-option-c').value = option('C');
+    $('edit-option-d').value = option('D');
+    $('edit-correct-answer').value = question.correctAnswer || 'A';
+    $('edit-hindi-question').value = question.hindiQuestionText || '';
+    $('edit-explanation').value = question.explanation || '';
+    $('edit-hindi-explanation').value = question.hindiExplanation || '';
+    $('edit-difficulty').value = question.difficulty || 'medium';
+    $('edit-marks').value = question.marks ?? 1;
+    $('edit-negative-marks').value = question.negativeMarks ?? 0;
+
+    const modal = $('question-edit-modal');
+    if (modal) {
+        modal.classList.add('open');
+        modal.setAttribute('aria-hidden', 'false');
+    }
+}
+
+function closeQuestionEdit() {
+    const modal = $('question-edit-modal');
+    if (modal) {
+        modal.classList.remove('open');
+        modal.setAttribute('aria-hidden', 'true');
+    }
+    editingQuestion = null;
+}
+
+async function saveEditedQuestion(event) {
+    event.preventDefault();
+    if (!editingQuestion?.id) return;
+
+    const button = $('btn-save-edit');
+    if (button) button.disabled = true;
+
+    const payload = {
+        ...editingQuestion,
+        id: editingQuestion.id,
+        questionText: $('edit-question-text').value.trim(),
+        options: [
+            { id: 'A', text: $('edit-option-a').value.trim() },
+            { id: 'B', text: $('edit-option-b').value.trim() },
+            { id: 'C', text: $('edit-option-c').value.trim() },
+            { id: 'D', text: $('edit-option-d').value.trim() }
+        ],
+        correctAnswer: $('edit-correct-answer').value,
+        hindiQuestionText: $('edit-hindi-question').value.trim(),
+        explanation: $('edit-explanation').value.trim(),
+        hindiExplanation: $('edit-hindi-explanation').value.trim(),
+        difficulty: $('edit-difficulty').value,
+        marks: Number($('edit-marks').value || 1),
+        negativeMarks: Number($('edit-negative-marks').value || 0)
+    };
+
+    try {
+        await saveQuestion(payload);
+        const index = allQuestions.findIndex(question => String(question.id) === String(payload.id));
+        if (index >= 0) allQuestions[index] = payload;
+        closeQuestionEdit();
+        updateStats();
+        populateQuestionStageFilter();
+        applyFilters();
+        if (openGroupKey) renderQuestionGroupView();
+        showToast('Question updated successfully.', 'success');
+    } catch (error) {
+        showToast(error.message || 'Failed to update question.', 'error');
+    } finally {
+        if (button) button.disabled = false;
+    }
+}
+
+async function removeQuestionFromMapping(question) {
+    const mockId = question.mockTestId || question.mockId || question.testId || question.testSeriesId;
+    if (!mockId || !question.examId) return;
+
+    try {
+        const mocks = await getFirestoreMockTests(null, question.examId);
+        const mock = mocks.find(item => String(item.id) === String(mockId));
+        if (mock) {
+            const currentIds = Array.isArray(mock.questionIds)
+                ? mock.questionIds
+                : Array.isArray(mock.question_ids)
+                    ? mock.question_ids
+                    : [];
+
+            await saveMockTest({
+                ...mock,
+                id: mock.id,
+                questionIds: currentIds.filter(id => String(id) !== String(question.id))
+            });
+            return;
+        }
+
+        const seriesList = await getFirestoreTestSeries(question.examId);
+        for (const series of seriesList) {
+            const seriesTests = await getFirestoreMockTests(series.id, question.examId);
+            const targetTest = seriesTests.find(item => String(item.id) === String(mockId));
+            if (targetTest) {
+                const currentIds = Array.isArray(targetTest.questionIds)
+                    ? targetTest.questionIds
+                    : Array.isArray(targetTest.question_ids)
+                        ? targetTest.question_ids
+                        : [];
+
+                await saveMockTest({
+                    ...targetTest,
+                    id: targetTest.id,
+                    questionIds: currentIds.filter(id => String(id) !== String(question.id))
+                });
+                break;
+            }
+        }
+    } catch (err) {
+        console.error('Error cleaning up mapping:', err);
+    }
+}
+
+async function deleteQuestion(question) {
+    const confirmed = await showConfirmDialog('Delete this question permanently?');
+    if (!confirmed) return;
+
+    try {
+        await deleteFirestoreQuestion(question.id);
+
+        try {
+            await removeQuestionFromMapping(question);
+        } catch (mappingError) {
+            console.error('Question destination mapping cleanup failed:', mappingError);
+            showToast('Question deleted, but its destination mapping could not be refreshed.', 'error');
+        }
+
+        await loadQuestions();
+        updateStats();
+        populateQuestionStageFilter();
+        applyFilters();
+        if (openGroupKey) {
+            const group = questionGroups.find(item => item.key === openGroupKey);
+            if (group) {
+                group.questions = group.questions.filter(item => String(item.id) !== String(question.id));
+                if (group.questions.length === 0) {
+                    closeQuestionGroup();
+                } else {
+                    renderQuestionGroupView();
+                }
+            }
+        }
+        showToast('Question deleted successfully.', 'success');
+    } catch (error) {
+        showToast(error.message || 'Failed to delete question.', 'error');
+    }
+}
+
+
+/* =========================================================
+   QUESTION TYPE
+   ========================================================= */
+
+function getQuestionType(q) {
+
+    if (
+        q.type === 'pyq' ||
+        q.pyqId ||
+        q.pyqYear
+    ) {
+
+        return 'PYQ';
+
+    }
+
+
+    if (
+        q.type === 'subject' ||
+        q.type === 'subject_practice' ||
+        q.topicId
+    ) {
+
+        return 'Subject Practice';
+
+    }
+
+    /* Test Series update */
+    if (
+        q.type === 'test_series' ||
+        q.testSeriesId
+    ) {
+        return 'Test Series';
+    }
+
+
+    return 'Mock Test';
+
+}
+
+
+/* =========================================================
+   DESTINATION NAME
+   ========================================================= */
+
+function getDestinationName(q) {
+
+    const type =
+        getQuestionType(q);
+
+
+    if (type === 'PYQ') {
+
+        const year =
+            q.pyqYear ||
+            q.year ||
+            '';
+
+
+        const shift =
+            q.pyqShift ||
+            q.shift ||
+            '';
+
+
+        return (
+            `PYQ` +
+            (
+                year
+                    ? ` • ${year}`
+                    : ''
+            ) +
+            (
+                shift
+                    ? ` • ${shift}`
+                    : ''
+            )
+        );
+
+    }
+
+
+    if (type === 'Subject Practice') {
+
+        const topic =
+            q.topicName ||
+            q.topicId ||
+            '';
+
+
+        return topic
+            ? `Topic: ${topic}`
+            : 'Subject Practice';
+
+    }
+
+    if (type === 'Test Series') {
+        return (
+            q.testSeriesName ||
+            'Test Series'
+        );
+    }
+
+
+    return (
+        q.mockTestName ||
+        'Mock Test'
+    );
+
+}
+
+
+/* =========================================================
+   LOOKUPS
+   ========================================================= */
+
+function findExamName(examId) {
+
+    const exam =
+        allExams.find(
+            e =>
+                String(e.id) ===
+                String(examId)
+        );
+
+
+    return (
+        exam?.name ||
+        exam?.title ||
+        examId ||
+        ''
+    );
+
+}
+
+
+function findSubjectName(subjectId) {
+
+    const subject =
+        allSubjects.find(
+            s =>
+                String(s.id) ===
+                String(subjectId)
+        );
+
+
+    return (
+        subject?.name ||
+        subject?.title ||
+        subjectId ||
+        ''
+    );
+
+}
+
+
+function findMockName(id) {
+
+    const mock =
+        allMockTests.find(
+            m =>
+                String(m.id) ===
+                String(id)
+        );
+
+
+    return (
+        mock?.name ||
+        mock?.title ||
+        id ||
+        ''
+    );
+
+}
+
+
+function findTopicName(id) {
+
+    const topic =
+        allTopics.find(
+            t =>
+                String(t.id) ===
+                String(id)
+        );
+
+
+    return (
+        topic?.name ||
+        topic?.title ||
+        id ||
+        ''
+    );
+
+}
+
+function findPYQName(id) {
+    const paper = allPYQ.find(item => String(item.id) === String(id));
+    return paper?.title || paper?.name || id || '';
+}
+
+/* =========================================================
+   EVENTS
+   ========================================================= */
+
+function setupEvents() {
+
+
+    /* SEARCH */
+
+    if ($('q-search')) {
+        $('q-search')
+            .addEventListener(
+                'input',
+                debounce(
+                    applyFilters,
+                    250
+                )
+            );
+    }
+
+
+    /* FILTER EXAM */
+
+    if ($('filter-exam')) {
+        $('filter-exam')
+            .addEventListener(
+                'change',
+                () => {
+
+                    populateSubjects(
+                        $('filter-exam').value,
+                        'filter-subject'
+                    );
+
+                    applyFilters();
+
+                }
+            );
+    }
+
+
+    /* FILTER SUBJECT */
+
+    if ($('filter-subject')) {
+        $('filter-subject')
+            .addEventListener(
+                'change',
+                applyFilters
+            );
+    }
+
+
+    /* FILTER DIFFICULTY */
+
+    if ($('filter-difficulty')) {
+        $('filter-difficulty')
+            .addEventListener(
+                'change',
+                applyFilters
+            );
+    }
+
+    if ($('filter-type')) {
+        $('filter-type').addEventListener('change', applyFilters);
+    }
+
+    if ($('filter-stage')) {
+        $('filter-stage').addEventListener('change', applyFilters);
+    }
+
+
+    /* OPEN ADD */
+
+    if ($('btn-open-add-question')) {
+        $('btn-open-add-question')
+            .addEventListener(
+                'click',
+                openAddQuestions
+            );
+    }
+
+
+    /* CLOSE ADD */
+
+    if ($('btn-close-add-modal')) {
+        $('btn-close-add-modal')
+            .addEventListener(
+                'click',
+                closeAddQuestions
+            );
+    }
+
+
+    /* CANCEL ADD */
+
+    if ($('btn-cancel-add')) {
+        $('btn-cancel-add')
+            .addEventListener(
+                'click',
+                closeAddQuestions
+            );
+    }
+
+
+    /* EXAM */
+
+    if ($('add-exam-id')) {
+        $('add-exam-id')
+            .addEventListener(
+                'change',
+                handleExamChange
+            );
+    }
+
+    if ($('add-tier-id')) {
+        $('add-tier-id')
+            .addEventListener(
+                'change',
+                handleStageChange
+            );
+    }
+
+
+    /* SUBJECT */
+
+    if ($('add-subject-id')) {
+        $('add-subject-id')
+            .addEventListener(
+                'change',
+                () => {
+
+                    populateTopics(
+                        $('add-subject-id').value
+                    );
+
+                    updateSelectedPath();
+
+                }
+            );
+    }
+
+
+    /* TOPIC */
+
+    if ($('add-topic-id')) {
+        $('add-topic-id')
+            .addEventListener(
+                'change',
+                updateSelectedPath
+            );
+    }
+
+
+    /* MOCK */
+
+    if ($('add-mocktest-id')) {
+        $('add-mocktest-id')
+            .addEventListener(
+                'change',
+                updateSelectedPath
+            );
+    }
+
+    if ($('add-testseries-id')) {
+        $('add-testseries-id')
+            .addEventListener(
+                'change',
+                handleTestSeriesChange
+            );
+    }
+
+    if ($('add-testseries-test-id')) {
+        $('add-testseries-test-id')
+            .addEventListener(
+                'change',
+                updateSelectedPath
+            );
+    }
+
+    /* PYQ PAPER */
+
+    if ($('add-pyq-id')) {
+        $('add-pyq-id')
+            .addEventListener(
+                'change',
+                updateSelectedPath
+            );
+    }
+
+
+    /* DESTINATION */
+
+    document
+        .querySelectorAll('.q-choice')
+        .forEach(button => {
+
+            button.addEventListener(
+                'click',
+                () => {
+
+                    selectDestination(
+                        button.dataset.target
+                    );
+
+                }
+            );
+
+        });
+
+
+    /* CSV FILE */
+
+    if ($('csv-file')) {
+        $('csv-file')
+            .addEventListener(
+                'change',
+                handleCSVFile
+            );
+    }
+
+
+    /* PREVIEW */
+
+    if ($('btn-preview-csv')) {
+        $('btn-preview-csv')
+            .addEventListener(
+                'click',
+                previewCSV
+            );
+    }
+
+
+    /* PREVIEW CLOSE */
+
+    if ($('btn-close-preview')) {
+        $('btn-close-preview')
+            .addEventListener(
+                'click',
+                backToCSVUpload
+            );
+    }
+
+
+    /* PREVIEW BACK */
+
+    if ($('btn-back-preview')) {
+        $('btn-back-preview')
+            .addEventListener(
+                'click',
+                backToCSVUpload
+            );
+    }
+
+
+    /* IMPORT */
+
+    if ($('btn-import-confirm')) {
+        $('btn-import-confirm')
+            .addEventListener(
+                'click',
+                importQuestions
+            );
+    }
+
+    if ($('btn-close-group-modal')) {
+        $('btn-close-group-modal').addEventListener('click', closeQuestionGroup);
+    }
+
+    if ($('btn-close-group-edit-modal')) {
+        $('btn-close-group-edit-modal').addEventListener('click', closeQuestionGroupEditModal);
+    }
+
+    if ($('btn-cancel-group-edit')) {
+        $('btn-cancel-group-edit').addEventListener('click', closeQuestionGroupEditModal);
+    }
+
+    if ($('btn-save-group-edit')) {
+        $('btn-save-group-edit').addEventListener('click', saveQuestionGroupEdits);
+    }
+
+    if ($('btn-close-edit-modal')) {
+        $('btn-close-edit-modal').addEventListener('click', closeQuestionEdit);
+    }
+
+    if ($('btn-cancel-edit')) {
+        $('btn-cancel-edit').addEventListener('click', closeQuestionEdit);
+    }
+
+    if ($('question-edit-form')) {
+        $('question-edit-form').addEventListener('submit', saveEditedQuestion);
+    }
+
+
+    /* TEMPLATE */
+
+    if ($('btn-download-template')) {
+        $('btn-download-template')
+            .addEventListener(
+                'click',
+                downloadCSVTemplate
+            );
+    }
+
+
+    /* EXPORT */
+
+    if ($('btn-export-questions')) {
+        $('btn-export-questions')
+            .addEventListener(
+                'click',
+                exportQuestions
+            );
+    }
+
+
+    /* MODAL BACKDROP */
+
+    if ($('add-question-modal')) {
+        $('add-question-modal')
+            .addEventListener(
+                'click',
+                event => {
+
+                    if (
+                        event.target ===
+                        $('add-question-modal')
+                    ) {
+
+                        closeAddQuestions();
+
+                    }
+
+                }
+            );
+    }
+
+
+    if ($('csv-preview-modal')) {
+        $('csv-preview-modal')
+            .addEventListener(
+                'click',
+                event => {
+
+                    if (
+                        event.target ===
+                        $('csv-preview-modal')
+                    ) {
+
+                        backToCSVUpload();
+
+                    }
+
+                }
+            );
+    }
+
+    if ($('question-group-modal')) {
+        $('question-group-modal').addEventListener('click', event => {
+            if (event.target === $('question-group-modal')) closeQuestionGroup();
+        });
+    }
+
+    if ($('question-group-edit-modal')) {
+        $('question-group-edit-modal').addEventListener('click', event => {
+            if (event.target === $('question-group-edit-modal')) closeQuestionGroupEditModal();
+        });
+    }
+
+    if ($('question-edit-modal')) {
+        $('question-edit-modal').addEventListener('click', event => {
+            if (event.target === $('question-edit-modal')) closeQuestionEdit();
+        });
+    }
+
+}
+
+
+/* =========================================================
+   OPEN ADD QUESTIONS
+   ========================================================= */
+
+function openAddQuestions() {
+
+    resetAddFlow();
+
+
+    if ($('add-question-modal')) {
+        $('add-question-modal')
+            .classList.add('open');
+
+
+        $('add-question-modal')
+            .setAttribute(
+                'aria-hidden',
+                'false'
+            );
+    }
+
+}
+
+
+/* =========================================================
+   CLOSE ADD QUESTIONS
+   ========================================================= */
+
+function closeAddQuestions() {
+
+    if ($('add-question-modal')) {
+        $('add-question-modal')
+            .classList.remove('open');
+
+
+        $('add-question-modal')
+            .setAttribute(
+                'aria-hidden',
+                'true'
+            );
+    }
+
+
+    if ($('csv-preview-modal')) {
+        $('csv-preview-modal')
+            .classList.remove('open');
+
+
+        $('csv-preview-modal')
+            .setAttribute(
+                'aria-hidden',
+                'true'
+            );
+    }
+
+
+    resetAddFlow();
+
+}
+
+
+/* =========================================================
+   RESET ADD FLOW
+   ========================================================= */
+
+function resetAddFlow() {
+
+    selectedDestination =
+        null;
+
+
+    parsedCSVQuestions =
+        [];
+
+
+    if ($('add-exam-id')) $('add-exam-id').value = '';
+
+    populateStageDropdown('');
+    syncStageVisibility();
+
+
+    if ($('add-mocktest-id')) {
+        $('add-mocktest-id').innerHTML =
+            `
+            <option value="">
+                Select Mock Test
+            </option>
+            `;
+    }
+
+        if ($('add-testseries-id')) {
+            $('add-testseries-id').innerHTML =
+                '<option value="">Select Test Series</option>';
+        }
+
+        if ($('add-testseries-test-id')) {
+            $('add-testseries-test-id').innerHTML =
+                '<option value="">Select Test</option>';
+            $('add-testseries-test-id').disabled = true;
+        }
+
+        selectedTestSeriesTests = [];
+
+    if ($('add-subject-id')) {
+        $('add-subject-id').innerHTML =
+            `
+            <option value="">
+                Select Subject
+            </option>
+            `;
+        $('add-subject-id').disabled = true;
+    }
+
+
+    if ($('add-topic-id')) {
+        $('add-topic-id').innerHTML =
+            `
+            <option value="">
+                Select Topic
+            </option>
+            `;
+        $('add-topic-id').disabled = true;
+    }
+
+
+    if ($('add-pyq-id')) {
+        $('add-pyq-id').innerHTML =
+            `
+            <option value="">
+                Select Year / Paper
+            </option>
+            `;
+        $('add-pyq-id').disabled = true;
+    }
+    if ($('csv-file')) $('csv-file').value = '';
+
+
+    const statusEl = $('csv-file-status');
+    if (statusEl) {
+        statusEl.textContent = '';
+        statusEl.className = 'q-file-status';
+    }
+
+
+    const pathEl = $('selected-path');
+    if (pathEl) {
+        pathEl.innerHTML = '';
+        pathEl.style.display = 'none';
+    }
+
+
+    const previewBtn = $('btn-preview-csv');
+    if (previewBtn) {
+        previewBtn.disabled = true;
+        previewBtn.textContent = 'Preview CSV';
+    }
+
+
+    const importBtn = $('btn-import-confirm');
+    if (importBtn) {
+        importBtn.disabled = false;
+        importBtn.textContent = 'Import Questions';
+    }
+
+
+    document
+        .querySelectorAll('.q-choice')
+        .forEach(button => {
+
+            button.classList.remove(
+                'selected'
+            );
+
+        });
+
+
+    document
+        .querySelectorAll('.destination-panel')
+        .forEach(panel => {
+
+            panel.classList.remove(
+                'active'
+            );
+
+        });
+
+
+    if ($('preview-summary')) $('preview-summary').textContent = '';
+    if ($('preview-head')) $('preview-head').innerHTML = '';
+    if ($('preview-body')) $('preview-body').innerHTML = '';
+
+}
+
+
+/* =========================================================
+   EXAM CHANGE
+   ========================================================= */
+
+async function handleExamChange() {
+
+    const examId =
+        $('add-exam-id')?.value;
+
+
+    populateSubjects(
+        examId,
+        'add-subject-id'
+    );
+
+
+    populateStageDropdown(examId);
+    syncStageVisibility();
+
+
+    const topicEl = $('add-topic-id');
+    if (topicEl) {
+        topicEl.innerHTML =
+            `
+            <option value="">
+                Select Topic
+            </option>
+            `;
+        topicEl.disabled = true;
+    }
+
+    const pyqEl = $('add-pyq-id');
+    if (pyqEl) {
+        pyqEl.innerHTML = '<option value="">Loading Year / Paper...</option>';
+        pyqEl.disabled = true;
+    }
+
+
+    const mockEl = $('add-mocktest-id');
+    if (mockEl) {
+        mockEl.innerHTML =
+            `
+            <option value="">
+                Loading Mock Tests...
+            </option>
+            `;
+    }
+
+        const testSeriesEl = $('add-testseries-id');
+        const testSeriesTestEl = $('add-testseries-test-id');
+        if (testSeriesEl) {
+            testSeriesEl.innerHTML = '<option value="">Loading Test Series...</option>';
+            testSeriesEl.disabled = true;
+        }
+        if (testSeriesTestEl) {
+            testSeriesTestEl.innerHTML = '<option value="">Select Test</option>';
+            testSeriesTestEl.disabled = true;
+        }
+
+    allMockTests = [];
+    allPYQ = [];
+    examMockTests = [];
+    examPYQ = [];
+    allTestSeries = [];
+    examTestSeries = [];
+    selectedTestSeriesTests = [];
+
+    if (!examId) {
+
+        if (mockEl) {
+            mockEl.innerHTML =
+                `
+                <option value="">
+                    Select Mock Test
+                </option>
+                `;
+        }
+
+        if (pyqEl) {
+            pyqEl.innerHTML = '<option value="">Select Year / Paper</option>';
+        }
+
+        if (testSeriesEl) {
+            testSeriesEl.innerHTML = '<option value="">Select Test Series</option>';
+            testSeriesEl.disabled = true;
+        }
+
+
+        updateSelectedPath();
+
+        return;
+
+    }
+
+
+    try {
+
+        // Load destination records for the selected exam.
+        examMockTests =
+            await getFirestoreMockTests(
+                null,
+                examId
+            );
+
+
+        examMockTests =
+            Array.isArray(examMockTests)
+                ? examMockTests
+                : [];
+
+        examPYQ = await getFirestorePYQ(examId);
+        examPYQ = Array.isArray(examPYQ) ? examPYQ : [];
+
+        examTestSeries = await getFirestoreTestSeries(examId);
+        examTestSeries = Array.isArray(examTestSeries) ? examTestSeries : [];
+        allTestSeries = examTestSeries;
+        populateTestSeriesDropdown();
+
+        await handleStageChange();
+
+
+    } catch (error) {
+
+        console.error(
+            'Mock Test or Test Series loading error:',
+            error
+        );
+
+
+        if (mockEl) {
+            mockEl.innerHTML =
+                `
+                <option value="">
+                    Failed to load Mock Tests
+                </option>
+                `;
+        }
+        
+        if (pyqEl) {
+            pyqEl.innerHTML = '<option value="">Failed to load Year / Paper</option>';
+        }
+
+        if (testSeriesEl) {
+            testSeriesEl.innerHTML = '<option value="">Failed to load Test Series</option>';
+            testSeriesEl.disabled = true;
+        }
+
+
+        showToast(
+            'Failed to load tests.',
+            'error'
+        );
+
+    }
+
+
+    updateSelectedPath();
+
+}
+
+async function handleStageChange() {
+    const { stageId, stageName } = getSelectedStage();
+
+    allMockTests = examMockTests.filter(mock => matchesStage(mock, stageId, stageName));
+    allPYQ = examPYQ.filter(paper => matchesStage(paper, stageId, stageName));
+
+    populateMockDropdown();
+    populatePYQDropdown();
+    syncStageVisibility();
+
+    if (selectedDestination === 'testseries' && $('add-testseries-id')?.value) {
+        await handleTestSeriesChange();
+        return;
+    }
+
+    updateSelectedPath();
+}
+
+async function handleTestSeriesChange() {
+    const examId = $('add-exam-id')?.value || '';
+    const testSeriesId = $('add-testseries-id')?.value || '';
+    const testSelect = $('add-testseries-test-id');
+
+    selectedTestSeriesTests = [];
+    if (testSelect) {
+        testSelect.innerHTML = '<option value="">Loading Tests...</option>';
+        testSelect.disabled = true;
+    }
+
+    if (!testSeriesId || !examId) {
+        if (testSelect) {
+            testSelect.innerHTML = '<option value="">Select Test</option>';
+        }
+        syncStageVisibility();
+        updateSelectedPath();
+        return;
+    }
+
+    try {
+        selectedTestSeriesTests = await getFirestoreMockTests(testSeriesId, examId);
+        selectedTestSeriesTests = Array.isArray(selectedTestSeriesTests)
+            ? selectedTestSeriesTests
+            : [];
+
+        syncStageVisibility();
+        const stage = getSelectedStage();
+        if (shouldShowStage() && (stage.stageId || stage.stageName)) {
+            selectedTestSeriesTests = selectedTestSeriesTests.filter(test =>
+            matchesStage(test, stage.stageId, stage.stageName)
+            );
+        }
+        populateTestSeriesTestDropdown();
+    } catch (error) {
+        console.error('Test Series tests loading error:', error);
+        if (testSelect) {
+            testSelect.innerHTML = '<option value="">Failed to load Tests</option>';
+        }
+        showToast(error.message || 'Failed to load Test Series tests.', 'error');
+    }
+
+    updateSelectedPath();
+}
+
+function matchesStage(record, stageId, stageName) {
+    const recordStageId = String(record?.stageId ?? record?.tierId ?? '').trim();
+    const recordStageName = String(record?.stageName ?? record?.stage ?? record?.tier ?? '').trim();
+
+    if (!stageId && !stageName) {
+        return !recordStageId && !recordStageName;
+    }
+
+    return (stageId && recordStageId === stageId) ||
+        (stageName && (recordStageName === stageName || recordStageName === getExamStages($('add-exam-id')?.value).find(stage => stage.name === stageName)?.code));
+}
+
+function populateMockDropdown() {
+    const select = $('add-mocktest-id');
+    if (!select) return;
+
+    select.innerHTML = '<option value="">Select Mock Test</option>';
+    allMockTests.forEach(mock => {
+        const id = String(mock.id || '');
+        const name = String(mock.name || mock.title || id);
+        select.insertAdjacentHTML('beforeend', `
+            <option value="${escapeHtml(id)}">${escapeHtml(name)}</option>
+        `);
+    });
+}
+
+function populateTestSeriesDropdown() {
+    const select = $('add-testseries-id');
+    if (!select) return;
+
+    select.innerHTML = '<option value="">Select Test Series</option>' +
+        examTestSeries.map(series => `
+            <option value="${escapeHtml(String(series.id || ''))}">
+                ${escapeHtml(String(series.title || series.name || series.id || ''))}
+            </option>
+        `).join('');
+    select.disabled = examTestSeries.length === 0;
+}
+
+function populateTestSeriesTestDropdown() {
+    const select = $('add-testseries-test-id');
+    if (!select) return;
+
+    select.innerHTML = '<option value="">Select Test</option>' +
+        selectedTestSeriesTests.map(test => `
+            <option value="${escapeHtml(String(test.id || ''))}">
+                ${escapeHtml(String(test.name || test.title || test.id || ''))}
+            </option>
+        `).join('');
+    select.disabled = selectedTestSeriesTests.length === 0;
+}
+
+function populatePYQDropdown() {
+    const select = $('add-pyq-id');
+    if (!select) return;
+
+    select.innerHTML = '<option value="">Select Year / Paper</option>';
+    allPYQ.forEach(paper => {
+        const id = String(paper.id || '');
+        const label = [paper.year, paper.title || paper.name, paper.shift]
+            .filter(Boolean)
+            .join(' - ');
+        select.insertAdjacentHTML('beforeend', `
+            <option value="${escapeHtml(id)}">${escapeHtml(label || id)}</option>
+        `);
+    });
+    select.disabled = allPYQ.length === 0;
+}
+
+
+/* =========================================================
+   DESTINATION
+   ========================================================= */
+
+function selectDestination(destination) {
+
+    selectedDestination =
+        destination;
+
+
+    document
+        .querySelectorAll('.q-choice')
+        .forEach(button => {
+
+            button.classList.toggle(
+                'selected',
+                button.dataset.target ===
+                destination
+            );
+
+        });
+
+
+    document
+        .querySelectorAll('.destination-panel')
+        .forEach(panel => {
+
+            panel.classList.remove(
+                'active'
+            );
+
+        });
+
+
+    const panel =
+        $(`${destination}-panel`);
+
+
+    if (panel) {
+
+        panel.classList.add(
+            'active'
+        );
+
+    }
+
+        syncStageVisibility();
+
+
+    /* CSV PANEL IS ALWAYS REQUIRED */
+
+    if ($('csv-panel')) {
+        $('csv-panel')
+            .classList.add(
+                'active'
+            );
+    }
+
+
+    updateSelectedPath();
+
+}
+
+
+/* =========================================================
+   UPDATE SELECTED PATH
+   ========================================================= */
+
+function updateSelectedPath() {
+
+    const path =
+        $('selected-path');
+
+    if (!path) return;
+
+
+    const examId =
+        $('add-exam-id')?.value;
+
+
+    if (
+        !selectedDestination ||
+        !examId
+    ) {
+
+        path.style.display =
+            'none';
+
+
+        updatePreviewButton();
+
+        return;
+
+    }
+
+
+    const examName =
+        findExamName(examId);
+
+    if ((selectedDestination === 'mocktest' || selectedDestination === 'pyq' || selectedDestination === 'testseries') &&
+        shouldShowStage() && !$('add-tier-id')?.value) {
+        path.style.display = 'none';
+        updatePreviewButton();
+        return;
+    }
+
+
+    let destinationText =
+        '';
+
+
+    /* -------------------------------------------------------
+       MOCK TEST
+       ------------------------------------------------------- */
+
+    if (
+        selectedDestination ===
+        'mocktest'
+    ) {
+
+        const mockId =
+            $('add-mocktest-id')?.value;
+
+
+        if (!mockId) {
+
+            path.style.display =
+                'none';
+
+
+            updatePreviewButton();
+
+            return;
+
+        }
+
+
+        const stage = getSelectedStage();
+        destinationText =
+            `${stage.stageName ? `${stage.stageName} → ` : ''}Mock Test → ${findMockName(mockId)}`;
+
+    }
+
+
+    if (
+        selectedDestination ===
+        'testseries'
+    ) {
+
+        const seriesId = $('add-testseries-id')?.value;
+        const testId = $('add-testseries-test-id')?.value;
+
+        if (!seriesId || !testId) {
+            path.style.display = 'none';
+            updatePreviewButton();
+            return;
+        }
+
+        const stage = getSelectedStage();
+        const series = examTestSeries.find(item => String(item.id) === String(seriesId));
+        const test = selectedTestSeriesTests.find(item => String(item.id) === String(testId));
+        destinationText =
+            `${stage.stageName ? `${stage.stageName} → ` : ''}Test Series → ${series?.title || series?.name || seriesId} → ${test?.name || test?.title || testId}`;
+    }
+
+
+    /* -------------------------------------------------------
+       SUBJECT
+       ------------------------------------------------------- */
+
+    if (
+        selectedDestination ===
+        'subject'
+    ) {
+
+        const subjectId =
+            $('add-subject-id')?.value;
+
+
+        const topicId =
+            $('add-topic-id')?.value;
+
+
+        if (
+            !subjectId ||
+            !topicId
+        ) {
+
+            path.style.display =
+                'none';
+
+
+            updatePreviewButton();
+
+            return;
+
+        }
+
+
+        destinationText =
+            `Subject Practice → ${findSubjectName(subjectId)} → ${findTopicName(topicId)}`;
+
+    }
+
+
+    /* -------------------------------------------------------
+       PYQ
+       ------------------------------------------------------- */
+
+    if (
+        selectedDestination ===
+        'pyq'
+    ) {
+
+        const pyqId =
+            $('add-pyq-id')?.value;
+
+
+        if (
+            !pyqId
+        ) {
+
+            path.style.display =
+                'none';
+
+
+            updatePreviewButton();
+
+            return;
+
+        }
+
+
+        const stage = getSelectedStage();
+        const paper = allPYQ.find(item => String(item.id) === String(pyqId));
+        destinationText =
+            `${stage.stageName ? `${stage.stageName} → ` : ''}PYQ → ${paper?.year || ''} → ${paper?.title || paper?.name || pyqId}`;
+
+    }
+
+
+    path.innerHTML =
+        `
+        <strong>
+            Questions will be added to:
+        </strong>
+
+        ${escapeHtml(examName)}
+
+        →
+
+        ${escapeHtml(destinationText)}
+        `;
+
+
+    path.style.display =
+        'block';
+
+
+    updatePreviewButton();
+
+}
+
+
+/* =========================================================
+   PREVIEW BUTTON STATE
+   ========================================================= */
+
+function updatePreviewButton() {
+
+    const button =
+        $('btn-preview-csv');
+
+
+    if (!button) {
+        return;
+    }
+
+
+    const file =
+        $('csv-file')
+            ?.files?.[0];
+
+
+    const examId =
+        $('add-exam-id')
+            ?.value;
+
+
+    let destinationReady =
+        false;
+
+
+    /* -------------------------------------------------------
+       MOCK TEST
+       ------------------------------------------------------- */
+
+    if (
+        selectedDestination ===
+        'mocktest'
+    ) {
+
+        destinationReady =
+            Boolean(
+                examId &&
+                (!getExamStages(examId).length || $('add-tier-id')?.value) &&
+                $('add-mocktest-id')
+                    ?.value
+            );
+
+    }
+
+
+    /* -------------------------------------------------------
+       TEST SERIES
+       ------------------------------------------------------- */
+
+    else if (
+        selectedDestination ===
+        'testseries'
+    ) {
+
+        destinationReady = Boolean(
+            examId &&
+            (!shouldShowStage() || $('add-tier-id')?.value) &&
+            $('add-testseries-id')?.value &&
+            $('add-testseries-test-id')?.value
+        );
+
+    }
+
+
+    /* -------------------------------------------------------
+       SUBJECT
+       ------------------------------------------------------- */
+
+    else if (
+        selectedDestination ===
+        'subject'
+    ) {
+
+        destinationReady =
+            Boolean(
+                examId &&
+                $('add-subject-id')
+                    ?.value &&
+                $('add-topic-id')
+                    ?.value
+            );
+
+    }
+
+
+    /* -------------------------------------------------------
+       PYQ
+       ------------------------------------------------------- */
+
+    else if (
+        selectedDestination ===
+        'pyq'
+    ) {
+
+        destinationReady =
+            Boolean(
+                examId &&
+                (!getExamStages(examId).length || $('add-tier-id')?.value) &&
+                $('add-pyq-id')
+                    ?.value
+            );
+
+    }
+
+
+    button.disabled =
+        !file ||
+        !destinationReady;
+
+}
+
+
+/* =========================================================
+   CSV FILE SELECT
+   ========================================================= */
+
+function handleCSVFile(event) {
+
+    const file =
+        event.target.files?.[0];
+
+
+    parsedCSVQuestions =
+        [];
+
+
+    const status =
+        $('csv-file-status');
+
+
+    if (!file) {
+
+        if (status) {
+            status.textContent = '';
+            status.className = 'q-file-status';
+        }
+
+
+        updatePreviewButton();
+
+        return;
+
+    }
+
+
+    if (
+        !file.name
+            .toLowerCase()
+            .endsWith('.csv')
+    ) {
+
+        if (status) {
+            status.textContent = 'Please select a valid CSV file.';
+            status.className = 'q-file-status error';
+        }
+
+
+        if ($('csv-file')) $('csv-file').value = '';
+
+
+        updatePreviewButton();
+
+        return;
+
+    }
+
+
+    if (status) {
+        status.textContent = `CSV selected: ${file.name}`;
+        status.className = 'q-file-status success';
+    }
+
+
+    updatePreviewButton();
+
+}
+
+
+/* =========================================================
+   CSV PARSER
+   ========================================================= */
+
+function parseCSV(text) {
+
+    const rows = [];
+
+    let row = [];
+
+    let cell = '';
+
+    let insideQuotes = false;
+
+
+    for (
+        let i = 0;
+        i < text.length;
+        i++
+    ) {
+
+        const char =
+            text[i];
+
+
+        const next =
+            text[i + 1];
+
+
+        if (
+            char === '"' &&
+            insideQuotes &&
+            next === '"'
+        ) {
+
+            cell += '"';
+
+            i++;
+
+            continue;
+
+        }
+
+
+        if (
+            char === '"'
+        ) {
+
+            insideQuotes =
+                !insideQuotes;
+
+            continue;
+
+        }
+
+
+        if (
+            char === ',' &&
+            !insideQuotes
+        ) {
+
+            row.push(cell);
+
+            cell = '';
+
+            continue;
+
+        }
+
+
+        if (
+            (
+                char === '\n' ||
+                char === '\r'
+            ) &&
+            !insideQuotes
+        ) {
+
+            if (
+                char === '\r' &&
+                next === '\n'
+            ) {
+
+                i++;
+
+            }
+
+
+            row.push(cell);
+
+            cell = '';
+
+
+            if (
+                row.some(
+                    value =>
+                        String(value)
+                            .trim() !== ''
+                )
+            ) {
+
+                rows.push(row);
+
+            }
+
+
+            row = [];
+
+            continue;
+
+        }
+
+
+        cell += char;
+
+    }
+
+
+    row.push(cell);
+
+
+    if (
+        row.some(
+            value =>
+                String(value)
+                    .trim() !== ''
+        )
+    ) {
+
+        rows.push(row);
+
+    }
+
+
+    if (!rows.length) {
+
+        return [];
+
+    }
+
+
+    const headers =
+        rows[0].map(
+            header =>
+                String(header)
+                    .replace(/^\uFEFF/, '')
+                    .trim()
+                    .toLowerCase()
+        );
+
+
+    return rows
+        .slice(1)
+        .map(values => {
+
+            const object = {};
+
+
+            headers.forEach(
+                (header, index) => {
+
+                    object[header] =
+                        String(
+                            values[index] ??
+                            ''
+                        ).trim();
+
+                }
+            );
+
+
+            return object;
+
+        });
+
+}
+
+
+/* =========================================================
+   FORMAT CSV QUESTIONS
+   ========================================================= */
+
+function formatCSVQuestions(rows) {
+
+    const questions = [];
+
+    const errors = [];
+
+
+    rows.forEach(
+        (row, index) => {
+
+            const rowNumber =
+                index + 2;
+
+
+            const questionText =
+                row.questiontext ||
+                row.question ||
+                row.questionen ||
+                '';
+
+
+            const hindiQuestionText =
+                row.hindiquestiontext ||
+                row.hindiquestion ||
+                row.questionhi ||
+                '';
+
+
+            const optionA =
+                row.optiona ||
+                row.opta ||
+                '';
+
+
+            const optionB =
+                row.optionb ||
+                row.optb ||
+                '';
+
+
+            const optionC =
+                row.optionc ||
+                row.optc ||
+                '';
+
+
+            const optionD =
+                row.optiond ||
+                row.optd ||
+                '';
+
+
+            const correctAnswer =
+                String(
+                    row.correctanswer ||
+                    row.correct ||
+                    ''
+                )
+                .trim()
+                .toUpperCase();
+
+
+            const explanation =
+                row.explanation ||
+                row.explanationen ||
+                '';
+
+
+            const hindiExplanation =
+                row.hindiexplanation ||
+                row.explanationhi ||
+                '';
+
+
+            const difficulty =
+                String(
+                    row.difficulty ||
+                    'medium'
+                )
+                .trim()
+                .toLowerCase();
+
+
+            const marks =
+                Number(
+                    row.marks ||
+                    1
+                );
+
+
+            const negativeMarks =
+                Number(
+                    row.negativemarks ||
+                    row.negative ||
+                    0
+                );
+
+
+            if (!questionText) {
+
+                errors.push(
+                    `Row ${rowNumber}: questionText missing`
+                );
+
+                return;
+
+            }
+
+
+            if (
+                !optionA ||
+                !optionB ||
+                !optionC ||
+                !optionD
+            ) {
+
+                errors.push(
+                    `Row ${rowNumber}: all 4 options are required`
+                );
+
+                return;
+
+            }
+
+
+            if (
+                ![
+                    'A',
+                    'B',
+                    'C',
+                    'D'
+                ].includes(correctAnswer)
+            ) {
+
+                errors.push(
+                    `Row ${rowNumber}: correctAnswer must be A, B, C or D`
+                );
+
+                return;
+
+            }
+
+
+            if (
+                ![
+                    'easy',
+                    'medium',
+                    'hard'
+                ].includes(difficulty)
+            ) {
+
+                errors.push(
+                    `Row ${rowNumber}: difficulty must be easy, medium or hard`
+                );
+
+                return;
+
+            }
+
+
+            questions.push({
+
+                questionText,
+
+                hindiQuestionText,
+
+                options: [
+
+                    {
+                        id: 'A',
+                        text: optionA
+                    },
+
+                    {
+                        id: 'B',
+                        text: optionB
+                    },
+
+                    {
+                        id: 'C',
+                        text: optionC
+                    },
+
+                    {
+                        id: 'D',
+                        text: optionD
+                    }
+
+                ],
+
+                correctAnswer,
+
+                explanation,
+
+                hindiExplanation,
+
+                difficulty,
+
+                marks:
+                    Number.isFinite(marks)
+                        ? marks
+                        : 1,
+
+                negativeMarks:
+                    Number.isFinite(
+                        negativeMarks
+                    )
+                        ? negativeMarks
+                        : 0
+
+            });
+
+        }
+    );
+
+
+    if (errors.length) {
+
+        throw new Error(
+            errors
+                .slice(0, 15)
+                .join('\n')
+        );
+
+    }
+
+
+    return questions;
+
+}
+
+
+/* =========================================================
+   PREVIEW CSV
+   ========================================================= */
+
+async function previewCSV() {
+
+    const file =
+        $('csv-file')
+            ?.files?.[0];
+
+
+    if (!file) {
+
+        showToast(
+            'Please select a CSV file.',
+            'error'
+        );
+
+        return;
+
+    }
+
+
+    if (!selectedDestination) {
+
+        showToast(
+            'Please select where the questions should be added.',
+            'error'
+        );
+
+        return;
+
+    }
+
+
+    const examId =
+        $('add-exam-id')?.value;
+
+
+    if (!examId) {
+
+        showToast(
+            'Please select an exam.',
+            'error'
+        );
+
+        return;
+
+    }
+
+
+    if (
+        selectedDestination ===
+        'mocktest'
+    ) {
+
+        if (getExamStages(examId).length && !$('add-tier-id')?.value) {
+            showToast('Please select Stage.', 'error');
+            return;
+        }
+
+        if (
+            !$('add-mocktest-id')?.value
+        ) {
+
+            showToast(
+                'Please select Mock Test.',
+                'error'
+            );
+
+            return;
+
+        }
+
+    }
+
+    if (
+        selectedDestination ===
+        'testseries'
+    ) {
+        if (
+            (shouldShowStage() && !$('add-tier-id')?.value) ||
+            !$('add-testseries-id')?.value ||
+            !$('add-testseries-test-id')?.value
+        ) {
+            showToast('Please select Test Series, Test, and Stage when applicable.', 'error');
+            return;
+        }
+    }
+    
+    if (
+        selectedDestination ===
+        'subject'
+    ) {
+
+        if (
+            !$('add-subject-id')?.value ||
+            !$('add-topic-id')?.value
+        ) {
+
+            showToast(
+                'Please select Subject and Topic.',
+                'error'
+            );
+
+            return;
+
+        }
+
+    }
+
+
+    if (
+        selectedDestination ===
+        'pyq'
+    ) {
+
+        if (
+            (getExamStages(examId).length && !$('add-tier-id')?.value) ||
+            !$('add-pyq-id')?.value
+        ) {
+
+            showToast(
+                'Please select Stage and Year / Paper.',
+                'error'
+            );
+
+            return;
+
+        }
+
+    }
+
+
+    const button =
+        $('btn-preview-csv');
+
+    if (!button) return;
+
+
+    button.disabled =
+        true;
+
+
+    button.textContent =
+        'Reading CSV...';
+
+
+    try {
+
+        const text =
+            await file.text();
+
+
+        const rows =
+            parseCSV(text);
+
+
+        if (!rows.length) {
+
+            throw new Error(
+                'CSV file is empty.'
+            );
+
+        }
+
+
+        parsedCSVQuestions =
+            formatCSVQuestions(
+                rows
+            );
+
+
+        if (
+            !parsedCSVQuestions.length
+        ) {
+
+            throw new Error(
+                'No valid questions found in CSV.'
+            );
+
+        }
+
+
+        renderPreview();
+
+
+        if ($('add-question-modal')) {
+            $('add-question-modal')
+                .classList.remove('open');
+
+
+            $('add-question-modal')
+                .setAttribute(
+                    'aria-hidden',
+                    'true'
+                );
+        }
+
+
+        if ($('csv-preview-modal')) {
+            $('csv-preview-modal')
+                .classList.add('open');
+
+
+            $('csv-preview-modal')
+                .setAttribute(
+                    'aria-hidden',
+                    'false'
+                );
+        }
+
+
+    } catch (error) {
+
+        console.error(
+            'CSV Preview Error:',
+            error
+        );
+
+
+        parsedCSVQuestions =
+            [];
+
+
+        showToast(
+            error.message ||
+            'Failed to read CSV.',
+            'error'
+        );
+
+    } finally {
+
+        updatePreviewButton();
+
+        button.textContent =
+            'Preview CSV';
+
+    }
+
+}
+
+
+/* =========================================================
+   RENDER PREVIEW
+   ========================================================= */
+
+function renderPreview() {
+
+    const questions =
+        (parsedCSVQuestions || [])
+            .slice(0, 100);
+
+
+    const total =
+        (parsedCSVQuestions || []).length;
+
+
+    if ($('preview-summary')) {
+        $('preview-summary').innerHTML =
+            `
+            <strong>
+                ${total} valid question(s) found.
+            </strong>
+
+            Showing first ${questions.length} question(s).
+
+            ${
+                total > 100
+                    ? 'Only first 100 are shown in preview.'
+                    : ''
+            }
+            `;
+    }
+
+
+    if ($('preview-head')) {
+        $('preview-head').innerHTML =
+            `
+            <tr>
+
+                <th>
+                    #
+                </th>
+
+                <th>
+                    Question
+                </th>
+
+                <th>
+                    Hindi Question
+                </th>
+
+                <th>
+                    Option A
+                </th>
+
+                <th>
+                    Option B
+                </th>
+
+                <th>
+                    Option C
+                </th>
+
+                <th>
+                    Option D
+                </th>
+
+                <th>
+                    Correct
+                </th>
+
+                <th>
+                    Difficulty
+                </th>
+
+                <th>
+                    Marks
+                </th>
+
+                <th>
+                    Negative
+                </th>
+
+            </tr>
+            `;
+    }
+
+
+    if ($('preview-body')) {
+        $('preview-body').innerHTML =
+            questions
+                .map(
+                    (q, index) => {
+
+                        return `
+                        <tr>
+
+                            <td>
+                                ${index + 1}
+                            </td>
+
+                            <td>
+                                ${escapeHtml(
+                                    q.questionText
+                                )}
+                            </td>
+
+                            <td>
+                                ${escapeHtml(
+                                    q.hindiQuestionText ||
+                                    ''
+                                )}
+                            </td>
+
+                            <td>
+                                ${escapeHtml(
+                                    q.options[0]?.text ||
+                                    ''
+                                )}
+                            </td>
+
+                            <td>
+                                ${escapeHtml(
+                                    q.options[1]?.text ||
+                                    ''
+                                )}
+                            </td>
+
+                            <td>
+                                ${escapeHtml(
+                                    q.options[2]?.text ||
+                                    ''
+                                )}
+                            </td>
+
+                            <td>
+                                ${escapeHtml(
+                                    q.options[3]?.text ||
+                                    ''
+                                )}
+                            </td>
+
+                            <td>
+                                ${escapeHtml(
+                                    q.correctAnswer
+                                )}
+                            </td>
+
+                            <td>
+                                ${escapeHtml(
+                                    q.difficulty
+                                )}
+                            </td>
+
+                            <td>
+                                ${escapeHtml(
+                                    String(q.marks)
+                                )}
+                            </td>
+
+                            <td>
+                                ${escapeHtml(
+                                    String(
+                                        q.negativeMarks
+                                    )
+                                )}
+                            </td>
+
+                        </tr>
+                        `;
+
+                    }
+                )
+                .join('');
+    }
+
+}
+
+
+/* =========================================================
+   BACK TO CSV UPLOAD
+   ========================================================= */
+
+function backToCSVUpload() {
+
+    if ($('csv-preview-modal')) {
+        $('csv-preview-modal')
+            .classList.remove('open');
+
+
+        $('csv-preview-modal')
+            .setAttribute(
+                'aria-hidden',
+                'true'
+            );
+    }
+
+
+    if ($('add-question-modal')) {
+        $('add-question-modal')
+            .classList.add('open');
+
+
+        $('add-question-modal')
+            .setAttribute(
+                'aria-hidden',
+                'false'
+            );
+    }
+
+
+    updateSelectedPath();
+
+}
+
+
+/* =========================================================
+   IMPORT QUESTIONS
+   ========================================================= */
+
+async function importQuestions() {
+
+    if (
+        !parsedCSVQuestions ||
+        !parsedCSVQuestions.length
+    ) {
+
+        showToast(
+            'No questions available for import.',
+            'error'
+        );
+
+        return;
+
+    }
+
+
+    const examId =
+        $('add-exam-id')?.value;
+
+
+    if (!examId) {
+
+        showToast(
+            'Please select an exam.',
+            'error'
+        );
+
+        return;
+
+    }
+
+
+    if (!selectedDestination) {
+
+        showToast(
+            'Please select destination.',
+            'error'
+        );
+
+        return;
+
+    }
+
+
+    const examName =
+        findExamName(examId);
+
+
+    let destinationData =
+        {};
+
+
+    if (
+        selectedDestination ===
+        'mocktest'
+    ) {
+
+        const mockTestId =
+            $('add-mocktest-id')?.value;
+
+
+        if (!mockTestId) {
+
+            showToast(
+                'Please select Mock Test.',
+                'error'
+            );
+
+            return;
+
+        }
+
+        const stage = getSelectedStage();
+        if (getExamStages(examId).length && !stage.stageName) {
+            showToast('Please select Stage.', 'error');
+            return;
+        }
+
+
+        destinationData = {
+
+            type: 'mocktest',
+
+            mockTestId,
+
+            stageId: stage.stageId || null,
+
+            stageName: stage.stageName || null,
+
+            mockTestName:
+                findMockName(
+                    mockTestId
+                )
+
+        };
+
+    }
+
+    if (
+        selectedDestination ===
+        'testseries'
+    ) {
+
+        const testSeriesId = $('add-testseries-id')?.value;
+        const mockTestId = $('add-testseries-test-id')?.value;
+        const stage = getSelectedStage();
+        const selectedSeries = examTestSeries.find(item => String(item.id) === String(testSeriesId));
+        const selectedTest = selectedTestSeriesTests.find(item => String(item.id) === String(mockTestId));
+
+        if (!testSeriesId || !mockTestId || (shouldShowStage() && !stage.stageName)) {
+            showToast('Please select Test Series, Test, and Stage when applicable.', 'error');
+            return;
+        }
+
+        destinationData = {
+            type: 'test_series',
+            testSeriesId,
+            testSeriesName: selectedSeries?.title || selectedSeries?.name || testSeriesId,
+            mockTestId,
+            mockTestName: selectedTest?.name || selectedTest?.title || mockTestId,
+            stageId: stage.stageId || null,
+            stageName: stage.stageName || null
+        };
+
+    }
+    
+    if (
+        selectedDestination ===
+        'subject'
+    ) {
+
+        const subjectId =
+            $('add-subject-id')?.value;
+
+
+        const topicId =
+            $('add-topic-id')?.value;
+
+
+        if (!subjectId) {
+
+            showToast(
+                'Please select Subject.',
+                'error'
+            );
+
+            return;
+
+        }
+
+
+        if (!topicId) {
+
+            showToast(
+                'Please select Topic.',
+                'error'
+            );
+
+            return;
+
+        }
+
+
+        destinationData = {
+
+            type: 'subject_practice',
+
+            subjectId,
+
+            subjectName:
+                findSubjectName(
+                    subjectId
+                ),
+
+            topicId,
+
+            topicName:
+                findTopicName(
+                    topicId
+                )
+
+        };
+
+    }
+
+
+    if (
+        selectedDestination ===
+        'pyq'
+    ) {
+
+        const pyqId =
+            $('add-pyq-id')?.value;
+
+
+        if (
+            !pyqId
+        ) {
+
+            showToast(
+                'Please select Year / Paper.',
+                'error'
+            );
+
+            return;
+
+        }
+
+        const stage = getSelectedStage();
+        if (getExamStages(examId).length && !stage.stageName) {
+            showToast('Please select Stage.', 'error');
+            return;
+        }
+
+
+        destinationData = {
+
+            type: 'pyq',
+
+            stageId: stage.stageId || null,
+
+            stageName: stage.stageName || null,
+
+            pyqId,
+
+            pyqName:
+                findPYQName(pyqId),
+
+            pyqYear:
+                Number(allPYQ.find(item => String(item.id) === String(pyqId))?.year || 0),
+
+            pyqShift:
+                allPYQ.find(item => String(item.id) === String(pyqId))?.shift || ''
+
+        };
+
+    }
+
+
+    const formatted =
+        parsedCSVQuestions.map(
+            q => ({
+
+                examId,
+
+                examName,
+
+                ...destinationData,
+
+                questionText:
+                    q.questionText,
+
+                hindiQuestionText:
+                    q.hindiQuestionText,
+
+                options:
+                    q.options,
+
+                correctAnswer:
+                    q.correctAnswer,
+
+                explanation:
+                    q.explanation,
+
+                hindiExplanation:
+                    q.hindiExplanation,
+
+                difficulty:
+                    q.difficulty,
+
+                marks:
+                    q.marks,
+
+                negativeMarks:
+                    q.negativeMarks,
+
+                status:
+                    'active'
+
+            })
+        );
+
+
+    if (!formatted.length) {
+
+        showToast(
+            'No questions to import.',
+            'error'
+        );
+
+        return;
+
+    }
+
+
+    const button =
+        $('btn-import-confirm');
+
+    if (!button) return;
+
+
+    button.disabled =
+        true;
+
+
+    button.textContent =
+        `Importing ${formatted.length}...`;
+
+
+    try {
+
+        const result =
+            await bulkImportQuestions(
+                formatted
+            );
+
+
+        if (
+            selectedDestination ===
+            'mocktest'
+        ) {
+            const mockTestId =
+                $('add-mocktest-id')?.value;
+
+
+            const importedQuestions =
+                Array.isArray(result?.data)
+                    ? result.data
+                    : Array.isArray(result?.questions)
+                        ? result.questions
+                        : [];
+
+
+            const importedQuestionIds =
+                importedQuestions
+                    .map(question => question?.id)
+                    .filter(Boolean);
+
+
+            if (!importedQuestionIds.length) {
+                throw new Error(
+                    'Questions were imported, but the API returned no question IDs.'
+                );
+            }
+
+
+            const selectedMock =
+                allMockTests.find(
+                    mock =>
+                        String(mock.id) ===
+                        String(mockTestId)
+                );
+
+
+            if (!selectedMock) {
+                throw new Error(
+                    'Selected Mock Test could not be found after import.'
+                );
+            }
+
+
+            const existingQuestionIds =
+                Array.isArray(selectedMock.questionIds)
+                    ? selectedMock.questionIds
+                    : Array.isArray(selectedMock.question_ids)
+                        ? selectedMock.question_ids
+                        : Array.isArray(selectedMock.questionIDs)
+                            ? selectedMock.questionIDs
+                            : [];
+
+
+            await saveMockTest({
+                ...selectedMock,
+                id: selectedMock.id,
+                questionIds: [
+                    ...new Set([
+                        ...existingQuestionIds,
+                        ...importedQuestionIds
+                    ])
+                ]
+            });
+        }
+
+        if (
+            selectedDestination ===
+            'testseries'
+        ) {
+            const testId = $('add-testseries-test-id')?.value;
+            const selectedTest = selectedTestSeriesTests.find(
+                test => String(test.id) === String(testId)
+            );
+
+            if (!selectedTest) {
+                throw new Error('Selected Test Series test could not be found after import.');
+            }
+
+            const importedQuestions = Array.isArray(result?.data)
+                ? result.data
+                : Array.isArray(result?.questions)
+                    ? result.questions
+                    : [];
+            const importedQuestionIds = importedQuestions
+                .map(question => question?.id)
+                .filter(Boolean);
+
+            if (!importedQuestionIds.length) {
+                throw new Error(
+                    'Questions were imported, but the API returned no question IDs.'
+                );
+            }
+
+            const existingQuestionIds = Array.isArray(selectedTest.questionIds)
+                ? selectedTest.questionIds
+                : Array.isArray(selectedTest.question_ids)
+                    ? selectedTest.question_ids
+                    : Array.isArray(selectedTest.questionIDs)
+                        ? selectedTest.questionIDs
+                        : [];
+
+            await saveMockTest({
+                ...selectedTest,
+                id: selectedTest.id,
+                questionIds: [
+                    ...new Set([
+                        ...existingQuestionIds,
+                        ...importedQuestionIds
+                    ])
+                ]
+            });
+        }
+        
+        showToast(
+            result?.message ||
+            `${formatted.length} questions imported successfully.`,
+            'success'
+        );
+
+
+        if ($('csv-preview-modal')) {
+            $('csv-preview-modal')
+                .classList.remove('open');
+
+
+            $('csv-preview-modal')
+                .setAttribute(
+                    'aria-hidden',
+                    'true'
+                );
+        }
+
+
+        if ($('add-question-modal')) {
+            $('add-question-modal')
+                .classList.remove('open');
+
+
+            $('add-question-modal')
+                .setAttribute(
+                    'aria-hidden',
+                    'true'
+                );
+        }
+
+
+        resetAddFlow();
+
+
+        await loadQuestions();
+
+
+    } catch (error) {
+
+        console.error(
+            'Question import failed:',
+            error
+        );
+
+
+        showToast(
+            error.message ||
+            'Failed to import questions.',
+            'error'
+        );
+
+    } finally {
+
+        button.disabled =
+            false;
+
+
+        button.textContent =
+            'Import Questions';
+
+    }
+
+}
+
+
+/* =========================================================
+   PAGINATION
+   ========================================================= */
+
+document.addEventListener(
+    'click',
+    event => {
+
+        const target =
+            event.target.closest(
+                '[data-page]'
+            );
+
+
+        if (!target) {
+
+            return;
+
+        }
+
+
+        const page =
+            Number(
+                target.dataset.page
+            );
+
+
+        if (
+            !Number.isInteger(page) ||
+            page < 1
+        ) {
+
+            return;
+
+        }
+
+
+        currentPage =
+            page;
+
+
+        renderQuestions();
+
+    }
+);
+
+
+/* =========================================================
+   CSV TEMPLATE
+   ========================================================= */
+
+function downloadCSVTemplate() {
+
+    const headers = [
+
+        'questionText',
+
+        'hindiQuestionText',
+
+        'optionA',
+
+        'optionB',
+
+        'optionC',
+
+        'optionD',
+
+        'correctAnswer',
+
+        'explanation',
+
+        'hindiExplanation',
+
+        'difficulty',
+
+        'marks',
+
+        'negativeMarks'
+
+    ];
+
+
+    const sample = [
+
+        'What is the capital of India?',
+
+        'भारत की राजधानी क्या है?',
+
+        'Mumbai',
+
+        'New Delhi',
+
+        'Kolkata',
+
+        'Chennai',
+
+        'B',
+
+        'New Delhi is the capital of India.',
+
+        'नई दिल्ली भारत की राजधानी है।',
+
+        'easy',
+
+        '1',
+
+        '0.25'
+
+    ];
+
+
+    exportToCsv(
+        'rankhub-question-template.csv',
+        [
+            headers,
+            sample
+        ]
+    );
+
+}
+
+
+/* =========================================================
+   EXPORT QUESTIONS
+   ========================================================= */
+
+function exportQuestions() {
+
+    if (
+        !filteredQuestions ||
+        !filteredQuestions.length
+    ) {
+
+        showToast(
+            'No questions available to export.',
+            'error'
+        );
+
+        return;
+
+    }
+
+
+    const rows =
+        (filteredQuestions || []).map(
+            q => ({
+
+                ID:
+                    q.id || '',
+
+                Type:
+                    getQuestionType(q),
+
+                Exam:
+                    q.examName ||
+                    findExamName(
+                        q.examId
+                    ),
+
+                Subject:
+                    q.subjectName ||
+                    findSubjectName(
+                        q.subjectId
+                    ),
+
+                Topic:
+                    q.topicName ||
+                    '',
+
+                MockTest:
+                    q.mockTestName ||
+                    '',
+
+                TestSeries:
+                    q.testSeriesName ||
+                    '',
+
+                PYQYear:
+                    q.pyqYear ||
+                    '',
+
+                PYQShift:
+                    q.pyqShift ||
+                    '',
+
+                Question:
+                    q.questionText ||
+                    '',
+
+                HindiQuestion:
+                    q.hindiQuestionText ||
+                    '',
+
+                OptionA:
+                    q.options?.[0]?.text ||
+                    '',
+
+                OptionB:
+                    q.options?.[1]?.text ||
+                    '',
+
+                OptionC:
+                    q.options?.[2]?.text ||
+                    '',
+
+                OptionD:
+                    q.options?.[3]?.text ||
+                    '',
+
+                CorrectAnswer:
+                    q.correctAnswer ||
+                    '',
+
+                Explanation:
+                    q.explanation ||
+                    '',
+
+                HindiExplanation:
+                    q.hindiExplanation ||
+                    '',
+
+                Difficulty:
+                    q.difficulty ||
+                    '',
+
+                Marks:
+                    q.marks ??
+                    1,
+
+                NegativeMarks:
+                    q.negativeMarks ??
+                    0
+
+            })
+        );
+
+
+    exportToCsv(
+        'rankhub-questions.csv',
+        rows
+    );
+
+}
+
+
+/* =========================================================
+   START
+   ========================================================= */
+
+initPage();
+
+</script>
+
+</body>
+</html>
