@@ -1,0 +1,15 @@
+{
+  "functions": {
+    "api/index.mjs": {
+      "includeFiles": [
+        "admin/**"
+      ]
+    }
+  },
+  "rewrites": [
+    {
+      "source": "/(.*)",
+      "destination": "/api"
+    }
+  ]
+}
