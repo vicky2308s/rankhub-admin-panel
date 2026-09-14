@@ -1,7 +1,7 @@
 {
   "name": "rankhub-admin-panel",
   "version": "1.0.0",
-  "type": "module"
+  "type": "module",
   "scripts": {
     "dev": "node server.js",
     "start": "node server.js",
