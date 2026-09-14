@@ -23,7 +23,7 @@ export { generateIdFromName } from './id-utils.js';
 
 const API_BASE_URL = (
   globalThis.RANKHUB_API_BASE_URL ||
-  'http://localhost:3000'
+  (typeof window !== 'undefined' ? window.location.origin : 'http://localhost:3000')
 ).replace(/\/+$/, '');
 
 const dataChangeChannel = typeof BroadcastChannel === 'function'

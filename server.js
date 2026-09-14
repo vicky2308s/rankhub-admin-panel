@@ -5227,53 +5227,57 @@ process.on(
   }
 );
 
-const server = app.listen(
-  PORT,
-  () => {
-    console.log(
-      `[RankHub Admin Server] Running on port ${PORT}`
-    );
+export default app;
 
-    console.log(
-      `[RankHub Admin Server] Project: ${PROJECT_ID}`
-    );
+const isDirectExecution =
+  process.argv[1] &&
+  path.resolve(process.argv[1]) === fileURLToPath(import.meta.url);
 
-    console.log(
-      "[RankHub Admin Server] Exam collection: exams"
-    );
+if (isDirectExecution) {
+  const server = app.listen(
+    PORT,
+    () => {
+      console.log(
+        `[RankHub Admin Server] Running on port ${PORT}`
+      );
 
-    console.log(
-      "[RankHub Admin Server] Subject collection: exams/{examId}/subjects"
-    );
+      console.log(
+        `[RankHub Admin Server] Project: ${PROJECT_ID}`
+      );
 
-    console.log(
-      "[RankHub Admin Server] Topic collection: exams/{examId}/subjects/{subjectId}/topics"
-    );
+      console.log(
+        "[RankHub Admin Server] Exam collection: exams"
+      );
 
-    console.log(
-      "[RankHub Admin Server] Test Series collection: exams/{examId}/test_series"
-    );
+      console.log(
+        "[RankHub Admin Server] Subject collection: exams/{examId}/subjects"
+      );
 
-    console.log(
-      "[RankHub Admin Server] Mock Test collection: exams/{examId}/mock_tests"
-    );
+      console.log(
+        "[RankHub Admin Server] Topic collection: exams/{examId}/subjects/{subjectId}/topics"
+      );
 
-    console.log(
-      "[RankHub Admin Server] PYQ collection: exams/{examId}/pyq"
-    );
-  }
-);
+      console.log(
+        "[RankHub Admin Server] Test Series collection: exams/{examId}/test_series"
+      );
 
-server.on(
-  "error",
-  (error) => {
-    console.error(
-      `[RankHub Admin Server] HTTP listener failed on port ${PORT}:`,
-      error
-    );
-  }
-);
+      console.log(
+        "[RankHub Admin Server] Mock Test collection: exams/{examId}/mock_tests"
+      );
 
-app.listen(PORT, () => {
-    console.log(`Server running on port ${PORT}`);
-});
+      console.log(
+        "[RankHub Admin Server] PYQ collection: exams/{examId}/pyq"
+      );
+    }
+  );
+
+  server.on(
+    "error",
+    (error) => {
+      console.error(
+        `[RankHub Admin Server] HTTP listener failed on port ${PORT}:`,
+        error
+      );
+    }
+  );
+}
