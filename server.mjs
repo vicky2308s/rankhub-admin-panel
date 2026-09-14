@@ -5281,3 +5281,5 @@ if (isDirectExecution) {
     }
   );
 }
+
+export default app;

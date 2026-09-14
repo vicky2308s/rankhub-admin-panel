@@ -1,15 +1,5 @@
 {
-  "version": 2,
-  "builds": [
-    {
-      "src": "server.mjs",
-      "use": "@vercel/node",
-      "config": {
-        "includeFiles": ["node_modules/", "admin/"]
-      }
-    }
-  ],
-  "routes": [
-    { "src": "/(.*)", "dest": "server.mjs" }
+  "rewrites": [
+    { "source": "/(.*)", "destination": "/api" }
   ]
 }

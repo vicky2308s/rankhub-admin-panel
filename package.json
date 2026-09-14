@@ -1,7 +1,4 @@
-{
-  "scripts": {
-    "dev": "node server.mjs",
-    "start": "node server.mjs",
-    "build": "node --check server.mjs && node --check admin/admin-db.js && node --check admin/firebase-config.js"
-  }
-}
+"scripts": {
+  "dev": "node server.mjs",
+  "start": "node server.mjs"
+},
