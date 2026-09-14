@@ -4,7 +4,8 @@
   "type": "module",
   "scripts": {
     "dev": "node server.js",
-    "start": "node server.js"
+    "start": "node server.js",
+    "build": "node --check server.js && node --check admin/admin-db.js && node --check admin/firebase-config.js"
   },
   "dependencies": {
     "cors": "^2.8.6",
