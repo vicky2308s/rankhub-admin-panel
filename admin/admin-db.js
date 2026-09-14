@@ -21,9 +21,18 @@ export { generateIdFromName } from './id-utils.js';
 // API CONFIG
 // =============================================================
 
+const configuredApiBaseUrl =
+  typeof globalThis.RANKHUB_API_BASE_URL === 'string'
+    ? globalThis.RANKHUB_API_BASE_URL.trim()
+    : '';
+
+const browserApiBaseUrl =
+  typeof window !== 'undefined' && window.location?.origin
+    ? window.location.origin
+    : '';
+
 const API_BASE_URL = (
-  globalThis.RANKHUB_API_BASE_URL ||
-  (typeof window !== 'undefined' ? window.location.origin : 'http://localhost:3000')
+  configuredApiBaseUrl || browserApiBaseUrl
 ).replace(/\/+$/, '');
 
 const dataChangeChannel = typeof BroadcastChannel === 'function'
@@ -62,7 +71,9 @@ async function apiFetch(endpoint, options = {}) {
   const fullUrl =
     endpoint.startsWith('http')
       ? endpoint
-      : `${API_BASE_URL}${endpoint}`;
+      : API_BASE_URL
+        ? `${API_BASE_URL}${endpoint}`
+        : endpoint;
 
   let response;
 

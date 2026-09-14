@@ -158,6 +158,7 @@
           </td>
         </tr>
       `;
+      
       try {
         allUsers = await getFirestoreUsers();
         applyFilters();
@@ -177,25 +178,27 @@
     }
 
     function applyFilters() {
-      const query = (document.getElementById('user-search').value || '').toLowerCase().trim();
-      const plan = document.getElementById('filter-plan').value;
-      const status = document.getElementById('filter-status').value;
+    const query = (document.getElementById('user-search').value || '').toLowerCase().trim();
+    const plan = document.getElementById('filter-plan').value;
+    const status = document.getElementById('filter-status').value;
 
-      filteredUsers = allUsers.filter(u => {
-        const matchesQuery = !query || 
-          (u.name && u.name.toLowerCase().includes(query)) ||
-          (u.email && u.email.toLowerCase().includes(query)) ||
-          (u.phone && u.phone.includes(query));
-        
-        const matchesPlan = !plan || (plan === 'premium' ? u.isPremium : !u.isPremium);
-        const matchesStatus = !status || u.status === status;
+    const safeUsers = Array.isArray(allUsers) ? allUsers : [];
 
-        return matchesQuery && matchesPlan && matchesStatus;
-      });
+    filteredUsers = safeUsers.filter(u => {
+      const matchesQuery = !query || 
+        (u.name && u.name.toLowerCase().includes(query)) ||
+        (u.email && u.email.toLowerCase().includes(query)) ||
+        (u.phone && u.phone.includes(query));
+      
+      const matchesPlan = !plan || (plan === 'premium' ? u.isPremium : !u.isPremium);
+      const matchesStatus = !status || u.status === status;
 
-      currentPage = 1;
-      renderTable();
-    }
+      return matchesQuery && matchesPlan && matchesStatus;
+    });
+
+    currentPage = 1;
+    renderTable();
+}
 
     function renderTable() {
       const tbody = document.getElementById('users-table-body');

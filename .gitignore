@@ -1,5 +1,7 @@
+node_modules/
 serviceAccountKey.json
 .env
-.env.local
 .env.*
-node_modules/
+.vercel/
+.vercel
+.env*

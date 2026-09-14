@@ -2,14 +2,18 @@
   "name": "rankhub-admin-panel",
   "version": "1.0.0",
   "type": "module",
+  "engines": {
+    "node": "22.x"
+  },
   "scripts": {
-    "dev": "node server.mjs",
-    "start": "node server.mjs"
+    "dev": "node server.js",
+    "start": "node server.js"
   },
   "dependencies": {
     "cors": "^2.8.6",
     "dotenv": "^17.4.2",
     "express": "^5.2.1",
-    "firebase-admin": "^14.3.0"
+    "firebase-admin": "^14.3.0",
+    "firebase-functions": "^7.3.2"
   }
 }

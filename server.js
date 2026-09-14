@@ -5,9 +5,11 @@ import fs from "node:fs";
 import dotenv from "dotenv";
 
 import {
-  initializeApp,
-  getApps,
+  applicationDefault,
   cert,
+  getApp,
+  getApps,
+  initializeApp,
 } from "firebase-admin/app";
 
 import {
@@ -99,14 +101,38 @@ app.get("/favicon.ico", (req, res) => {
 
 app.use((req, res, next) => {
   const origin = req.headers.origin;
+  const configuredOrigins = (
+    process.env.ALLOWED_ORIGINS ||
+    process.env.RANKHUB_ALLOWED_ORIGINS ||
+    process.env.CORS_ALLOWED_ORIGINS ||
+    ""
+  )
+    .split(",")
+    .map((value) => value.trim())
+    .filter(Boolean);
 
-  const allowedOrigin =
-    origin &&
-    /^https?:\/\/(localhost|127\.0\.0\.1)(:\d+)?$/.test(
+  const isLocalOrigin =
+    typeof origin === "string" &&
+    /^https?:\/\/(localhost|127\.0\.0\.1)(:\d+)?$/i.test(
       origin
     );
 
-  if (allowedOrigin) {
+  const isConfiguredOrigin =
+    typeof origin === "string" &&
+    configuredOrigins.includes(origin);
+
+  const isVercelOrigin =
+    typeof origin === "string" &&
+    /\.vercel\.app$/i.test(origin);
+
+  const isFirebaseOrigin =
+    typeof origin === "string" &&
+    (/\.firebaseapp\.com$/i.test(origin) || /\.web\.app$/i.test(origin));
+
+  if (
+    origin &&
+    (isLocalOrigin || isConfiguredOrigin || isVercelOrigin || isFirebaseOrigin)
+  ) {
     res.setHeader(
       "Access-Control-Allow-Origin",
       origin
@@ -175,19 +201,19 @@ function initializeFirebase() {
       serviceAccountRaw &&
       serviceAccountRaw.trim().startsWith("{")
     ) {
+      const serviceAccount =
+        JSON.parse(serviceAccountRaw);
+
+      if (
+        serviceAccount.project_id !==
+        PROJECT_ID
+      ) {
+        throw new Error(
+          `Service account project mismatch: expected ${PROJECT_ID}, received ${serviceAccount.project_id || "unknown"}.`
+        );
+      }
+
       if (getApps().length === 0) {
-        const serviceAccount =
-          JSON.parse(serviceAccountRaw);
-
-        if (
-          serviceAccount.project_id !==
-          PROJECT_ID
-        ) {
-          throw new Error(
-            `Service account project mismatch: expected ${PROJECT_ID}, received ${serviceAccount.project_id || "unknown"}.`
-          );
-        }
-
         initializeApp({
           credential: cert(serviceAccount),
           projectId: PROJECT_ID,
@@ -200,12 +226,25 @@ function initializeFirebase() {
       console.log(
         `[Firebase] Connected to project: ${PROJECT_ID}`
       );
-    } else {
-      console.warn(
-        "[Firebase] No service account configured. Admin API is unavailable."
-      );
+    } else if (getApps().length === 0) {
+      initializeApp({
+        credential: applicationDefault(),
+        projectId: PROJECT_ID,
+      });
 
-      db = null;
+      db = getFirestore();
+      auth = getAuth();
+
+      console.log(
+        `[Firebase] Connected to project: ${PROJECT_ID} using Application Default Credentials.`
+      );
+    } else {
+      db = getFirestore();
+      auth = getAuth();
+
+      console.log(
+        `[Firebase] Reused existing admin app for project: ${PROJECT_ID}`
+      );
     }
   } catch (error) {
     console.warn(
@@ -214,7 +253,6 @@ function initializeFirebase() {
     );
 
     db = null;
-    auth = null;
     auth = null;
   }
 }

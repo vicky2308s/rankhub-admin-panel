@@ -1,15 +1,21 @@
 {
   "functions": {
     "api/index.mjs": {
-      "includeFiles": [
-        "admin/**"
-      ]
+      "includeFiles": "admin/**"
     }
   },
   "rewrites": [
     {
-      "source": "/(.*)",
-      "destination": "/api"
+      "source": "/api/(.*)",
+      "destination": "/api/index.mjs"
+    },
+    {
+      "source": "/admin",
+      "destination": "/admin/admin-dashboard.html"
+    },
+    {
+      "source": "/",
+      "destination": "/admin/admin-dashboard.html"
     }
   ]
 }

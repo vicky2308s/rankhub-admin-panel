@@ -1,0 +1,30 @@
+{
+  "functions": {
+    "source": ".",
+    "ignore": [
+      "node_modules",
+      "serviceAccountKey.json",
+      ".git",
+      ".firebase",
+      "admin",
+      "functions"
+    ]
+  },
+  "hosting": {
+    "public": "admin",
+    "ignore": [
+      "firebase.json",
+      "**/.*",
+      "**/node_modules/**"
+    ],
+    "rewrites": [
+      {
+        "source": "/api/**",
+        "function": {
+          "functionId": "api",
+          "region": "us-central1"
+        }
+      }
+    ]
+  }
+}
