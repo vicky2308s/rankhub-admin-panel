@@ -75,6 +75,7 @@ export function initAdminLayout(activePageId, pageTitle = '') {
           <span class="brand-badge">ADMIN CONSOLE</span>
         </div>
       </a>
+      <button type="button" class="sidebar-close-btn" id="btn-sidebar-close" aria-label="Close navigation">&#10005;</button>
     </div>
 
     <div class="sidebar-nav">
@@ -132,27 +133,44 @@ export function initAdminLayout(activePageId, pageTitle = '') {
   }
 
   // 4. Mobile Drawer event handlers
+  const closeSidebar = () => {
+    sidebarEl.classList.remove('open');
+    overlayEl.classList.remove('active');
+    document.body.classList.remove('sidebar-open');
+  };
+
+  const openSidebar = () => {
+    sidebarEl.classList.add('open');
+    overlayEl.classList.add('active');
+    document.body.classList.add('sidebar-open');
+  };
+
   const mobileBtn = document.getElementById('btn-mobile-toggle');
   if (mobileBtn) {
     mobileBtn.onclick = () => {
-      sidebarEl.classList.toggle('open');
-      overlayEl.classList.toggle('active');
+      if (sidebarEl.classList.contains('open')) {
+        closeSidebar();
+      } else {
+        openSidebar();
+      }
     };
   }
+
+  document.getElementById('btn-sidebar-close')?.addEventListener('click', closeSidebar);
 
   sidebarEl.querySelectorAll('.nav-item').forEach((navItem) => {
     navItem.onclick = () => {
       if (window.innerWidth <= 768) {
-        sidebarEl.classList.remove('open');
-        overlayEl.classList.remove('active');
+        closeSidebar();
       }
     };
   });
 
-  overlayEl.onclick = () => {
-    sidebarEl.classList.remove('open');
-    overlayEl.classList.remove('active');
-  };
+  overlayEl.onclick = closeSidebar;
+
+  document.addEventListener('keydown', (event) => {
+    if (event.key === 'Escape') closeSidebar();
+  });
 
   initUniversalBulkActions();
 }

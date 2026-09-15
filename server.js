@@ -4412,6 +4412,13 @@ app.delete(
       if (!requireDb(res)) return;
 
       const id = String(req.params.id || "").trim();
+      if (!id) {
+        return res.status(400).json({
+          success: false,
+          error: "Live Test ID is required.",
+        });
+      }
+
       if (!validateDocumentId(id)) {
         return res.status(400).json({
           success: false,

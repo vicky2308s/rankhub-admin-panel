@@ -1534,11 +1534,12 @@ export async function updateLiveTest(liveTestId, liveTestData) {
 
 export async function deleteLiveTest(liveTestId) {
   try {
-    if (!liveTestId) {
-      throw new Error('liveTestId is required.');
+    const id = String(liveTestId || '').trim();
+    if (!id) {
+      throw new Error('Live Test ID is required.');
     }
 
-    await apiFetch(`/api/admin/live-tests/${encodeURIComponent(liveTestId)}`, {
+    await apiFetch(`/api/admin/live-tests/${encodeURIComponent(id)}`, {
       method: 'DELETE'
     });
 

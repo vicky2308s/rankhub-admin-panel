@@ -196,6 +196,7 @@ a {
   min-height: 100vh;
   position: relative;
   background-color: var(--bg-main);
+  min-width: 0;
 }
 
 /* Common Sidebar */
@@ -228,6 +229,20 @@ a {
   position: sticky;
   top: 0;
   z-index: 10;
+}
+
+.sidebar-close-btn {
+  display: none;
+  width: 40px;
+  height: 40px;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-sm);
+  background: #ffffff;
+  color: var(--text-muted);
+  cursor: pointer;
+  font-size: 18px;
 }
 
 .brand-logo {
@@ -416,12 +431,13 @@ a {
 .admin-main {
   flex: 1;
   margin-left: var(--sidebar-width);
+  min-width: 0;
   min-height: 100vh;
   display: flex;
   flex-direction: column;
   background-color: var(--bg-main);
   transition: var(--transition);
-  max-width: calc(100vw - var(--sidebar-width));
+  max-width: calc(100% - var(--sidebar-width));
 }
 
 /* Top Header */
@@ -437,12 +453,14 @@ a {
   top: 0;
   z-index: 90;
   box-shadow: 0 2px 12px rgba(15, 23, 42, 0.04);
+  min-width: 0;
 }
 
 .header-left {
   display: flex;
   align-items: center;
   gap: 18px;
+  min-width: 0;
 }
 
 .mobile-menu-btn {
@@ -478,12 +496,14 @@ a {
   font-weight: 700;
   color: var(--text-main);
   letter-spacing: -0.4px;
+  overflow-wrap: anywhere;
 }
 
 .header-right {
   display: flex;
   align-items: center;
   gap: 14px;
+  flex-shrink: 0;
 }
 
 .header-search {
@@ -564,6 +584,7 @@ a {
   max-width: 1600px;
   width: 100%;
   margin: 0 auto;
+  min-width: 0;
 }
 
 /* Page Heading & Action Toolbar */
@@ -584,6 +605,7 @@ a {
   opacity: 1;
   visibility: visible;
   letter-spacing: -0.5px;
+  overflow-wrap: anywhere;
 }
 
 .page-toolbar-info p {
@@ -597,6 +619,7 @@ a {
   align-items: center;
   gap: 12px;
   flex-wrap: wrap;
+  min-width: 0;
 }
 
 /* Primary & Secondary Buttons */
@@ -614,6 +637,7 @@ a {
   transition: var(--transition);
   text-decoration: none;
   white-space: nowrap;
+  max-width: 100%;
 }
 
 .btn:disabled {
@@ -847,12 +871,14 @@ a {
   background-color: #f9fafb;
   border-bottom: 1px solid var(--border-color);
   flex-wrap: wrap;
+  min-width: 0;
 }
 
 .search-input-wrapper {
   position: relative;
   flex: 1;
   min-width: 240px;
+  max-width: 100%;
 }
 
 .search-input-wrapper input {
@@ -895,6 +921,7 @@ a {
   min-width: 150px;
   cursor: pointer;
   transition: var(--transition);
+  max-width: 100%;
 }
 
 .filter-select:focus {
@@ -911,12 +938,14 @@ a {
 /* Tables */
 .table-responsive {
   width: 100%;
+  max-width: 100%;
   overflow-x: auto;
   -webkit-overflow-scrolling: touch;
 }
 
 .data-table {
-  width: 100%;
+  width: max-content;
+  min-width: 700px;
   border-collapse: separate;
   border-spacing: 0;
   text-align: left;
@@ -1003,6 +1032,7 @@ a {
   display: flex;
   align-items: center;
   gap: 8px;
+  flex-wrap: wrap;
 }
 
 .action-btn {
@@ -1156,6 +1186,7 @@ textarea.form-control {
   gap: 12px;
   align-items: center;
   margin-bottom: 10px;
+  min-width: 0;
 }
 
 .option-radio-label {
@@ -1548,7 +1579,7 @@ textarea.form-control {
 
 @media (max-width: 768px) {
   .admin-sidebar {
-    width: min(82vw, 280px);
+    width: min(86vw, 320px);
     transform: translateX(-100%);
   }
 
@@ -1564,6 +1595,15 @@ textarea.form-control {
   .admin-main {
     margin-left: 0;
     max-width: 100vw;
+    width: 100%;
+  }
+
+  body.sidebar-open {
+    overflow: hidden;
+  }
+
+  .sidebar-close-btn {
+    display: inline-flex;
   }
 
   .mobile-menu-btn {
@@ -1572,6 +1612,7 @@ textarea.form-control {
 
   .admin-header {
     padding: 0 16px;
+    gap: 12px;
   }
 
   .admin-content {
@@ -1584,6 +1625,10 @@ textarea.form-control {
 
   .header-right {
     gap: 8px;
+  }
+
+  .header-left > div:last-child {
+    min-width: 0;
   }
 
   .metrics-grid {
@@ -1644,7 +1689,8 @@ textarea.form-control {
 
   .page-btn,
   .action-btn {
-    min-width: 34px;
+    min-width: 44px;
+    min-height: 44px;
   }
 }
 
@@ -1661,6 +1707,16 @@ textarea.form-control {
   .page-toolbar-actions a.btn {
     width: 100%;
     justify-content: center;
+  }
+
+  .filter-bar {
+    align-items: stretch;
+  }
+
+  .search-input-wrapper,
+  .filter-select {
+    width: 100%;
+    min-width: 0;
   }
 
   .header-action-btn {
@@ -1680,5 +1736,17 @@ textarea.form-control {
   .data-table td {
     padding-left: 12px;
     padding-right: 12px;
+  }
+
+  .toast-container {
+    right: 16px;
+    bottom: 16px;
+    left: 16px;
+    max-width: none;
+  }
+
+  .toast {
+    min-width: 0;
+    width: 100%;
   }
 }
