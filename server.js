@@ -2278,7 +2278,74 @@ app.post(
 
       const entries =
         questions.map(
-          (question) => {
+          (question, index) => {
+            const rowNumber = index + 2;
+            const requiredTextFields = [
+              "questionText",
+              "hindiQuestionText",
+            ];
+
+            const missingField =
+              requiredTextFields.find(
+                (field) =>
+                  typeof question?.[field] !== "string" ||
+                  !question[field].trim()
+              );
+
+            if (missingField) {
+              const validationError = new Error(
+                `Row ${rowNumber}: ${missingField} is required.`
+              );
+              validationError.statusCode = 400;
+              throw validationError;
+            }
+
+            if (!["A", "B", "C", "D"].includes(question.correctAnswer)) {
+              const validationError = new Error(
+                `Row ${rowNumber}: correctAnswer must be A, B, C or D.`
+              );
+              validationError.statusCode = 400;
+              throw validationError;
+            }
+
+            if (
+              !Array.isArray(question.options) ||
+              question.options.length !== 4
+            ) {
+              const validationError = new Error(
+                `Row ${rowNumber}: exactly four options are required.`
+              );
+              validationError.statusCode = 400;
+              throw validationError;
+            }
+
+            const optionIds = ["A", "B", "C", "D"];
+            const options = optionIds.map((id) => {
+              const option = question.options.find(
+                (item) => item?.id === id
+              );
+
+              if (
+                !option ||
+                typeof option.text !== "string" ||
+                !option.text.trim() ||
+                typeof option.hindiText !== "string" ||
+                !option.hindiText.trim()
+              ) {
+                const validationError = new Error(
+                  `Row ${rowNumber}: option ${id} requires English and Hindi text.`
+                );
+                validationError.statusCode = 400;
+                throw validationError;
+              }
+
+              return {
+                id,
+                text: option.text.trim(),
+                hindiText: option.hindiText.trim(),
+              };
+            });
+
             const requestedId =
               typeof question.id ===
                 "string" &&
@@ -2320,6 +2387,17 @@ app.post(
 
             const payload = {
               ...question,
+              questionText: question.questionText.trim(),
+              hindiQuestionText: question.hindiQuestionText.trim(),
+              options,
+              explanation:
+                typeof question.explanation === "string"
+                  ? question.explanation.trim()
+                  : "",
+              hindiExplanation:
+                typeof question.hindiExplanation === "string"
+                  ? question.hindiExplanation.trim()
+                  : "",
               id: reference.id,
               createdAt: now,
               updatedAt: now,
@@ -4113,6 +4191,151 @@ setupCrud(
 setupCrud(
   "mock-tests",
   "mock_tests"
+);
+
+app.post(
+  "/api/admin/mock-tests/delete-questions",
+  async (req, res) => {
+    try {
+      if (!requireDb(res)) return;
+
+      const examId = String(req.body?.examId || "").trim();
+      const mockTestId = String(req.body?.mockTestId || "").trim();
+      const requestedQuestionIds = Array.isArray(req.body?.questionIds)
+        ? req.body.questionIds.map((id) => String(id).trim()).filter(Boolean)
+        : [];
+
+      if (!validateExamId(examId) || !validateDocumentId(mockTestId)) {
+        return res.status(400).json({
+          success: false,
+          error: "Valid examId and mockTestId are required.",
+        });
+      }
+
+      const mockReference = db
+        .collection("exams")
+        .doc(examId)
+        .collection("mock_tests")
+        .doc(mockTestId);
+      const mockSnapshot = await mockReference.get();
+
+      if (!mockSnapshot.exists) {
+        return res.status(404).json({
+          success: false,
+          error: "Selected mock test was not found.",
+        });
+      }
+
+      const mockData = mockSnapshot.data() || {};
+      const questionField = Array.isArray(mockData.questionIds)
+        ? "questionIds"
+        : Array.isArray(mockData.question_ids)
+          ? "question_ids"
+          : "questionIds";
+      const currentQuestionIds = Array.isArray(mockData[questionField])
+        ? mockData[questionField].map(String)
+        : [];
+      const selectedQuestionIds = new Set(currentQuestionIds);
+
+      if (!selectedQuestionIds.size) {
+        return res.json({
+          success: true,
+          mockTestId,
+          deletedQuestions: 0,
+          preservedQuestions: 0,
+          remainingQuestionIds: currentQuestionIds,
+        });
+      }
+
+      const allMockReferences = [];
+      const examsSnapshot = await db.collection("exams").get();
+      for (const exam of examsSnapshot.docs) {
+        const mockTestsSnapshot = await exam.ref.collection("mock_tests").get();
+        mockTestsSnapshot.docs.forEach((mock) => {
+          allMockReferences.push({
+            reference: mock.ref,
+            examId: exam.id,
+            mockTestId: mock.id,
+            data: mock.data() || {},
+          });
+        });
+      }
+
+      const survivingMockReferences = new Set();
+      allMockReferences.forEach(({ examId: referenceExamId, mockTestId: referenceMockId, data }) => {
+        if (referenceExamId === examId && referenceMockId === mockTestId) return;
+        const ids = Array.isArray(data.questionIds)
+          ? data.questionIds
+          : Array.isArray(data.question_ids)
+            ? data.question_ids
+            : [];
+        ids.map(String).forEach((id) => {
+          if (selectedQuestionIds.has(id)) survivingMockReferences.add(id);
+        });
+      });
+
+      const questionReferences = [...selectedQuestionIds].map((id) =>
+        db.collection("questions").doc(id)
+      );
+      const questionSnapshots = await Promise.all(
+        questionReferences.map((reference) => reference.get())
+      );
+      const questionReferencesToDelete = [];
+      let preservedQuestions = 0;
+
+      questionSnapshots.forEach((snapshot, index) => {
+        if (!snapshot.exists) return;
+        const question = snapshot.data() || {};
+        const hasNonMockReference = Boolean(
+          question.pyqId ||
+          question.subjectId ||
+          question.topicId ||
+          question.testSeriesId
+        );
+
+        if (survivingMockReferences.has(snapshot.id) || hasNonMockReference) {
+          preservedQuestions++;
+          return;
+        }
+
+        questionReferencesToDelete.push(questionReferences[index]);
+      });
+
+      const remainingQuestionIds = currentQuestionIds.filter(
+        (id) => !selectedQuestionIds.has(id)
+      );
+      const questionIdUpdates = {
+        [questionField]: remainingQuestionIds,
+      };
+      if (Array.isArray(mockData.questionIds)) {
+        questionIdUpdates.questionIds = remainingQuestionIds;
+      }
+      if (Array.isArray(mockData.question_ids)) {
+        questionIdUpdates.question_ids = remainingQuestionIds;
+      }
+      if (Array.isArray(mockData.questionIDs)) {
+        questionIdUpdates.questionIDs = remainingQuestionIds;
+      }
+      const batch = db.batch();
+      batch.update(mockReference, questionIdUpdates);
+      questionReferencesToDelete.forEach((reference) => batch.delete(reference));
+      await batch.commit();
+
+      return res.json({
+        success: true,
+        mockTestId,
+        deletedQuestions: questionReferencesToDelete.length,
+        preservedQuestions,
+        remainingQuestionIds,
+      });
+    } catch (error) {
+      console.error("[Admin DELETE mock questions] Failed:", error);
+      return res.status(error?.statusCode || 500).json({
+        success: false,
+        error: error?.message || "Failed to delete mock test questions.",
+      });
+    }
+  }
 );
 
 app.get(

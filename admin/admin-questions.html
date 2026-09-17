@@ -1643,8 +1643,7 @@
 
                     <div class="q-csv-help">
 
-                        CSV destination columns are NOT required.
-                        Destination is selected above.
+                        CSV destination columns are NOT required. Destination is selected above.
 
                         <br><br>
 
@@ -1652,27 +1651,13 @@
 
                         <br>
 
-                        <strong>
-                            questionText,
-                            optionA,
-                            optionB,
-                            optionC,
-                            optionD,
-                            correctAnswer
-                        </strong>
+                        <strong>questionText, hindiQuestionText, optionA, hindiOptionA, optionB, hindiOptionB, optionC, hindiOptionC, optionD, hindiOptionD, correctAnswer</strong>
 
                         <br><br>
 
                         Optional:
 
-                        <strong>
-                            hindiQuestionText,
-                            explanation,
-                            hindiExplanation,
-                            difficulty,
-                            marks,
-                            negativeMarks
-                        </strong>
+                        <strong>explanation, hindiExplanation</strong>
 
                     </div>
 
@@ -1844,7 +1829,8 @@ import {
     bulkImportQuestions,
     getFirestoreMockTests,
     saveMockTest,
-    getFirestoreTestSeries
+    getFirestoreTestSeries,
+    deleteMockTestQuestions
 } from './admin-db.js';
 
 
@@ -1958,14 +1944,17 @@ async function loadBaseData() {
     const [
         exams,
         subjects,
-        topics
+        topics,
+        mockTests
     ] = await Promise.all([
 
         getFirestoreExams(),
 
         getFirestoreSubjects(),
 
-        getFirestoreTopics()
+        getFirestoreTopics(),
+
+        getFirestoreMockTests()
 
     ]);
 
@@ -1985,6 +1974,11 @@ async function loadBaseData() {
     allTopics =
         Array.isArray(topics)
             ? topics
+            : [];
+
+    examMockTests =
+        Array.isArray(mockTests)
+            ? mockTests
             : [];
 
 
@@ -2566,15 +2560,20 @@ function applyFilters() {
             groupText.includes(search) ||
             group.questions.some(question => matchingQuestions.includes(question));
 
-        const matchesGroupScope = group.questions.some(question =>
-            (!examId || String(question.examId) === String(examId)) &&
-            (!subjectId || String(question.subjectId) === String(subjectId)) &&
-            (!difficulty || String(question.difficulty).toLowerCase() === String(difficulty).toLowerCase()) &&
-            (!type || getQuestionTypeKey(question) === type) &&
-            (!stage || getQuestionStage(question) === stage)
-        );
+        const matchesGroupScope = group.questions.length
+            ? group.questions.some(question =>
+                (!examId || String(question.examId) === String(examId)) &&
+                (!subjectId || String(question.subjectId) === String(subjectId)) &&
+                (!difficulty || String(question.difficulty).toLowerCase() === String(difficulty).toLowerCase()) &&
+                (!type || getQuestionTypeKey(question) === type) &&
+                (!stage || getQuestionStage(question) === stage)
+            )
+            : !subjectId && !difficulty && (!type || type === 'mocktest') &&
+                (!examId || String(group.examId) === String(examId)) &&
+                (!stage || String(group.stageName || '') === String(stage));
 
         return matchesGroupScope && matchesSearch && (
+            group.questions.length === 0 ||
             group.questions.some(question => matchingQuestions.includes(question)) ||
             Boolean(search && groupText.includes(search))
         );
@@ -2632,6 +2631,7 @@ function buildQuestionGroups(questions) {
     questions.forEach(question => {
         const type = getQuestionTypeKey(question);
         const key = getQuestionGroupKey(question);
+        const examId = String(question.examId || '').trim();
         const existing = groups.get(key);
 
         if (existing) {
@@ -2666,9 +2666,43 @@ function buildQuestionGroups(questions) {
             typeLabel: getQuestionType(question),
             title,
             examName,
+            examId,
+            mockTestId: type === 'mocktest'
+                ? String(question.mockTestId || question.mockId || '').trim()
+                : '',
             stageName,
             scope,
             questions: [question]
+        });
+    });
+
+    (examMockTests || []).forEach(mock => {
+        if (mock.testSeriesId) return;
+
+        const mockId = String(mock.id || '').trim();
+        const examId = String(mock.examId || '').trim();
+        if (!mockId || groups.has(`mocktest:${mockId}`)) return;
+
+        const stageName = String(
+            mock.stageName ||
+            mock.stage ||
+            mock.tier ||
+            mock.stageId ||
+            mock.tierId ||
+            ''
+        ).trim();
+
+        groups.set(`mocktest:${mockId}`, {
+            key: `mocktest:${mockId}`,
+            type: 'mocktest',
+            typeLabel: 'Mock Test',
+            title: mock.name || mock.title || mock.testName || mockId,
+            examName: mock.examName || findExamName(examId),
+            examId,
+            mockTestId: mockId,
+            stageName,
+            scope: stageName,
+            questions: []
         });
     });
 
@@ -3056,10 +3090,10 @@ async function saveQuestionGroupEdits() {
                 questionText: card.querySelector('.group-edit-qtext')?.value.trim() || '',
                 hindiQuestionText: card.querySelector('.group-edit-hitext')?.value.trim() || '',
                 options: [
-                    { id: 'A', text: card.querySelector('.group-edit-opta')?.value.trim() || '' },
-                    { id: 'B', text: card.querySelector('.group-edit-optb')?.value.trim() || '' },
-                    { id: 'C', text: card.querySelector('.group-edit-optc')?.value.trim() || '' },
-                    { id: 'D', text: card.querySelector('.group-edit-optd')?.value.trim() || '' }
+                    { id: 'A', text: card.querySelector('.group-edit-opta')?.value.trim() || '', hindiText: originalQuestion.options?.find(option => option?.id === 'A')?.hindiText || '' },
+                    { id: 'B', text: card.querySelector('.group-edit-optb')?.value.trim() || '', hindiText: originalQuestion.options?.find(option => option?.id === 'B')?.hindiText || '' },
+                    { id: 'C', text: card.querySelector('.group-edit-optc')?.value.trim() || '', hindiText: originalQuestion.options?.find(option => option?.id === 'C')?.hindiText || '' },
+                    { id: 'D', text: card.querySelector('.group-edit-optd')?.value.trim() || '', hindiText: originalQuestion.options?.find(option => option?.id === 'D')?.hindiText || '' }
                 ],
                 correctAnswer: card.querySelector('.group-edit-correct')?.value || 'A',
                 difficulty: card.querySelector('.group-edit-diff')?.value || 'medium',
@@ -3094,28 +3128,41 @@ async function deleteQuestionGroup(groupKey) {
     const group = questionGroups.find(item => item.key === groupKey);
     if (!group) return;
 
-    const confirmed = await showConfirmDialog(`Delete all ${group.questions.length} questions in this group permanently?`);
-    if (!confirmed) return;
+    const firstQuestion = group.questions[0];
+    const mockTestId = group.mockTestId || firstQuestion?.mockTestId || firstQuestion?.mockId;
+    const examId = group.examId || firstQuestion?.examId;
+    if (group.type !== 'mocktest' || !examId || !mockTestId) {
+        showToast('Only a selected Mock Test question group can be deleted.', 'error');
+        return;
+    }
 
-    try {
-        for (const question of group.questions) {
-            await deleteFirestoreQuestion(question.id);
+    showConfirmDialog({
+        title: 'Delete Mock Test Questions',
+        message: `Delete ${group.questions.length} questions from this Mock Test? The Mock Test itself will be preserved.`,
+        confirmText: 'Delete Questions',
+        isDanger: true,
+        onConfirm: async () => {
             try {
-                await removeQuestionFromMapping(question);
-            } catch (mapErr) {
-                console.error('Mapping cleanup warning:', mapErr);
+                const result = await deleteMockTestQuestions(
+                    examId,
+                    mockTestId,
+                    group.questions.map(question => question.id).filter(Boolean)
+                );
+
+                await loadQuestions();
+                updateStats();
+                populateQuestionStageFilter();
+                applyFilters();
+                showToast(
+                    `${result?.deletedQuestions || 0} questions deleted. Mock Test preserved.`,
+                    'success'
+                );
+            } catch (error) {
+                console.error('Failed to delete question group:', error);
+                showToast(error.message || 'Failed to delete question group.', 'error');
             }
         }
-
-        await loadQuestions();
-        updateStats();
-        populateQuestionStageFilter();
-        applyFilters();
-        showToast('Question group deleted successfully.', 'success');
-    } catch (error) {
-        console.error('Failed to delete question group:', error);
-        showToast(error.message || 'Failed to delete question group.', 'error');
-    }
+    });
 }
 
 let editingQuestion = null;
@@ -3167,10 +3214,10 @@ async function saveEditedQuestion(event) {
         id: editingQuestion.id,
         questionText: $('edit-question-text').value.trim(),
         options: [
-            { id: 'A', text: $('edit-option-a').value.trim() },
-            { id: 'B', text: $('edit-option-b').value.trim() },
-            { id: 'C', text: $('edit-option-c').value.trim() },
-            { id: 'D', text: $('edit-option-d').value.trim() }
+            { id: 'A', text: $('edit-option-a').value.trim(), hindiText: editingQuestion.options?.find(option => option?.id === 'A')?.hindiText || '' },
+            { id: 'B', text: $('edit-option-b').value.trim(), hindiText: editingQuestion.options?.find(option => option?.id === 'B')?.hindiText || '' },
+            { id: 'C', text: $('edit-option-c').value.trim(), hindiText: editingQuestion.options?.find(option => option?.id === 'C')?.hindiText || '' },
+            { id: 'D', text: $('edit-option-d').value.trim(), hindiText: editingQuestion.options?.find(option => option?.id === 'D')?.hindiText || '' }
         ],
         correctAnswer: $('edit-correct-answer').value,
         hindiQuestionText: $('edit-hindi-question').value.trim(),
@@ -4797,173 +4844,131 @@ function handleCSVFile(event) {
 function parseCSV(text) {
 
     const rows = [];
-
     let row = [];
-
     let cell = '';
-
     let insideQuotes = false;
+    let csvRowNumber = 1;
 
+    for (let i = 0; i < text.length; i++) {
+        const char = text[i];
+        const next = text[i + 1];
 
-    for (
-        let i = 0;
-        i < text.length;
-        i++
-    ) {
-
-        const char =
-            text[i];
-
-
-        const next =
-            text[i + 1];
-
-
-        if (
-            char === '"' &&
-            insideQuotes &&
-            next === '"'
-        ) {
-
+        if (char === '"' && insideQuotes && next === '"') {
             cell += '"';
-
             i++;
-
             continue;
-
         }
 
-
-        if (
-            char === '"'
-        ) {
-
-            insideQuotes =
-                !insideQuotes;
-
+        if (char === '"') {
+            insideQuotes = !insideQuotes;
             continue;
-
         }
 
-
-        if (
-            char === ',' &&
-            !insideQuotes
-        ) {
-
+        if (char === ',' && !insideQuotes) {
             row.push(cell);
+            cell = '';
+            continue;
+        }
 
+        if ((char === '\n' || char === '\r') && !insideQuotes) {
+            if (char === '\r' && next === '\n') i++;
+            row.push(cell);
             cell = '';
 
-            continue;
-
-        }
-
-
-        if (
-            (
-                char === '\n' ||
-                char === '\r'
-            ) &&
-            !insideQuotes
-        ) {
-
-            if (
-                char === '\r' &&
-                next === '\n'
-            ) {
-
-                i++;
-
-            }
-
-
-            row.push(cell);
-
-            cell = '';
-
-
-            if (
-                row.some(
-                    value =>
-                        String(value)
-                            .trim() !== ''
-                )
-            ) {
-
+            if (!row.some(value => String(value).trim() !== '')) {
+                if (!rows.length) {
+                    throw new Error(`Row ${csvRowNumber}: header row is required.`);
+                }
+            } else {
                 rows.push(row);
-
             }
-
 
             row = [];
-
+            csvRowNumber++;
             continue;
-
         }
 
-
         cell += char;
-
     }
 
+    if (insideQuotes) {
+        throw new Error(
+            `Row ${csvRowNumber}: malformed CSV, unclosed quoted field.`
+        );
+    }
 
-    row.push(cell);
+    if (cell !== '' || row.length) {
+        row.push(cell);
+        if (row.some(value => String(value).trim() !== '')) {
+            rows.push(row);
+        } else if (text.trim() !== '') {
+            rows.push(row);
+        }
+    }
 
+    if (!rows.length) return [];
+
+    const expectedHeaders = [
+        'questionText',
+        'hindiQuestionText',
+        'optionA',
+        'hindiOptionA',
+        'optionB',
+        'hindiOptionB',
+        'optionC',
+        'hindiOptionC',
+        'optionD',
+        'hindiOptionD',
+        'correctAnswer',
+        'explanation',
+        'hindiExplanation'
+    ];
+
+    const headers = rows[0].map((header, index) => {
+        const normalized = String(header)
+            .replace(index === 0 ? /^\uFEFF/ : /^/, '')
+            .trim();
+
+        if (!normalized) {
+            throw new Error(`Row 1: header ${index + 1} is empty.`);
+        }
+
+        return normalized;
+    });
+
+    const duplicateHeader = headers.find(
+        (header, index) => headers.indexOf(header) !== index
+    );
+
+    if (duplicateHeader) {
+        throw new Error(`Row 1: duplicate header ${duplicateHeader}.`);
+    }
 
     if (
-        row.some(
-            value =>
-                String(value)
-                    .trim() !== ''
-        )
+        headers.length !== expectedHeaders.length ||
+        headers.some((header, index) => header !== expectedHeaders[index])
     ) {
-
-        rows.push(row);
-
-    }
-
-
-    if (!rows.length) {
-
-        return [];
-
-    }
-
-
-    const headers =
-        rows[0].map(
-            header =>
-                String(header)
-                    .replace(/^\uFEFF/, '')
-                    .trim()
-                    .toLowerCase()
+        throw new Error(
+            `Row 1: headers must be exactly ${expectedHeaders.join(',')}.`
         );
+    }
 
+    return rows.slice(1).map((values, index) => {
+        const rowNumber = index + 2;
 
-    return rows
-        .slice(1)
-        .map(values => {
-
-            const object = {};
-
-
-            headers.forEach(
-                (header, index) => {
-
-                    object[header] =
-                        String(
-                            values[index] ??
-                            ''
-                        ).trim();
-
-                }
+        if (values.length !== expectedHeaders.length) {
+            throw new Error(
+                `Row ${rowNumber}: expected ${expectedHeaders.length} columns, found ${values.length}.`
             );
+        }
 
-
-            return object;
-
-        });
+        return Object.fromEntries(
+            headers.map((header, valueIndex) => [
+                header,
+                String(values[valueIndex]).trim()
+            ])
+        );
+    });
 
 }
 
@@ -4978,6 +4983,8 @@ function formatCSVQuestions(rows) {
 
     const errors = [];
 
+    const seenRows = new Set();
+
 
     rows.forEach(
         (row, index) => {
@@ -4986,88 +4993,41 @@ function formatCSVQuestions(rows) {
                 index + 2;
 
 
-            const questionText =
-                row.questiontext ||
-                row.question ||
-                row.questionen ||
-                '';
+            const questionText = row.questionText || '';
 
 
-            const hindiQuestionText =
-                row.hindiquestiontext ||
-                row.hindiquestion ||
-                row.questionhi ||
-                '';
+            const hindiQuestionText = row.hindiQuestionText || '';
 
 
-            const optionA =
-                row.optiona ||
-                row.opta ||
-                '';
+            const optionA = row.optionA || '';
+
+            const hindiOptionA = row.hindiOptionA || '';
 
 
-            const optionB =
-                row.optionb ||
-                row.optb ||
-                '';
+            const optionB = row.optionB || '';
+
+            const hindiOptionB = row.hindiOptionB || '';
 
 
-            const optionC =
-                row.optionc ||
-                row.optc ||
-                '';
+            const optionC = row.optionC || '';
+
+            const hindiOptionC = row.hindiOptionC || '';
 
 
-            const optionD =
-                row.optiond ||
-                row.optd ||
-                '';
+            const optionD = row.optionD || '';
+
+            const hindiOptionD = row.hindiOptionD || '';
 
 
             const correctAnswer =
-                String(
-                    row.correctanswer ||
-                    row.correct ||
-                    ''
-                )
-                .trim()
-                .toUpperCase();
+                String(row.correctAnswer || '')
+                .trim();
 
 
-            const explanation =
-                row.explanation ||
-                row.explanationen ||
-                '';
+            const explanation = row.explanation || '';
 
 
-            const hindiExplanation =
-                row.hindiexplanation ||
-                row.explanationhi ||
-                '';
-
-
-            const difficulty =
-                String(
-                    row.difficulty ||
-                    'medium'
-                )
-                .trim()
-                .toLowerCase();
-
-
-            const marks =
-                Number(
-                    row.marks ||
-                    1
-                );
-
-
-            const negativeMarks =
-                Number(
-                    row.negativemarks ||
-                    row.negative ||
-                    0
-                );
+            const hindiExplanation = row.hindiExplanation || '';
 
 
             if (!questionText) {
@@ -5080,20 +5040,26 @@ function formatCSVQuestions(rows) {
 
             }
 
-
-            if (
-                !optionA ||
-                !optionB ||
-                !optionC ||
-                !optionD
-            ) {
-
-                errors.push(
-                    `Row ${rowNumber}: all 4 options are required`
-                );
-
+            if (!hindiQuestionText) {
+                errors.push(`Row ${rowNumber}: hindiQuestionText missing`);
                 return;
+            }
 
+
+            const missingOptions = [
+                ['optionA', optionA],
+                ['hindiOptionA', hindiOptionA],
+                ['optionB', optionB],
+                ['hindiOptionB', hindiOptionB],
+                ['optionC', optionC],
+                ['hindiOptionC', hindiOptionC],
+                ['optionD', optionD],
+                ['hindiOptionD', hindiOptionD]
+            ].filter(([, value]) => !value).map(([name]) => name);
+
+            if (missingOptions.length) {
+                errors.push(`Row ${rowNumber}: ${missingOptions.join(', ')} missing`);
+                return;
             }
 
 
@@ -5114,22 +5080,28 @@ function formatCSVQuestions(rows) {
 
             }
 
+            const duplicateKey = JSON.stringify([
+                questionText,
+                hindiQuestionText,
+                optionA,
+                hindiOptionA,
+                optionB,
+                hindiOptionB,
+                optionC,
+                hindiOptionC,
+                optionD,
+                hindiOptionD,
+                correctAnswer,
+                explanation,
+                hindiExplanation
+            ]);
 
-            if (
-                ![
-                    'easy',
-                    'medium',
-                    'hard'
-                ].includes(difficulty)
-            ) {
-
-                errors.push(
-                    `Row ${rowNumber}: difficulty must be easy, medium or hard`
-                );
-
+            if (seenRows.has(duplicateKey)) {
+                errors.push(`Row ${rowNumber}: duplicate question row`);
                 return;
-
             }
+
+            seenRows.add(duplicateKey);
 
 
             questions.push({
@@ -5142,22 +5114,26 @@ function formatCSVQuestions(rows) {
 
                     {
                         id: 'A',
-                        text: optionA
+                        text: optionA,
+                        hindiText: hindiOptionA
                     },
 
                     {
                         id: 'B',
-                        text: optionB
+                        text: optionB,
+                        hindiText: hindiOptionB
                     },
 
                     {
                         id: 'C',
-                        text: optionC
+                        text: optionC,
+                        hindiText: hindiOptionC
                     },
 
                     {
                         id: 'D',
-                        text: optionD
+                        text: optionD,
+                        hindiText: hindiOptionD
                     }
 
                 ],
@@ -5166,21 +5142,7 @@ function formatCSVQuestions(rows) {
 
                 explanation,
 
-                hindiExplanation,
-
-                difficulty,
-
-                marks:
-                    Number.isFinite(marks)
-                        ? marks
-                        : 1,
-
-                negativeMarks:
-                    Number.isFinite(
-                        negativeMarks
-                    )
-                        ? negativeMarks
-                        : 0
+                hindiExplanation
 
             });
 
@@ -5497,36 +5459,25 @@ function renderPreview() {
                     Hindi Question
                 </th>
 
-                <th>
-                    Option A
-                </th>
-
-                <th>
-                    Option B
-                </th>
-
-                <th>
-                    Option C
-                </th>
-
-                <th>
-                    Option D
-                </th>
+                <th>Option A English</th>
+                <th>Option A Hindi</th>
+                <th>Option B English</th>
+                <th>Option B Hindi</th>
+                <th>Option C English</th>
+                <th>Option C Hindi</th>
+                <th>Option D English</th>
+                <th>Option D Hindi</th>
 
                 <th>
                     Correct
                 </th>
 
                 <th>
-                    Difficulty
+                    English Explanation
                 </th>
 
                 <th>
-                    Marks
-                </th>
-
-                <th>
-                    Negative
+                    Hindi Explanation
                 </th>
 
             </tr>
@@ -5567,12 +5518,16 @@ function renderPreview() {
                                 )}
                             </td>
 
+                            <td>${escapeHtml(q.options[0]?.hindiText || '')}</td>
+
                             <td>
                                 ${escapeHtml(
                                     q.options[1]?.text ||
                                     ''
                                 )}
                             </td>
+
+                            <td>${escapeHtml(q.options[1]?.hindiText || '')}</td>
 
                             <td>
                                 ${escapeHtml(
@@ -5581,12 +5536,16 @@ function renderPreview() {
                                 )}
                             </td>
 
+                            <td>${escapeHtml(q.options[2]?.hindiText || '')}</td>
+
                             <td>
                                 ${escapeHtml(
                                     q.options[3]?.text ||
                                     ''
                                 )}
                             </td>
+
+                            <td>${escapeHtml(q.options[3]?.hindiText || '')}</td>
 
                             <td>
                                 ${escapeHtml(
@@ -5596,21 +5555,13 @@ function renderPreview() {
 
                             <td>
                                 ${escapeHtml(
-                                    q.difficulty
+                                    q.explanation
                                 )}
                             </td>
 
                             <td>
                                 ${escapeHtml(
-                                    String(q.marks)
-                                )}
-                            </td>
-
-                            <td>
-                                ${escapeHtml(
-                                    String(
-                                        q.negativeMarks
-                                    )
+                                    q.hindiExplanation
                                 )}
                             </td>
 
@@ -5934,15 +5885,6 @@ async function importQuestions() {
                 hindiExplanation:
                     q.hindiExplanation,
 
-                difficulty:
-                    q.difficulty,
-
-                marks:
-                    q.marks,
-
-                negativeMarks:
-                    q.negativeMarks,
-
                 status:
                     'active'
 
@@ -6226,23 +6168,25 @@ function downloadCSVTemplate() {
 
         'optionA',
 
+        'hindiOptionA',
+
         'optionB',
+
+        'hindiOptionB',
 
         'optionC',
 
+        'hindiOptionC',
+
         'optionD',
+
+        'hindiOptionD',
 
         'correctAnswer',
 
         'explanation',
 
-        'hindiExplanation',
-
-        'difficulty',
-
-        'marks',
-
-        'negativeMarks'
+        'hindiExplanation'
 
     ];
 
@@ -6255,23 +6199,25 @@ function downloadCSVTemplate() {
 
         'Mumbai',
 
+        'मुंबई',
+
         'New Delhi',
+
+        'नई दिल्ली',
 
         'Kolkata',
 
+        'कोलकाता',
+
         'Chennai',
+
+        'चेन्नई',
 
         'B',
 
         'New Delhi is the capital of India.',
 
-        'नई दिल्ली भारत की राजधानी है।',
-
-        'easy',
-
-        '1',
-
-        '0.25'
+        'नई दिल्ली भारत की राजधानी है।'
 
     ];
 
@@ -6311,92 +6257,57 @@ function exportQuestions() {
     const rows =
         (filteredQuestions || []).map(
             q => ({
-
-                ID:
-                    q.id || '',
-
-                Type:
-                    getQuestionType(q),
-
-                Exam:
-                    q.examName ||
-                    findExamName(
-                        q.examId
-                    ),
-
-                Subject:
-                    q.subjectName ||
-                    findSubjectName(
-                        q.subjectId
-                    ),
-
-                Topic:
-                    q.topicName ||
-                    '',
-
-                MockTest:
-                    q.mockTestName ||
-                    '',
-
-                TestSeries:
-                    q.testSeriesName ||
-                    '',
-
-                PYQYear:
-                    q.pyqYear ||
-                    '',
-
-                PYQShift:
-                    q.pyqShift ||
-                    '',
-
-                Question:
+                questionText:
                     q.questionText ||
                     '',
 
-                HindiQuestion:
+                hindiQuestionText:
                     q.hindiQuestionText ||
                     '',
 
-                OptionA:
+                optionA:
                     q.options?.[0]?.text ||
                     '',
 
-                OptionB:
+                hindiOptionA:
+                    q.options?.[0]?.hindiText ||
+                    '',
+
+                optionB:
                     q.options?.[1]?.text ||
                     '',
 
-                OptionC:
+                hindiOptionB:
+                    q.options?.[1]?.hindiText ||
+                    '',
+
+                optionC:
                     q.options?.[2]?.text ||
                     '',
 
-                OptionD:
+                hindiOptionC:
+                    q.options?.[2]?.hindiText ||
+                    '',
+
+                optionD:
                     q.options?.[3]?.text ||
                     '',
 
-                CorrectAnswer:
+                hindiOptionD:
+                    q.options?.[3]?.hindiText ||
+                    '',
+
+                correctAnswer:
                     q.correctAnswer ||
                     '',
 
-                Explanation:
+                explanation:
                     q.explanation ||
                     '',
 
-                HindiExplanation:
+                hindiExplanation:
                     q.hindiExplanation ||
-                    '',
-
-                Difficulty:
-                    q.difficulty ||
-                    '',
-
-                Marks:
-                    q.marks ??
-                    1,
-
-                NegativeMarks:
-                    q.negativeMarks ??
-                    0
+                    ''
 
             })
         );

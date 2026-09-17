@@ -1467,6 +1467,24 @@ export async function deleteFirestoreMockTest(
 
 }
 
+export async function deleteMockTestQuestions(
+  examId,
+  mockTestId,
+  questionIds
+) {
+  return await apiFetch(
+    '/api/admin/mock-tests/delete-questions',
+    {
+      method: 'POST',
+      body: JSON.stringify({
+        examId,
+        mockTestId,
+        questionIds
+      })
+    }
+  );
+}
+
 
 // =============================================================
 // LIVE TESTS CRUD
