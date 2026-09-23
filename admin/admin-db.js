@@ -3,6 +3,7 @@
 // =============================================================
 
 export { generateIdFromName } from './id-utils.js';
+let adminSessionReady = null;
 //
 // Admin API:
 // http://localhost:3000
@@ -35,6 +36,35 @@ const API_BASE_URL = (
   configuredApiBaseUrl || browserApiBaseUrl
 ).replace(/\/+$/, '');
 
+async function ensureAdminSession(forceRefresh = false) {
+  if (forceRefresh || !adminSessionReady) {
+    adminSessionReady = fetch(`${API_BASE_URL}/api/admin/auth/session`, {
+      credentials: 'include',
+      cache: 'no-store'
+    }).then(async response => {
+      if (response.status === 401) {
+        throw new Error('Admin PIN authentication is required. Please sign in again.');
+      }
+      if (response.status === 403) {
+        throw new Error('Admin access is not authorized.');
+      }
+      if (!response.ok) {
+        throw new Error('Admin session verification failed.');
+      }
+      return true;
+    }).catch(error => {
+      adminSessionReady = null;
+      if (typeof window !== 'undefined' && !window.location.pathname.endsWith('/admin-login.html')) {
+        const returnUrl = `${window.location.pathname}${window.location.search}`;
+        window.location.replace(`./admin-login.html?returnUrl=${encodeURIComponent(returnUrl)}`);
+      }
+      throw error;
+    });
+  }
+
+  return adminSessionReady;
+}
+
 const dataChangeChannel = typeof BroadcastChannel === 'function'
   ? new BroadcastChannel('rankhub-admin-data-change')
   : null;
@@ -63,9 +93,18 @@ async function apiFetch(endpoint, options = {}) {
     ...fetchOptions
   } = options;
 
-  const headers = {
-    'Content-Type': 'application/json',
-    ...(fetchOptions.headers || {})
+  const request = async (forceRefresh = false) => {
+    await ensureAdminSession(forceRefresh);
+    const headers = {
+      'Content-Type': 'application/json',
+      ...(fetchOptions.headers || {})
+    };
+
+    return fetch(fullUrl, {
+      credentials: 'include',
+      ...fetchOptions,
+      headers
+    });
   };
 
   const fullUrl =
@@ -78,14 +117,17 @@ async function apiFetch(endpoint, options = {}) {
   let response;
 
   try {
+    response = await request();
 
-    response = await fetch(fullUrl, {
-      credentials: 'include',
-      ...fetchOptions,
-      headers
-    });
+    if (response.status === 401) {
+      response = await request(true);
+    }
 
   } catch (error) {
+
+    if (error?.message?.includes('Admin PIN authentication is required')) {
+      throw error;
+    }
 
     console.error(
       'RankHub Admin API connection error:',
@@ -341,10 +383,49 @@ export async function getFirestoreUsers() {
       e
     );
 
-    return [];
+    throw e;
 
   }
 
+}
+
+export async function updateUserProfile(userId, profile) {
+  return apiFetch(`/api/admin/users/${encodeURIComponent(userId)}/profile`, {
+    method: 'PATCH',
+    body: JSON.stringify(profile)
+  });
+}
+
+export async function updateUserAccountStatus(userId, status) {
+  return apiFetch(`/api/admin/users/${encodeURIComponent(userId)}/status`, {
+    method: 'PATCH',
+    body: JSON.stringify({ status })
+  });
+}
+
+export async function initiateUserPasswordReset(userId) {
+  return apiFetch(`/api/admin/users/${encodeURIComponent(userId)}/password-reset`, {
+    method: 'POST',
+    body: JSON.stringify({ continueUrl: window.location.origin })
+  });
+}
+
+export async function updateUserRole(userId, role) {
+  return apiFetch(`/api/admin/users/${encodeURIComponent(userId)}/role`, {
+    method: 'PATCH',
+    body: JSON.stringify({ role })
+  });
+}
+
+export async function getUserActivity(userId) {
+  return apiFetch(`/api/admin/users/${encodeURIComponent(userId)}/activity`);
+}
+
+export async function sendUserNotification(userId, notification) {
+  return apiFetch(`/api/admin/users/${encodeURIComponent(userId)}/notification`, {
+    method: 'POST',
+    body: JSON.stringify(notification)
+  });
 }
 
 
@@ -2521,7 +2602,7 @@ export async function saveCurrentAffair(
             payload.id
           )}`,
           {
-            method: 'PUT',
+            method: 'POST',
 
             body:
               JSON.stringify(

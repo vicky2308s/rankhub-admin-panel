@@ -2,6 +2,8 @@ import express from "express";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 import fs from "node:fs";
+import crypto from "node:crypto";
+import { promisify } from "node:util";
 import dotenv from "dotenv";
 
 import {
@@ -26,6 +28,7 @@ import {
 } from "./admin/id-utils.js";
 
 dotenv.config();
+dotenv.config({ path: ".env.local" });
 
 const app = express();
 const PORT = Number(process.env.PORT || 3000);
@@ -35,6 +38,12 @@ const projectRoot = path.dirname(
 );
 
 const PROJECT_ID = "rankhub-28aa8";
+const scryptAsync = promisify(crypto.scrypt);
+const ADMIN_SESSION_COOKIE = "rankhub_admin_session";
+const ADMIN_SESSION_TTL_SECONDS = 8 * 60 * 60;
+const PIN_ATTEMPT_LIMIT = 5;
+const PIN_BLOCK_SECONDS = 60;
+const pinAttempts = new Map();
 
 app.disable("x-powered-by");
 
@@ -292,6 +301,250 @@ function requireDb(res) {
 
   return true;
 }
+
+function getCookie(req, name) {
+  const cookies = String(req.headers.cookie || "")
+    .split(";")
+    .map((cookie) => cookie.trim())
+    .filter(Boolean);
+
+  const entry = cookies.find((cookie) => cookie.startsWith(`${name}=`));
+  return entry ? decodeURIComponent(entry.slice(name.length + 1)) : "";
+}
+
+function toBase64Url(value) {
+  return Buffer.from(value).toString("base64url");
+}
+
+function fromBase64Url(value) {
+  return Buffer.from(value, "base64url").toString("utf8");
+}
+
+function signAdminSession(payload) {
+  const secret = process.env.ADMIN_PANEL_SESSION_SECRET?.trim();
+  if (!secret) return "";
+
+  const encodedHeader = toBase64Url(JSON.stringify({ alg: "HS256", typ: "JWT" }));
+  const encodedPayload = toBase64Url(JSON.stringify(payload));
+  const unsignedToken = `${encodedHeader}.${encodedPayload}`;
+  const signature = crypto
+    .createHmac("sha256", secret)
+    .update(unsignedToken)
+    .digest("base64url");
+
+  return `${unsignedToken}.${signature}`;
+}
+
+function verifyAdminSession(token) {
+  const secret = process.env.ADMIN_PANEL_SESSION_SECRET?.trim();
+  if (!secret || !token) return null;
+
+  const parts = token.split(".");
+  if (parts.length !== 3) return null;
+
+  const unsignedToken = `${parts[0]}.${parts[1]}`;
+  const expectedSignature = crypto
+    .createHmac("sha256", secret)
+    .update(unsignedToken)
+    .digest();
+  const receivedSignature = Buffer.from(parts[2], "base64url");
+
+  if (
+    receivedSignature.length !== expectedSignature.length ||
+    !crypto.timingSafeEqual(receivedSignature, expectedSignature)
+  ) {
+    return null;
+  }
+
+  try {
+    const payload = JSON.parse(fromBase64Url(parts[1]));
+    if (payload.sub !== "admin-pin" || !Number.isFinite(payload.exp) || payload.exp <= Math.floor(Date.now() / 1000)) {
+      return null;
+    }
+    return payload;
+  } catch {
+    return null;
+  }
+}
+
+function setAdminSessionCookie(res, token) {
+  const secure = process.env.NODE_ENV === "production" ? "; Secure" : "";
+  res.setHeader(
+    "Set-Cookie",
+    `${ADMIN_SESSION_COOKIE}=${encodeURIComponent(token)}; HttpOnly; SameSite=Lax; Path=/; Max-Age=${ADMIN_SESSION_TTL_SECONDS}${secure}`
+  );
+}
+
+function clearAdminSessionCookie(res) {
+  res.setHeader(
+    "Set-Cookie",
+    `${ADMIN_SESSION_COOKIE}=; HttpOnly; SameSite=Lax; Path=/; Max-Age=0`
+  );
+}
+
+function getPinAttemptKey(req) {
+  return String(req.ip || req.socket?.remoteAddress || "unknown");
+}
+
+function isPinRateLimited(req) {
+  const attempt = pinAttempts.get(getPinAttemptKey(req));
+  if (!attempt) return false;
+  if (attempt.blockedUntil > Date.now()) return true;
+  if (attempt.blockedUntil) pinAttempts.delete(getPinAttemptKey(req));
+  return false;
+}
+
+function recordFailedPinAttempt(req) {
+  const key = getPinAttemptKey(req);
+  const attempt = pinAttempts.get(key) || { count: 0, blockedUntil: 0 };
+  attempt.count += 1;
+  if (attempt.count >= PIN_ATTEMPT_LIMIT) {
+    attempt.blockedUntil = Date.now() + PIN_BLOCK_SECONDS * 1000;
+    attempt.count = 0;
+  }
+  pinAttempts.set(key, attempt);
+}
+
+function clearPinAttempts(req) {
+  pinAttempts.delete(getPinAttemptKey(req));
+}
+
+async function verifyAdminPin(pin) {
+  const configuredHash = process.env.ADMIN_PANEL_PIN_HASH?.trim();
+  if (!configuredHash) return false;
+
+  const parts = configuredHash.split("$");
+  if (parts.length !== 6 || parts[0] !== "scrypt") return false;
+
+  const [, nValue, rValue, pValue, saltValue, hashValue] = parts;
+  const N = Number(nValue);
+  const r = Number(rValue);
+  const p = Number(pValue);
+  const expectedHash = Buffer.from(hashValue, "base64url");
+  if (!Number.isInteger(N) || !Number.isInteger(r) || !Number.isInteger(p) || !expectedHash.length || !saltValue) return false;
+
+  const actualHash = await scryptAsync(pin, Buffer.from(saltValue, "base64url"), expectedHash.length, {
+    N,
+    r,
+    p,
+    maxmem: 128 * N * r + 1024 * 1024,
+  });
+
+  return crypto.timingSafeEqual(Buffer.from(actualHash), expectedHash);
+}
+
+async function requireAdminAuth(req, res) {
+  if (req.adminToken) {
+    return req.adminToken;
+  }
+
+  const session = verifyAdminSession(getCookie(req, ADMIN_SESSION_COOKIE));
+  if (session) {
+    return session;
+  }
+
+  if (!process.env.ADMIN_PANEL_SESSION_SECRET?.trim()) {
+    res.status(503).json({
+      success: false,
+      error: "Admin session authentication is not configured.",
+    });
+    return null;
+  }
+
+  res.status(401).json({
+    success: false,
+    error: "Admin PIN authentication is required.",
+  });
+  return null;
+}
+
+app.use(
+  "/api/admin",
+  async (req, res, next) => {
+    if (req.method === "OPTIONS" || req.path === "/auth/pin" || req.path === "/auth/logout") {
+      return next();
+    }
+
+    const adminToken = await requireAdminAuth(req, res);
+    if (!adminToken) return;
+
+    req.adminToken = adminToken;
+    next();
+  }
+);
+
+app.post(
+  "/api/admin/auth/pin",
+  async (req, res) => {
+    if (!process.env.ADMIN_PANEL_PIN_HASH?.trim() || !process.env.ADMIN_PANEL_SESSION_SECRET?.trim()) {
+      return res.status(503).json({
+        success: false,
+        error: "Admin PIN authentication is not configured.",
+      });
+    }
+
+    if (isPinRateLimited(req)) {
+      return res.status(429).json({
+        success: false,
+        error: "Too many invalid PIN attempts. Try again later.",
+      });
+    }
+
+    const pin = typeof req.body?.pin === "string" ? req.body.pin : "";
+    if (!/^\d{4}$/.test(pin)) {
+      return res.status(400).json({
+        success: false,
+        error: "A 4-digit numeric PIN is required.",
+      });
+    }
+
+    try {
+      const validPin = await verifyAdminPin(pin);
+      if (!validPin) {
+        recordFailedPinAttempt(req);
+        return res.status(401).json({
+          success: false,
+          error: "Invalid admin PIN.",
+        });
+      }
+
+      clearPinAttempts(req);
+      const now = Math.floor(Date.now() / 1000);
+      const sessionToken = signAdminSession({
+        sub: "admin-pin",
+        iat: now,
+        exp: now + ADMIN_SESSION_TTL_SECONDS,
+      });
+
+      setAdminSessionCookie(res, sessionToken);
+      return res.json({
+        success: true,
+        message: "Admin authentication successful.",
+      });
+    } catch (error) {
+      console.error("[Admin PIN] Verification failed:", error);
+      return res.status(500).json({
+        success: false,
+        error: "Unable to verify admin PIN.",
+      });
+    }
+  }
+);
+
+app.post(
+  "/api/admin/auth/logout",
+  (req, res) => {
+    clearAdminSessionCookie(res);
+    return res.json({ success: true, message: "Admin session ended." });
+  }
+);
+
+app.get(
+  "/api/admin/auth/session",
+  (req, res) => {
+    return res.json({ success: true, authenticated: true });
+  }
+);
 
 // ============================================================
 // VERIFICATION HELPERS
@@ -1011,6 +1264,7 @@ function setupCrud(
     `/api/admin/${route}`,
     async (req, res) => {
       try {
+        if (route === "users" && !(await requireAdminAuth(req, res))) return;
         if (!requireDb(res)) return;
 
         const examId =
@@ -1063,6 +1317,7 @@ function setupCrud(
     `/api/admin/${route}`,
     async (req, res) => {
       try {
+        if (route === "users" && !(await requireAdminAuth(req, res))) return;
         if (!requireDb(res)) return;
 
         const body =
@@ -1264,8 +1519,14 @@ function setupCrud(
         // PAYLOAD
         // ====================================================
 
+        const payloadBody = route === "users"
+          ? Object.fromEntries(
+              Object.entries(body).filter(([field]) => field !== "role")
+            )
+          : body;
+
         const payload = {
-          ...body,
+          ...payloadBody,
 
           id,
 
@@ -1418,6 +1679,7 @@ function setupCrud(
     `/api/admin/${route}/:id`,
     async (req, res) => {
       try {
+        if (route === "users" && !(await requireAdminAuth(req, res))) return;
         if (!requireDb(res)) return;
 
         const id =
@@ -4044,6 +4306,346 @@ function isProtectedAdminUser(userId, userRecord) {
   );
 }
 
+function userDisplayName(userData, authUser) {
+  return userData.displayName || userData.name || authUser?.displayName || "Student";
+}
+
+function userRole(userData, authUser) {
+  const claims = authUser?.customClaims || {};
+  return claims.role || (claims.admin ? "admin" : "student");
+}
+
+function authProviderIds(authUser) {
+  return Array.isArray(authUser?.providerData)
+    ? authUser.providerData.map((provider) => provider.providerId).filter(Boolean)
+    : [];
+}
+
+async function getAdminUserRecord(userId) {
+  const firestoreReference = db.collection("users").doc(userId);
+  const firestoreSnapshot = await firestoreReference.get();
+
+  if (!firestoreSnapshot.exists) {
+    const error = new Error("User record not found.");
+    error.statusCode = 404;
+    throw error;
+  }
+
+  const data = firestoreSnapshot.data() || {};
+  let authUser = null;
+
+  if (auth) {
+    try {
+      authUser = await auth.getUser(userId);
+    } catch (error) {
+      if (error?.code !== "auth/user-not-found") throw error;
+    }
+  }
+
+  return {
+    ...data,
+    id: userId,
+    email: data.email || authUser?.email || "",
+    displayName: userDisplayName(data, authUser),
+    photoURL: authUser?.photoURL || null,
+    authProviders: authProviderIds(authUser),
+    passwordResetAvailable: authProviderIds(authUser).includes("password"),
+    role: userRole(data, authUser),
+    disabled: Boolean(authUser?.disabled || data.status === "disabled"),
+    emailVerified: Boolean(authUser?.emailVerified),
+  };
+}
+
+app.get(
+  "/api/admin/users",
+  async (req, res) => {
+    try {
+      if (!requireDb(res)) return;
+      if (!(await requireAdminAuth(req, res))) return;
+
+      const snapshot = await db.collection("users").get();
+      const users = await Promise.all(
+        snapshot.docs.map((document) => getAdminUserRecord(document.id))
+      );
+
+      return res.json(users);
+    } catch (error) {
+      console.error("[Admin GET users] Failed:", error);
+      return res.status(error?.statusCode || 500).json({
+        success: false,
+        error: "Failed to load users.",
+      });
+    }
+  }
+);
+
+app.get(
+  "/api/admin/users/:id/activity",
+  async (req, res) => {
+    try {
+      if (!requireDb(res)) return;
+      if (!(await requireAdminAuth(req, res))) return;
+
+      const userId = String(req.params.id || "").trim();
+      if (!validateDocumentId(userId)) {
+        return res.status(400).json({ success: false, error: "Valid user ID is required." });
+      }
+
+      const [attemptsSnapshot, resultsSnapshot] = await Promise.all([
+        db.collection("users").doc(userId).collection("testAttempts").get(),
+        db.collection("results").where("userId", "==", userId).get(),
+      ]);
+
+      return res.json({
+        attempts: attemptsSnapshot.docs.map((document) => ({ ...document.data(), id: document.id })),
+        results: resultsSnapshot.docs.map((document) => ({ ...document.data(), id: document.id })),
+      });
+    } catch (error) {
+      console.error("[Admin GET user activity] Failed:", error);
+      return res.status(error?.statusCode || 500).json({
+        success: false,
+        error: "Failed to load user activity.",
+      });
+    }
+  }
+);
+
+app.patch(
+  "/api/admin/users/:uid/profile",
+  async (req, res) => {
+    try {
+      if (!requireDb(res)) return;
+      if (!(await requireAdminAuth(req, res))) return;
+
+      const userId = String(req.params.uid || "").trim();
+      if (!validateDocumentId(userId)) {
+        return res.status(400).json({ success: false, error: "Valid user ID is required." });
+      }
+
+      if (!req.body || typeof req.body !== "object" || Array.isArray(req.body)) {
+        return res.status(400).json({ success: false, error: "A JSON profile object is required." });
+      }
+
+      const allowedFields = new Set([
+        "displayName",
+        "fullName",
+        "name",
+        "mobile",
+        "phone",
+        "targetExam",
+        "district",
+        "state",
+        "dateOfBirth",
+        "education",
+        "prepLevel",
+      ]);
+      const suppliedFields = Object.keys(req.body);
+      const unsupportedFields = suppliedFields.filter((field) => !allowedFields.has(field));
+
+      if (unsupportedFields.length > 0) {
+        return res.status(400).json({
+          success: false,
+          error: `Unsupported profile field: ${unsupportedFields[0]}`,
+        });
+      }
+
+      if (suppliedFields.length === 0) {
+        return res.status(400).json({ success: false, error: "At least one profile field is required." });
+      }
+
+      let authUser;
+      try {
+        authUser = await auth.getUser(userId);
+      } catch (error) {
+        if (error?.code === "auth/user-not-found") {
+          return res.status(404).json({ success: false, error: "Firebase user not found." });
+        }
+        throw error;
+      }
+
+      const existingSnapshot = await db.collection("users").doc(userId).get();
+      if (!existingSnapshot.exists) {
+        return res.status(404).json({ success: false, error: "User record not found." });
+      }
+      const existing = existingSnapshot.data() || {};
+
+      const payload = {};
+      for (const field of suppliedFields) {
+        const value = req.body[field];
+        if (typeof value !== "string") {
+          return res.status(400).json({ success: false, error: `${field} must be a string.` });
+        }
+
+        const trimmedValue = value.trim();
+        if (field === "name" && !trimmedValue) {
+          return res.status(400).json({ success: false, error: "Name cannot be empty." });
+        }
+        payload[field] = trimmedValue;
+      }
+
+      const displayName = payload.displayName || payload.fullName || payload.name;
+      if (displayName) {
+        await auth.updateUser(userId, { displayName });
+      }
+
+      payload.updatedAt = Timestamp.now();
+      await db.collection("users").doc(userId).update(payload);
+
+      const updatedUser = await getAdminUserRecord(userId);
+
+      return res.json({
+        success: true,
+        message: "User profile updated successfully",
+        user: updatedUser,
+        data: updatedUser,
+      });
+    } catch (error) {
+      console.error("[Admin PATCH user profile] Failed:", error);
+      return res.status(error?.statusCode || 500).json({
+        success: false,
+        error: "Failed to update user profile.",
+      });
+    }
+  }
+);
+
+app.patch(
+  "/api/admin/users/:id/status",
+  async (req, res) => {
+    try {
+      if (!requireDb(res)) return;
+      const adminToken = await requireAdminAuth(req, res);
+      if (!adminToken) return;
+
+      const userId = String(req.params.id || "").trim();
+      const status = String(req.body?.status || "").trim().toLowerCase();
+      if (!validateDocumentId(userId) || !["active", "disabled", "suspended"].includes(status)) {
+        return res.status(400).json({ success: false, error: "Valid user ID and status are required." });
+      }
+      if (userId === adminToken.uid) {
+        return res.status(403).json({ success: false, error: "You cannot change your own account status." });
+      }
+
+      if (auth) {
+        await auth.updateUser(userId, { disabled: status !== "active" });
+      }
+      await db.collection("users").doc(userId).set({ status, updatedAt: Timestamp.now() }, { merge: true });
+      return res.json({ success: true, data: await getAdminUserRecord(userId) });
+    } catch (error) {
+      console.error("[Admin PATCH user status] Failed:", error);
+      return res.status(error?.statusCode || 500).json({ success: false, error: "Failed to update account status." });
+    }
+  }
+);
+
+app.post(
+  "/api/admin/users/:id/password-reset",
+  async (req, res) => {
+    try {
+      if (!requireDb(res)) return;
+      if (!(await requireAdminAuth(req, res))) return;
+
+      const userId = String(req.params.id || "").trim();
+      if (!validateDocumentId(userId) || !auth) {
+        return res.status(400).json({ success: false, error: "Valid user ID is required." });
+      }
+
+      const authUser = await auth.getUser(userId);
+      if (!authUser.email) {
+        return res.status(400).json({ success: false, error: "This user does not have an email address." });
+      }
+      if (!authProviderIds(authUser).includes("password")) {
+        return res.status(400).json({ success: false, error: "Password reset is not available for this sign-in provider." });
+      }
+
+      const actionCodeSettings = typeof req.body?.continueUrl === "string" && /^https?:\/\//i.test(req.body.continueUrl)
+        ? { url: req.body.continueUrl, handleCodeInApp: false }
+        : undefined;
+      const passwordResetLink = await auth.generatePasswordResetLink(authUser.email, actionCodeSettings);
+      return res.json({ success: true, passwordResetLink });
+    } catch (error) {
+      console.error("[Admin POST password reset] Failed:", error);
+      return res.status(error?.statusCode || 500).json({ success: false, error: "Failed to initiate password reset." });
+    }
+  }
+);
+
+app.patch(
+  "/api/admin/users/:id/role",
+  async (req, res) => {
+    try {
+      if (!requireDb(res)) return;
+      const adminToken = await requireAdminAuth(req, res);
+      if (!adminToken) return;
+
+      const userId = String(req.params.id || "").trim();
+      const role = String(req.body?.role || "").trim().toLowerCase();
+      if (!validateDocumentId(userId) || !["student", "admin"].includes(role)) {
+        return res.status(400).json({ success: false, error: "Valid user ID and role are required." });
+      }
+      if (userId === adminToken.uid) {
+        return res.status(403).json({ success: false, error: "You cannot change your own role." });
+      }
+
+      const targetAuthUser = auth ? await auth.getUser(userId) : null;
+      if (role === "student" && isProtectedAdminUser(userId, targetAuthUser)) {
+        return res.status(403).json({ success: false, error: "This protected admin account cannot be downgraded." });
+      }
+
+      if (auth) {
+        const existingClaims = targetAuthUser?.customClaims || {};
+        const nextClaims = { ...existingClaims };
+        delete nextClaims.admin;
+        delete nextClaims.role;
+        if (role === "admin") {
+          nextClaims.admin = true;
+          nextClaims.role = "admin";
+        }
+        await auth.setCustomUserClaims(userId, nextClaims);
+      }
+      return res.json({ success: true, data: await getAdminUserRecord(userId) });
+    } catch (error) {
+      console.error("[Admin PATCH user role] Failed:", error);
+      return res.status(error?.statusCode || 500).json({ success: false, error: "Failed to update user role." });
+    }
+  }
+);
+
+app.post(
+  "/api/admin/users/:id/notification",
+  async (req, res) => {
+    try {
+      if (!requireDb(res)) return;
+      if (!(await requireAdminAuth(req, res))) return;
+
+      const userId = String(req.params.id || "").trim();
+      const title = typeof req.body?.title === "string" ? req.body.title.trim() : "";
+      const message = typeof req.body?.message === "string" ? req.body.message.trim() : "";
+      if (!validateDocumentId(userId) || !title || !message) {
+        return res.status(400).json({ success: false, error: "Valid user ID, title and message are required." });
+      }
+
+      const reference = db.collection("notifications").doc();
+      const payload = {
+        id: reference.id,
+        title,
+        message,
+        type: "user",
+        targetUserId: userId,
+        linkUrl: "",
+        status: "saved",
+        createdAt: Timestamp.now(),
+        updatedAt: Timestamp.now(),
+      };
+      await reference.set(payload);
+      return res.status(201).json({ success: true, id: reference.id });
+    } catch (error) {
+      console.error("[Admin POST user notification] Failed:", error);
+      return res.status(error?.statusCode || 500).json({ success: false, error: "Failed to send user notification." });
+    }
+  }
+);
+
 app.delete(
   "/api/admin/users/:id",
   async (req, res) => {
@@ -4051,6 +4653,8 @@ app.delete(
     let firestoreDeleted = false;
 
     try {
+      const adminToken = await requireAdminAuth(req, res);
+      if (!adminToken) return;
       if (!requireDb(res)) return;
 
       if (!auth) {
@@ -4067,6 +4671,13 @@ app.delete(
         return res.status(400).json({
           success: false,
           error: "Valid Firebase user UID is required.",
+        });
+      }
+
+      if (userId === adminToken.uid) {
+        return res.status(403).json({
+          success: false,
+          error: "You cannot delete your own admin account.",
         });
       }
 

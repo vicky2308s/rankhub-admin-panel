@@ -10,396 +10,135 @@
   <div class="admin-layout">
     <main class="admin-main">
       <header class="admin-header"></header>
-
       <div class="admin-content">
         <div class="page-toolbar">
           <div class="page-toolbar-info">
             <h1>User Accounts</h1>
-            <p>Manage registered candidates, subscriptions, account permissions, and activity.</p>
+            <p>Manage registered candidates, access, profiles, and activity.</p>
           </div>
           <div class="page-toolbar-actions">
-            <button type="button" class="btn btn-secondary" id="btn-export-users-csv">
-              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" x2="12" y1="15" y2="3"/></svg>
-              Export CSV
-            </button>
-            <button type="button" class="btn btn-primary" id="btn-add-user-modal">
-              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
-              Add User
-            </button>
+            <button type="button" class="btn btn-secondary" id="btn-refresh-users" title="Refresh users">&#8635; Refresh</button>
           </div>
         </div>
-
         <div class="card">
           <div class="filter-bar">
-            <div class="search-input-wrapper">
-              <span class="search-icon">🔍</span>
-              <input type="text" id="user-search" placeholder="Search by candidate name, email, or phone...">
-            </div>
-            <select id="filter-plan" class="filter-select">
-              <option value="">All Plans (Free & Pro)</option>
-              <option value="premium">Premium Pro Only</option>
-              <option value="free">Free Users Only</option>
-            </select>
-            <select id="filter-status" class="filter-select">
-              <option value="">All Account Statuses</option>
-              <option value="active">Active</option>
-              <option value="suspended">Suspended</option>
-            </select>
+            <div class="search-input-wrapper"><span class="search-icon">&#128269;</span><input type="text" id="user-search" placeholder="Search by name, email, or phone..."></div>
+            <select id="filter-exam" class="filter-select"><option value="">All Target Exams</option></select>
+            <select id="filter-status" class="filter-select"><option value="">All Account Statuses</option><option value="active">Active</option><option value="disabled">Disabled</option><option value="suspended">Suspended</option></select>
           </div>
-
           <div class="table-responsive">
             <table class="data-table">
-              <thead>
-                <tr>
-                  <th>Student Info</th>
-                  <th>Target Exam</th>
-                  <th>Plan & Status</th>
-                  <th>Subscription Expiry</th>
-                  <th>Joined Date</th>
-                  <th style="text-align: right;">Actions</th>
-                </tr>
-              </thead>
-              <tbody id="users-table-body">
-                <tr>
-                  <td colspan="6" class="loading-state">
-                    <div class="spinner"></div>
-                    <p>Loading real users from Firestore...</p>
-                  </td>
-                </tr>
-              </tbody>
+              <thead><tr><th>Student Info</th><th>Target Exam</th><th>Account Status</th><th>Joined Date</th><th style="text-align:right;">Actions</th></tr></thead>
+              <tbody id="users-table-body"><tr><td colspan="5" class="loading-state"><div class="spinner"></div><p>Loading registered student accounts...</p></td></tr></tbody>
             </table>
           </div>
-
           <div class="pagination-wrapper" id="users-pagination"></div>
         </div>
       </div>
     </main>
   </div>
 
-  <div class="modal-backdrop" id="user-modal">
-    <div class="modal-container">
-      <div class="modal-header">
-        <h3 class="modal-title" id="user-modal-title">Student Profile</h3>
-        <button type="button" class="modal-close" id="btn-close-user-modal">✕</button>
-      </div>
-      <form id="user-form">
-        <div class="modal-body">
-          <input type="hidden" id="user-id">
-          <div class="form-row">
-            <div class="form-group">
-              <label class="form-label">Full Name <span class="required">*</span></label>
-              <input type="text" id="user-name" class="form-control" required placeholder="e.g. Ramesh Kumar">
-            </div>
-            <div class="form-group">
-              <label class="form-label">Email Address <span class="required">*</span></label>
-              <input type="email" id="user-email" class="form-control" required placeholder="candidate@example.com">
-            </div>
-          </div>
-          <div class="form-row">
-            <div class="form-group">
-              <label class="form-label">Phone Number</label>
-              <input type="tel" id="user-phone" class="form-control" placeholder="+91 98765 43210">
-            </div>
-            <div class="form-group">
-              <label class="form-label">Target Exam</label>
-              <input type="text" id="user-target-exam" class="form-control" placeholder="e.g. SSC CGL 2026">
-            </div>
-          </div>
-          <div class="form-row">
-            <div class="form-group">
-              <label class="form-label">Account Status</label>
-              <select id="user-status" class="form-control">
-                <option value="active">Active</option>
-                <option value="suspended">Suspended</option>
-              </select>
-            </div>
-            <div class="form-group">
-              <label class="form-label">Subscription Tier</label>
-              <select id="user-premium" class="form-control">
-                <option value="false">Free Tier</option>
-                <option value="true">Premium Pro Tier</option>
-              </select>
-            </div>
-          </div>
-        </div>
-        <div class="modal-footer">
-          <button type="button" class="btn btn-secondary" id="btn-cancel-user">Cancel</button>
-          <button type="submit" class="btn btn-primary" id="btn-save-user">Save User Record</button>
-        </div>
-      </form>
-    </div>
-  </div>
+  <div class="modal-backdrop" id="user-modal"><div class="modal-container"><div class="modal-header"><h3 class="modal-title">Edit Student Profile</h3><button type="button" class="modal-close" id="btn-close-user-modal">&#10005;</button></div>
+    <form id="user-form"><div class="modal-body"><input type="hidden" id="user-id">
+      <div class="form-group"><label class="form-label" for="user-name">Full Name</label><input type="text" id="user-name" class="form-control" required></div>
+      <div class="form-group"><label class="form-label" for="user-email">Email</label><input type="email" id="user-email" class="form-control" readonly></div>
+      <div class="form-row"><div class="form-group"><label class="form-label" for="user-phone">Mobile Number</label><input type="tel" id="user-phone" class="form-control"></div><div class="form-group"><label class="form-label" for="user-target-exam">Target Exam</label><select id="user-target-exam" class="form-control"><option value="">No target exam</option></select></div></div>
+      <div class="form-row"><div class="form-group"><label class="form-label" for="user-role">Role</label><select id="user-role" class="form-control"><option value="student">Student</option><option value="admin">Admin</option></select></div><div class="form-group"><label class="form-label" for="user-status">Account Status</label><select id="user-status" class="form-control"><option value="active">Active</option><option value="disabled">Disabled</option><option value="suspended">Suspended</option></select></div></div>
+    </div><div class="modal-footer"><button type="button" class="btn btn-secondary" id="btn-cancel-user">Cancel</button><button type="submit" class="btn btn-primary" id="btn-save-user">Save Profile</button></div></form>
+  </div></div>
+  <div class="modal-backdrop" id="view-user-modal"><div class="modal-container modal-md"><div class="modal-header"><h3 class="modal-title">Student Profile</h3><button type="button" class="modal-close" id="btn-close-view-modal">&#10005;</button></div><div class="modal-body" id="view-user-content"></div><div class="modal-footer"><button type="button" class="btn btn-secondary" id="btn-dismiss-view">Close</button></div></div></div>
+  <div class="modal-backdrop" id="activity-modal"><div class="modal-container modal-md"><div class="modal-header"><h3 class="modal-title">Attempts &amp; Results</h3><button type="button" class="modal-close" id="btn-close-activity-modal">&#10005;</button></div><div class="modal-body" id="activity-content"><div class="loading-state"><div class="spinner"></div></div></div><div class="modal-footer"><button type="button" class="btn btn-secondary" id="btn-dismiss-activity">Close</button></div></div></div>
+  <div class="modal-backdrop" id="notification-modal"><div class="modal-container"><div class="modal-header"><h3 class="modal-title">Notify Student</h3><button type="button" class="modal-close" id="btn-close-notification-modal">&#10005;</button></div><form id="notification-form"><div class="modal-body"><div class="form-group"><label class="form-label" for="notification-title">Title</label><input type="text" id="notification-title" class="form-control" required maxlength="120"></div><div class="form-group"><label class="form-label" for="notification-message">Message</label><textarea id="notification-message" class="form-control" rows="5" required maxlength="1000"></textarea></div></div><div class="modal-footer"><button type="button" class="btn btn-secondary" id="btn-cancel-notification">Cancel</button><button type="submit" class="btn btn-primary" id="btn-send-notification">Send Notification</button></div></form></div></div>
 
   <script type="module">
     import { initAdminLayout } from './admin-sidebar.js';
-    import { getFirestoreUsers, saveUser, updateUserStatus, toggleUserPremium, deleteFirestoreUser } from './admin-db.js';
-    import { ICONS, formatDate, escapeHtml, showToast, showConfirmDialog, openModal, closeModal, paginateArray, renderPaginationControls, exportToCsv, debounce } from './admin.js';
+    import { getFirestoreUsers, getFirestoreExams, updateUserProfile, updateUserAccountStatus, initiateUserPasswordReset, updateUserRole, getUserActivity, sendUserNotification, deleteFirestoreUser } from './admin-db.js';
+    import { ICONS, formatDate, escapeHtml, showToast, showConfirmDialog, openModal, closeModal, paginateArray, renderPaginationControls, debounce } from './admin.js';
 
     let allUsers = [];
+    let allExams = [];
     let filteredUsers = [];
     let currentPage = 1;
+    let activeUserId = '';
     const PAGE_SIZE = 10;
 
-    window.addEventListener('rankhub:bulk-delete-complete', () => loadUsers());
-
-    document.addEventListener('DOMContentLoaded', () => {
-      initAdminLayout('users', 'Users & Students');
-      loadUsers();
-      setupEvents();
-    });
+    document.addEventListener('DOMContentLoaded', () => { initAdminLayout('users', 'Users & Students'); setupEvents(); loadUsers(); });
 
     async function loadUsers() {
       const tbody = document.getElementById('users-table-body');
-      tbody.innerHTML = `
-        <tr>
-          <td colspan="6" class="loading-state">
-            <div class="spinner"></div>
-            <p>Loading registered student accounts from Firestore...</p>
-          </td>
-        </tr>
-      `;
-      
+      tbody.innerHTML = '<tr><td colspan="5" class="loading-state"><div class="spinner"></div><p>Loading registered student accounts...</p></td></tr>';
       try {
-        allUsers = await getFirestoreUsers();
+        [allUsers, allExams] = await Promise.all([getFirestoreUsers(), getFirestoreExams()]);
+        populateExamOptions();
         applyFilters();
-      } catch (err) {
-        console.error('Error loading users:', err);
-        showToast('Error loading users from Firestore', 'error');
-        tbody.innerHTML = `
-          <tr>
-            <td colspan="6" class="empty-state" style="color:var(--danger-text);">
-              <div class="empty-icon">${ICONS.alertCircle}</div>
-              <h4 class="empty-title">Failed to load users</h4>
-              <p class="empty-desc">Check browser console for Firebase connection details.</p>
-            </td>
-          </tr>
-        `;
+      } catch (error) {
+        console.error('Error loading users:', error);
+        tbody.innerHTML = `<tr><td colspan="5" class="empty-state" style="color:var(--danger-text);"><div class="empty-icon">${ICONS.alertCircle}</div><h4 class="empty-title">Failed to load users</h4><p class="empty-desc">${escapeHtml(error.message || 'Admin authentication is required.')}</p></td></tr>`;
+        showToast(error.message || 'Error loading users', 'error');
       }
     }
 
+    function populateExamOptions() {
+      const options = allExams.map(exam => `<option value="${escapeHtml(exam.id)}">${escapeHtml(exam.name || exam.title || exam.id)}</option>`).join('');
+      document.getElementById('filter-exam').innerHTML = '<option value="">All Target Exams</option>' + options;
+      document.getElementById('user-target-exam').innerHTML = '<option value="">No target exam</option>' + options;
+    }
+
+    function getUserName(user) { return user.displayName || user.name || 'Student'; }
+    function getStatus(user) { return user.status || (user.disabled ? 'disabled' : 'active'); }
+    function renderAvatar(user, name) {
+      const fallback = `<div class="user-avatar user-avatar-fallback" style="width:34px;height:34px;font-size:13px;background:#e11d48;">${escapeHtml(name.charAt(0).toUpperCase())}</div>`;
+      if (!user.photoURL) return fallback;
+      return `<img class="user-avatar" src="${escapeHtml(user.photoURL)}" alt="${escapeHtml(name)} profile photo" style="width:34px;height:34px;object-fit:cover;border-radius:50%;" onerror="this.onerror=null;this.style.display='none';this.nextElementSibling.style.display='flex';">${fallback.replace('style="width:34px;height:34px;font-size:13px;background:#e11d48;"', 'style="display:none;width:34px;height:34px;font-size:13px;background:#e11d48;align-items:center;justify-content:center;border-radius:50%;"')}`;
+    }
     function applyFilters() {
-    const query = (document.getElementById('user-search').value || '').toLowerCase().trim();
-    const plan = document.getElementById('filter-plan').value;
-    const status = document.getElementById('filter-status').value;
-
-    const safeUsers = Array.isArray(allUsers) ? allUsers : [];
-
-    filteredUsers = safeUsers.filter(u => {
-      const matchesQuery = !query || 
-        (u.name && u.name.toLowerCase().includes(query)) ||
-        (u.email && u.email.toLowerCase().includes(query)) ||
-        (u.phone && u.phone.includes(query));
-      
-      const matchesPlan = !plan || (plan === 'premium' ? u.isPremium : !u.isPremium);
-      const matchesStatus = !status || u.status === status;
-
-      return matchesQuery && matchesPlan && matchesStatus;
-    });
-
-    currentPage = 1;
-    renderTable();
-}
+      const query = document.getElementById('user-search').value.toLowerCase().trim();
+      const exam = document.getElementById('filter-exam').value;
+      const status = document.getElementById('filter-status').value;
+      filteredUsers = allUsers.filter(user => { const name = getUserName(user).toLowerCase(); const matchesQuery = !query || name.includes(query) || String(user.email || '').toLowerCase().includes(query) || String(user.phone || '').includes(query); return matchesQuery && (!exam || user.targetExam === exam) && (!status || getStatus(user) === status); });
+      currentPage = 1;
+      renderTable();
+    }
 
     function renderTable() {
       const tbody = document.getElementById('users-table-body');
-      const paginated = paginateArray(filteredUsers, currentPage, PAGE_SIZE);
-
-      if (paginated.data.length === 0) {
-        tbody.innerHTML = `
-          <tr>
-            <td colspan="6" class="empty-state">
-              <div class="empty-icon">${ICONS.users}</div>
-              <h4 class="empty-title">No Users Found</h4>
-              <p class="empty-desc">No candidate accounts matched the selected search or filters.</p>
-            </td>
-          </tr>
-        `;
-        renderPaginationControls('users-pagination', paginated, (p) => { currentPage = p; renderTable(); });
-        return;
-      }
-
-      tbody.innerHTML = paginated.data.map(u => `
-        <tr>
-          <td>
-            <div style="display:flex; align-items:center; gap:12px;">
-              <div class="user-avatar" style="width:34px; height:34px; font-size:13px; background:#e11d48;">
-                ${(u.name || 'U').charAt(0).toUpperCase()}
-              </div>
-              <div>
-                <strong>${escapeHtml(u.displayName || u.name || 'Student')}</strong>
-                <div style="font-size:12px; color:#64748b;">${escapeHtml(u.email || '-')}</div>
-                ${u.phone ? `<div style="font-size:11px; color:#94a3b8;">${escapeHtml(u.phone)}</div>` : ''}
-              </div>
-            </div>
-          </td>
-          <td>
-            <span class="badge badge-neutral">${escapeHtml(u.targetExam || 'General Prep')}</span>
-          </td>
-          <td>
-            <div style="display:flex; flex-direction:column; gap:4px;">
-              <span class="badge ${u.isPremium ? 'badge-primary' : 'badge-neutral'}">
-                ${u.isPremium ? '★ Premium Pro' : 'Free Member'}
-              </span>
-              <span class="badge ${u.status === 'suspended' ? 'badge-danger' : 'badge-success'}">
-                ${u.status === 'suspended' ? 'Suspended' : 'Active'}
-              </span>
-            </div>
-          </td>
-          <td style="font-size:13px; color:#475569;">
-            ${u.subscriptionExpiry ? formatDate(u.subscriptionExpiry) : (u.isPremium ? 'Lifetime' : 'N/A')}
-          </td>
-          <td style="font-size:13px; color:#64748b;">
-            ${formatDate(u.createdAt)}
-          </td>
-          <td style="text-align: right;">
-            <div class="action-buttons" style="justify-content: flex-end;">
-              <button type="button" class="action-btn btn-toggle-premium" data-id="${u.id}" data-premium="${u.isPremium}" title="${u.isPremium ? 'Revoke Premium' : 'Grant 30-Day Pro'}">
-                ${u.isPremium ? '⭐' : '☆'}
-              </button>
-              <button type="button" class="action-btn btn-toggle-status" data-id="${u.id}" data-status="${u.status}" title="${u.status === 'suspended' ? 'Restore User' : 'Suspend User'}">
-                ${u.status === 'suspended' ? '🔓' : '🚫'}
-              </button>
-              <button type="button" class="action-btn delete btn-delete-user" data-id="${u.id}" data-name="${escapeHtml(u.name || '')}" title="Delete User">
-                ${ICONS.trash}
-              </button>
-            </div>
-          </td>
-        </tr>
-      `).join('');
-
-      renderPaginationControls('users-pagination', paginated, (p) => {
-        currentPage = p;
-        renderTable();
-      });
-
+      const page = paginateArray(filteredUsers, currentPage, PAGE_SIZE);
+      if (!page.data.length) { tbody.innerHTML = `<tr><td colspan="5" class="empty-state"><div class="empty-icon">${ICONS.users}</div><h4 class="empty-title">No Users Found</h4><p class="empty-desc">No candidate accounts matched the selected filters.</p></td></tr>`; renderPaginationControls('users-pagination', page, p => { currentPage = p; renderTable(); }); return; }
+      tbody.innerHTML = page.data.map(user => {
+        const name = getUserName(user); const status = getStatus(user); const statusClass = status === 'active' ? 'badge-success' : status === 'suspended' ? 'badge-warning' : 'badge-danger';
+        const providerLabel = user.authProviders?.includes('google.com') ? 'Google sign-in' : '';
+        const resetButton = user.passwordResetAvailable ? `<button type="button" class="action-btn btn-reset-user" data-id="${escapeHtml(user.id)}" title="Reset password">&#128273;</button>` : '';
+        return `<tr><td><div style="display:flex;align-items:center;gap:12px;">${renderAvatar(user, name)}<div><strong>${escapeHtml(name)}</strong><div style="font-size:12px;color:#64748b;">${escapeHtml(user.email || '-')}</div><div style="font-size:11px;color:${user.emailVerified ? '#10b981' : '#94a3b8'};">${user.emailVerified ? 'Email verified' : 'Email not verified'}${providerLabel ? ` | ${providerLabel}` : ''}</div></div></div></td><td><span class="badge badge-neutral">${escapeHtml((allExams.find(exam => exam.id === user.targetExam)?.name) || user.targetExam || 'Not selected')}</span></td><td><span class="badge ${statusClass}">${escapeHtml(status.charAt(0).toUpperCase() + status.slice(1))}</span><div style="font-size:11px;color:#64748b;margin-top:4px;">Role: ${escapeHtml(user.role || 'student')}</div></td><td style="font-size:13px;color:#64748b;">${formatDate(user.createdAt)}</td><td style="text-align:right;"><div class="action-buttons" style="justify-content:flex-end;flex-wrap:wrap;"><button type="button" class="action-btn btn-view-user" data-id="${escapeHtml(user.id)}" title="View">${ICONS.eye}</button><button type="button" class="action-btn btn-edit-user" data-id="${escapeHtml(user.id)}" title="Edit">${ICONS.edit}</button><button type="button" class="action-btn btn-activity-user" data-id="${escapeHtml(user.id)}" title="Attempts and results">&#128200;</button><button type="button" class="action-btn btn-notify-user" data-id="${escapeHtml(user.id)}" title="Notify">&#9993;</button>${resetButton}<button type="button" class="action-btn btn-status-user" data-id="${escapeHtml(user.id)}" data-status="${escapeHtml(status)}" title="${status === 'active' ? 'Disable' : 'Activate'}">${status === 'active' ? '&#9209;' : '&#9654;'}</button><button type="button" class="action-btn delete btn-delete-user" data-id="${escapeHtml(user.id)}" title="Delete">${ICONS.trash}</button></div></td></tr>`;
+      }).join('');
+      renderPaginationControls('users-pagination', page, p => { currentPage = p; renderTable(); });
       attachRowHandlers();
     }
 
+    function findUser(id) { return allUsers.find(user => user.id === id); }
     function attachRowHandlers() {
-      document.querySelectorAll('.btn-toggle-premium').forEach(btn => {
-        btn.onclick = async () => {
-          const id = btn.getAttribute('data-id');
-          const isCurrentlyPremium = btn.getAttribute('data-premium') === 'true';
-          const newStatus = !isCurrentlyPremium;
-
-          showConfirmDialog({
-            title: newStatus ? 'Grant Premium Subscription' : 'Revoke Premium Access',
-            message: newStatus ? 'Grant candidate 30-days of all-access Pro pass?' : 'Revoke candidate Pro tier back to Free plan?',
-            confirmText: newStatus ? 'Grant Pro Access' : 'Revoke Access',
-            isDanger: !newStatus,
-            onConfirm: async () => {
-              await toggleUserPremium(id, newStatus, 30);
-              showToast(`User is now ${newStatus ? 'Premium Pro' : 'Free tier'}`);
-              await loadUsers();
-            }
-          });
-        };
-      });
-
-      document.querySelectorAll('.btn-toggle-status').forEach(btn => {
-        btn.onclick = async () => {
-          const id = btn.getAttribute('data-id');
-          const currentStatus = btn.getAttribute('data-status');
-          const newStatus = currentStatus === 'suspended' ? 'active' : 'suspended';
-
-          showConfirmDialog({
-            title: newStatus === 'suspended' ? 'Suspend Candidate Account' : 'Restore Candidate Account',
-            message: `Are you sure you want to ${newStatus === 'suspended' ? 'suspend' : 'restore'} this student?`,
-            confirmText: newStatus === 'suspended' ? 'Yes, Suspend' : 'Yes, Restore',
-            isDanger: newStatus === 'suspended',
-            onConfirm: async () => {
-              await updateUserStatus(id, newStatus);
-              showToast(`Account status updated to ${newStatus}`);
-              await loadUsers();
-            }
-          });
-        };
-      });
-
-      document.querySelectorAll('.btn-delete-user').forEach(btn => {
-        btn.onclick = () => {
-          const id = btn.getAttribute('data-id');
-          const name = btn.getAttribute('data-name');
-          showConfirmDialog({
-            title: 'Delete User Account',
-            message: `Are you sure you want to permanently delete account for ${name}?`,
-            confirmText: 'Delete User',
-            isDanger: true,
-            onConfirm: async () => {
-              await deleteFirestoreUser(id);
-              showToast('User deleted successfully');
-              await loadUsers();
-            }
-          });
-        };
-      });
+      document.querySelectorAll('.btn-view-user').forEach(button => button.onclick = () => viewUser(findUser(button.dataset.id)));
+      document.querySelectorAll('.btn-edit-user').forEach(button => button.onclick = () => editUser(findUser(button.dataset.id)));
+      document.querySelectorAll('.btn-activity-user').forEach(button => button.onclick = () => showActivity(findUser(button.dataset.id)));
+      document.querySelectorAll('.btn-notify-user').forEach(button => button.onclick = () => openNotification(findUser(button.dataset.id)));
+      document.querySelectorAll('.btn-reset-user').forEach(button => button.onclick = () => resetPassword(findUser(button.dataset.id)));
+      document.querySelectorAll('.btn-status-user').forEach(button => button.onclick = () => changeStatus(findUser(button.dataset.id), button.dataset.status));
+      document.querySelectorAll('.btn-delete-user').forEach(button => button.onclick = () => deleteUser(findUser(button.dataset.id)));
     }
 
+    function viewUser(user) { if (!user) return; const name = getUserName(user); const providerLabel = user.authProviders?.includes('google.com') ? 'Google sign-in' : 'Password sign-in'; document.getElementById('view-user-content').innerHTML = `<div style="display:grid;gap:12px;"><div><strong>${escapeHtml(name)}</strong><div style="font-size:13px;color:#64748b;">${escapeHtml(user.email || '-')}</div></div><div><strong>Mobile</strong><div>${escapeHtml(user.phone || 'Not provided')}</div></div><div><strong>Target Exam</strong><div>${escapeHtml(user.targetExam || 'Not selected')}</div></div><div><strong>Account</strong><div>${escapeHtml(getStatus(user))} | Role: ${escapeHtml(user.role || 'student')} | ${user.emailVerified ? 'Email verified' : 'Email not verified'} | ${providerLabel}</div></div><div><strong>Joined</strong><div>${escapeHtml(formatDate(user.createdAt))}</div></div></div>`; openModal('view-user-modal'); }
+    function editUser(user) { if (!user) return; activeUserId = user.id; document.getElementById('user-id').value = user.id; document.getElementById('user-name').value = getUserName(user); document.getElementById('user-email').value = user.email || ''; document.getElementById('user-phone').value = user.phone || ''; document.getElementById('user-target-exam').value = user.targetExam || ''; document.getElementById('user-role').value = user.role || 'student'; document.getElementById('user-status').value = getStatus(user); openModal('user-modal'); }
+    function changeStatus(user, currentStatus) { if (!user) return; const nextStatus = currentStatus === 'active' ? 'disabled' : 'active'; showConfirmDialog({ title: `${nextStatus === 'active' ? 'Activate' : 'Disable'} User`, message: `Are you sure you want to ${nextStatus === 'active' ? 'activate' : 'disable'} ${getUserName(user)}?`, confirmText: nextStatus === 'active' ? 'Activate' : 'Disable', isDanger: nextStatus !== 'active', onConfirm: async () => runAction(() => updateUserAccountStatus(user.id, nextStatus), 'Account status updated.') }); }
+    function resetPassword(user) { if (!user) return; showConfirmDialog({ title: 'Initiate Password Reset', message: `Generate a secure password-reset link for ${getUserName(user)}?`, confirmText: 'Generate Link', onConfirm: async () => { try { const result = await initiateUserPasswordReset(user.id); if (result.passwordResetLink) window.open(result.passwordResetLink, '_blank', 'noopener'); showToast('Password reset link generated.'); } catch (error) { showToast(error.message || 'Password reset failed.', 'error'); } } }); }
+    function deleteUser(user) { if (!user) return; showConfirmDialog({ title: 'Delete User Account', message: `This permanently deletes ${getUserName(user)} from Authentication and Firestore. Continue?`, confirmText: 'Delete User', isDanger: true, onConfirm: async () => runAction(() => deleteFirestoreUser(user.id), 'User deleted successfully.') }); }
+    async function showActivity(user) { if (!user) return; activeUserId = user.id; document.getElementById('activity-content').innerHTML = '<div class="loading-state"><div class="spinner"></div><p>Loading activity...</p></div>'; openModal('activity-modal'); try { const activity = await getUserActivity(user.id); const rows = [...(activity.results || []), ...(activity.attempts || [])].sort((a, b) => String(b.submittedAt || b.createdAt || '').localeCompare(String(a.submittedAt || a.createdAt || ''))); document.getElementById('activity-content').innerHTML = rows.length ? rows.map(item => `<div style="padding:12px 0;border-bottom:1px solid #e2e8f0;"><strong>${escapeHtml(item.testTitle || item.title || 'Test Attempt')}</strong><div style="font-size:13px;color:#64748b;">Score: ${escapeHtml(item.score ?? item.percentage ?? 'N/A')} | ${escapeHtml(formatDate(item.submittedAt || item.createdAt))}</div></div>`).join('') : '<div class="empty-state"><p>No attempts or results found for this user.</p></div>'; } catch (error) { document.getElementById('activity-content').innerHTML = `<p style="color:var(--danger-text);">${escapeHtml(error.message || 'Failed to load activity.')}</p>`; } }
+    function openNotification(user) { activeUserId = user?.id || ''; document.getElementById('notification-form').reset(); openModal('notification-modal'); }
+    async function runAction(action, successMessage) { try { await action(); showToast(successMessage); await loadUsers(); } catch (error) { showToast(error.message || 'Action failed.', 'error'); } }
+
     function setupEvents() {
-      document.getElementById('user-search').oninput = debounce(applyFilters, 250);
-      document.getElementById('filter-plan').onchange = applyFilters;
-      document.getElementById('filter-status').onchange = applyFilters;
-
-      document.getElementById('btn-export-users-csv').onclick = () => {
-        const exportData = filteredUsers.map(u => ({
-          ID: u.id,
-          Name: u.name,
-          Email: u.email,
-          Phone: u.phone || '',
-          TargetExam: u.targetExam || '',
-          Status: u.status || 'active',
-          IsPremium: u.isPremium ? 'Yes' : 'No',
-          SubscriptionExpiry: u.subscriptionExpiry || '',
-          CreatedAt: u.createdAt || ''
-        }));
-        exportToCsv('rankhub_users_list.csv', exportData);
-      };
-
-      document.getElementById('btn-add-user-modal').onclick = () => {
-        document.getElementById('user-form').reset();
-        document.getElementById('user-id').value = '';
-        document.getElementById('user-modal-title').textContent = 'Add New Candidate Account';
-        openModal('user-modal');
-      };
-
-      document.getElementById('btn-close-user-modal').onclick = () => closeModal('user-modal');
-      document.getElementById('btn-cancel-user').onclick = () => closeModal('user-modal');
-
-      document.getElementById('user-form').onsubmit = async (e) => {
-        e.preventDefault();
-        const btn = document.getElementById('btn-save-user');
-        btn.disabled = true;
-
-        const name = document.getElementById('user-name').value;
-        const email = document.getElementById('user-email').value;
-        const phone = document.getElementById('user-phone').value;
-        const targetExam = document.getElementById('user-target-exam').value;
-        const status = document.getElementById('user-status').value;
-        const isPremium = document.getElementById('user-premium').value === 'true';
-        const userId = document.getElementById('user-id').value || null;
-
-        const userData = {
-          id: userId,
-          name,
-          email,
-          phone,
-          targetExam,
-          status,
-          isPremium,
-          createdAt: new Date().toISOString()
-        };
-
-        try {
-          await saveUser(userData);
-          closeModal('user-modal');
-          showToast('User account saved to Firestore!');
-          await loadUsers();
-        } catch (err) {
-          showToast(err.message || 'Failed to save user', 'error');
-        } finally {
-          btn.disabled = false;
-        }
-      };
+      document.getElementById('user-search').oninput = debounce(applyFilters, 250); document.getElementById('filter-exam').onchange = applyFilters; document.getElementById('filter-status').onchange = applyFilters; document.getElementById('btn-refresh-users').onclick = loadUsers;
+      document.getElementById('btn-close-user-modal').onclick = () => closeModal('user-modal'); document.getElementById('btn-cancel-user').onclick = () => closeModal('user-modal'); document.getElementById('btn-close-view-modal').onclick = () => closeModal('view-user-modal'); document.getElementById('btn-dismiss-view').onclick = () => closeModal('view-user-modal'); document.getElementById('btn-close-activity-modal').onclick = () => closeModal('activity-modal'); document.getElementById('btn-dismiss-activity').onclick = () => closeModal('activity-modal'); document.getElementById('btn-close-notification-modal').onclick = () => closeModal('notification-modal'); document.getElementById('btn-cancel-notification').onclick = () => closeModal('notification-modal');
+      document.getElementById('user-form').onsubmit = async event => { event.preventDefault(); const userId = document.getElementById('user-id').value; const button = document.getElementById('btn-save-user'); button.disabled = true; try { await updateUserProfile(userId, { name: document.getElementById('user-name').value, phone: document.getElementById('user-phone').value, targetExam: document.getElementById('user-target-exam').value }); const selectedRole = document.getElementById('user-role').value; const selectedStatus = document.getElementById('user-status').value; const original = findUser(userId); if (selectedRole !== (original.role || 'student')) await updateUserRole(userId, selectedRole); if (selectedStatus !== getStatus(original)) await updateUserAccountStatus(userId, selectedStatus); closeModal('user-modal'); showToast('User profile updated.'); await loadUsers(); } catch (error) { showToast(error.message || 'Failed to update user.', 'error'); } finally { button.disabled = false; } };
+      document.getElementById('notification-form').onsubmit = async event => { event.preventDefault(); const button = document.getElementById('btn-send-notification'); button.disabled = true; try { await sendUserNotification(activeUserId, { title: document.getElementById('notification-title').value, message: document.getElementById('notification-message').value }); closeModal('notification-modal'); showToast('Notification sent.'); } catch (error) { showToast(error.message || 'Failed to send notification.', 'error'); } finally { button.disabled = false; } };
     }
   </script>
 </body>

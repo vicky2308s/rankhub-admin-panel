@@ -93,6 +93,7 @@ export function initAdminLayout(activePageId, pageTitle = '') {
           </div>
         </div>
       </div>
+      <button type="button" class="btn btn-secondary" id="btn-admin-logout" style="width:100%; margin-top:10px;">Sign Out</button>
     </div>
   `;
 
@@ -167,6 +168,24 @@ export function initAdminLayout(activePageId, pageTitle = '') {
   });
 
   overlayEl.onclick = closeSidebar;
+
+  document.getElementById('btn-admin-logout')?.addEventListener('click', async () => {
+    const logoutButton = document.getElementById('btn-admin-logout');
+    logoutButton.disabled = true;
+    const configuredApiBaseUrl = typeof globalThis.RANKHUB_API_BASE_URL === 'string'
+      ? globalThis.RANKHUB_API_BASE_URL.trim()
+      : '';
+    const apiBaseUrl = (configuredApiBaseUrl || window.location.origin).replace(/\/+$/, '');
+
+    try {
+      await fetch(`${apiBaseUrl}/api/admin/auth/logout`, {
+        method: 'POST',
+        credentials: 'include'
+      });
+    } finally {
+      window.location.replace('./admin-login.html');
+    }
+  });
 
   document.addEventListener('keydown', (event) => {
     if (event.key === 'Escape') closeSidebar();
