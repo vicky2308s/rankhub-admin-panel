@@ -3136,17 +3136,26 @@ async function deleteQuestionGroup(groupKey) {
         return;
     }
 
+    const selectedQuestionIds = group.questions
+        .map(question => String(question.id || '').trim())
+        .filter(Boolean);
+
+    if (!selectedQuestionIds.length) {
+        showToast('No questions are available in this selected group to delete.', 'error');
+        return;
+    }
+
     showConfirmDialog({
-        title: 'Delete Mock Test Questions',
-        message: `Delete ${group.questions.length} questions from this Mock Test? The Mock Test itself will be preserved.`,
-        confirmText: 'Delete Questions',
+        title: 'Delete this question group only?',
+        message: 'Delete this question group only? Other question groups and the Mock Test will not be affected.',
+        confirmText: 'Delete Group',
         isDanger: true,
         onConfirm: async () => {
             try {
                 const result = await deleteMockTestQuestions(
                     examId,
                     mockTestId,
-                    group.questions.map(question => question.id).filter(Boolean)
+                    selectedQuestionIds
                 );
 
                 await loadQuestions();
@@ -3154,7 +3163,7 @@ async function deleteQuestionGroup(groupKey) {
                 populateQuestionStageFilter();
                 applyFilters();
                 showToast(
-                    `${result?.deletedQuestions || 0} questions deleted. Mock Test preserved.`,
+                    `${result?.deletedQuestions || 0} question${(result?.deletedQuestions || 0) === 1 ? '' : 's'} deleted from the selected group.`,
                     'success'
                 );
             } catch (error) {

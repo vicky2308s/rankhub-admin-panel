@@ -1104,6 +1104,7 @@
             deleteFirestoreCurrentAffair,
             generateCurrentAffairs
         } from "./admin-db.js";
+        import { showConfirmDialog } from "./admin.js";
 
         window.addEventListener("rankhub:bulk-delete-complete", () => loadCurrentAffairs());
 
@@ -1414,17 +1415,22 @@
             if (!item) return;
 
             const question = safeString(item.question || item.title, "this Current Affair");
-            const confirmed = window.confirm(`Delete this Current Affair?\n\n${question}\n\nID: ${id}`);
-            if (!confirmed) return;
-
-            try {
-                await deleteFirestoreCurrentAffair(id);
-                showToast("Current Affair deleted.", "success");
-                await loadCurrentAffairs();
-            } catch (error) {
-                console.error("Delete Current Affair error:", error);
-                showToast(error?.message || "Unable to delete Current Affair.", "error");
-            }
+            showConfirmDialog({
+                title: "Delete Current Affair?",
+                message: `Are you sure you want to delete this item?\n\n${question}\n\nID: ${id}`,
+                confirmText: "Delete",
+                isDanger: true,
+                onConfirm: async () => {
+                    try {
+                        await deleteFirestoreCurrentAffair(id);
+                        showToast("Current Affair deleted.", "success");
+                        await loadCurrentAffairs();
+                    } catch (error) {
+                        console.error("Delete Current Affair error:", error);
+                        showToast(error?.message || "Unable to delete Current Affair.", "error");
+                    }
+                }
+            });
         }
 
         async function handleGenerate() {

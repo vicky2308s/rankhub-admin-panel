@@ -4846,7 +4846,11 @@ app.post(
       const currentQuestionIds = Array.isArray(mockData[questionField])
         ? mockData[questionField].map(String)
         : [];
-      const selectedQuestionIds = new Set(currentQuestionIds);
+      const selectedQuestionIds = new Set(
+        requestedQuestionIds
+          .map((id) => String(id).trim())
+          .filter((id) => currentQuestionIds.includes(id))
+      );
 
       if (!selectedQuestionIds.size) {
         return res.json({
