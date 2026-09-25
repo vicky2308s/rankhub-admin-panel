@@ -4838,13 +4838,14 @@ app.post(
       }
 
       const mockData = mockSnapshot.data() || {};
-      const questionField = Array.isArray(mockData.questionIds)
-        ? "questionIds"
-        : Array.isArray(mockData.question_ids)
-          ? "question_ids"
-          : "questionIds";
-      const currentQuestionIds = Array.isArray(mockData[questionField])
-        ? mockData[questionField].map(String)
+      const questionFields = [
+        "questionIds",
+        "question_ids",
+        "questionIDs",
+      ].filter((field) => Array.isArray(mockData[field]));
+      const questionField = questionFields[0] || "questionIds";
+      const currentQuestionIds = questionFields.length
+        ? [...new Set(questionFields.flatMap((field) => mockData[field].map(String)))]
         : [];
       const selectedQuestionIds = new Set(
         requestedQuestionIds
@@ -4879,11 +4880,11 @@ app.post(
       const survivingMockReferences = new Set();
       allMockReferences.forEach(({ examId: referenceExamId, mockTestId: referenceMockId, data }) => {
         if (referenceExamId === examId && referenceMockId === mockTestId) return;
-        const ids = Array.isArray(data.questionIds)
-          ? data.questionIds
-          : Array.isArray(data.question_ids)
-            ? data.question_ids
-            : [];
+        const ids = [
+          ...(Array.isArray(data.questionIds) ? data.questionIds : []),
+          ...(Array.isArray(data.question_ids) ? data.question_ids : []),
+          ...(Array.isArray(data.questionIDs) ? data.questionIDs : []),
+        ];
         ids.map(String).forEach((id) => {
           if (selectedQuestionIds.has(id)) survivingMockReferences.add(id);
         });
@@ -4919,18 +4920,11 @@ app.post(
       const remainingQuestionIds = currentQuestionIds.filter(
         (id) => !selectedQuestionIds.has(id)
       );
-      const questionIdUpdates = {
-        [questionField]: remainingQuestionIds,
-      };
-      if (Array.isArray(mockData.questionIds)) {
-        questionIdUpdates.questionIds = remainingQuestionIds;
-      }
-      if (Array.isArray(mockData.question_ids)) {
-        questionIdUpdates.question_ids = remainingQuestionIds;
-      }
-      if (Array.isArray(mockData.questionIDs)) {
-        questionIdUpdates.questionIDs = remainingQuestionIds;
-      }
+      const questionIdUpdates = Object.fromEntries(
+        questionFields.length
+          ? questionFields.map((field) => [field, remainingQuestionIds])
+          : [[questionField, remainingQuestionIds]]
+      );
       const batch = db.batch();
       batch.update(mockReference, questionIdUpdates);
       questionReferencesToDelete.forEach((reference) => batch.delete(reference));

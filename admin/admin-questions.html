@@ -2681,7 +2681,12 @@ function buildQuestionGroups(questions) {
 
         const mockId = String(mock.id || '').trim();
         const examId = String(mock.examId || '').trim();
-        if (!mockId || groups.has(`mocktest:${mockId}`)) return;
+        const linkedQuestionIds = [
+            ...(Array.isArray(mock.questionIds) ? mock.questionIds : []),
+            ...(Array.isArray(mock.question_ids) ? mock.question_ids : []),
+            ...(Array.isArray(mock.questionIDs) ? mock.questionIDs : [])
+        ].filter(Boolean);
+        if (!mockId || !linkedQuestionIds.length || groups.has(`mocktest:${mockId}`)) return;
 
         const stageName = String(
             mock.stageName ||
@@ -3158,6 +3163,10 @@ async function deleteQuestionGroup(groupKey) {
                     selectedQuestionIds
                 );
 
+                const refreshedMockTests = await getFirestoreMockTests();
+                examMockTests = Array.isArray(refreshedMockTests)
+                    ? refreshedMockTests
+                    : [];
                 await loadQuestions();
                 updateStats();
                 populateQuestionStageFilter();
