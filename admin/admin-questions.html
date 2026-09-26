@@ -3133,14 +3133,6 @@ async function deleteQuestionGroup(groupKey) {
     const group = questionGroups.find(item => item.key === groupKey);
     if (!group) return;
 
-    const firstQuestion = group.questions[0];
-    const mockTestId = group.mockTestId || firstQuestion?.mockTestId || firstQuestion?.mockId;
-    const examId = group.examId || firstQuestion?.examId;
-    if (group.type !== 'mocktest' || !examId || !mockTestId) {
-        showToast('Only a selected Mock Test question group can be deleted.', 'error');
-        return;
-    }
-
     const selectedQuestionIds = group.questions
         .map(question => String(question.id || '').trim())
         .filter(Boolean);
@@ -3150,31 +3142,63 @@ async function deleteQuestionGroup(groupKey) {
         return;
     }
 
+    const firstQuestion = group.questions[0];
+    const mockTestId = group.mockTestId || firstQuestion?.mockTestId || firstQuestion?.mockId;
+    const examId = group.examId || firstQuestion?.examId;
+    const isMockTestGroup = group.type === 'mocktest' && Boolean(examId) && Boolean(mockTestId);
+
     showConfirmDialog({
         title: 'Delete this question group only?',
-        message: 'Delete this question group only? Other question groups and the Mock Test will not be affected.',
+        message: 'Delete this question group only? Other question groups will not be affected.',
         confirmText: 'Delete Group',
         isDanger: true,
         onConfirm: async () => {
             try {
-                const result = await deleteMockTestQuestions(
-                    examId,
-                    mockTestId,
-                    selectedQuestionIds
-                );
+                let deletedCount = 0;
 
-                const refreshedMockTests = await getFirestoreMockTests();
-                examMockTests = Array.isArray(refreshedMockTests)
-                    ? refreshedMockTests
-                    : [];
+                if (isMockTestGroup) {
+                    // Mock Test groups have a dedicated bulk-delete endpoint that
+                    // also preserves the Mock Test itself.
+                    const result = await deleteMockTestQuestions(
+                        examId,
+                        mockTestId,
+                        selectedQuestionIds
+                    );
+                    deletedCount = result?.deletedQuestions || 0;
+
+                    const refreshedMockTests = await getFirestoreMockTests();
+                    examMockTests = Array.isArray(refreshedMockTests)
+                        ? refreshedMockTests
+                        : [];
+                } else {
+                    // Subject Practice / PYQ / Test Series groups have no bulk
+                    // endpoint, so delete every question in the group one by one.
+                    for (const questionId of selectedQuestionIds) {
+                        try {
+                            await deleteFirestoreQuestion(questionId);
+                            deletedCount++;
+                        } catch (innerError) {
+                            console.error(`Failed to delete question ${questionId}:`, innerError);
+                        }
+                    }
+                }
+
                 await loadQuestions();
                 updateStats();
                 populateQuestionStageFilter();
                 applyFilters();
-                showToast(
-                    `${result?.deletedQuestions || 0} question${(result?.deletedQuestions || 0) === 1 ? '' : 's'} deleted from the selected group.`,
-                    'success'
-                );
+
+                if (deletedCount === selectedQuestionIds.length) {
+                    showToast(
+                        `${deletedCount} question${deletedCount === 1 ? '' : 's'} deleted from the selected group.`,
+                        'success'
+                    );
+                } else {
+                    showToast(
+                        `${deletedCount} of ${selectedQuestionIds.length} question(s) deleted. Some failed — check console.`,
+                        deletedCount > 0 ? 'success' : 'error'
+                    );
+                }
             } catch (error) {
                 console.error('Failed to delete question group:', error);
                 showToast(error.message || 'Failed to delete question group.', 'error');
