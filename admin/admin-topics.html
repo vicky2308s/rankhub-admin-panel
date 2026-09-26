@@ -5,6 +5,15 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Topics Management - RankHub Admin</title>
   <link rel="stylesheet" href="./admin.css">
+  <style>
+    #bulk-import-modal .modal-body { background:#fff; }
+    #bulk-import-modal .form-control { box-sizing:border-box; }
+    #bulk-import-modal .data-table th { position:sticky; top:0; z-index:1; background:#f8fafc; }
+    #bulk-import-modal code { font-size:11px; background:#f1f5f9; padding:3px 5px; border-radius:5px; }
+    @media (max-width: 760px) {
+      #bulk-import-modal .modal-container > .modal-body > div:first-child { grid-template-columns:1fr !important; }
+    }
+  </style>
 </head>
 <body>
   <div class="admin-layout">
@@ -17,7 +26,11 @@
             <h1>Topics & Chapters</h1>
             <p>Organize syllabus chapters under individual subjects (e.g., Percentage, Syllogism, Ancient History).</p>
           </div>
-          <div class="page-toolbar-actions">
+          <div class="page-toolbar-actions" style="display:flex; gap:10px; flex-wrap:wrap;">
+            <button type="button" class="btn btn-secondary" id="btn-open-bulk-import">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M12 3v12"/><path d="m7 10 5 5 5-5"/><path d="M5 21h14"/></svg>
+              Bulk Import
+            </button>
             <button type="button" class="btn btn-primary" id="btn-open-add-topic">
               <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
               Add New Topic
@@ -121,6 +134,69 @@
           <button type="submit" class="btn btn-primary" id="btn-save-topic">Save Topic</button>
         </div>
       </form>
+    </div>
+  </div>
+
+  <!-- Bulk Import Modal -->
+  <div class="modal-backdrop" id="bulk-import-modal">
+    <div class="modal-container" style="max-width:1100px; width:calc(100% - 32px);">
+      <div class="modal-header">
+        <div>
+          <h3 class="modal-title">Bulk Import Topics</h3>
+          <div style="font-size:12px;color:#64748b;margin-top:4px;">Import multiple syllabus topics into Firestore at once.</div>
+        </div>
+        <button type="button" class="modal-close" id="btn-close-bulk-import">✕</button>
+      </div>
+
+      <div class="modal-body">
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:16px;">
+          <div style="border:1px solid #e2e8f0;border-radius:12px;padding:16px;background:#f8fafc;">
+            <div style="font-weight:700;margin-bottom:6px;">Option 1 — Upload CSV</div>
+            <div style="font-size:12px;color:#64748b;margin-bottom:12px;">Use a CSV with: examId, subjectId, name, order, status, description</div>
+            <input type="file" id="bulk-csv-file" accept=".csv,text/csv" class="form-control">
+          </div>
+          <div style="border:1px solid #e2e8f0;border-radius:12px;padding:16px;background:#f8fafc;">
+            <div style="font-weight:700;margin-bottom:6px;">Option 2 — Paste CSV</div>
+            <div style="font-size:12px;color:#64748b;margin-bottom:12px;">Paste the CSV text below and click Preview.</div>
+            <textarea id="bulk-csv-text" class="form-control" rows="5" placeholder="examId,subjectId,name,order,status,description
+ssc,math,Percentage,1,active,Basic percentage"></textarea>
+          </div>
+        </div>
+
+        <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:16px;">
+          <button type="button" class="btn btn-secondary" id="btn-download-template">Download CSV Template</button>
+          <button type="button" class="btn btn-secondary" id="btn-preview-bulk">Preview Import</button>
+          <button type="button" class="btn btn-secondary" id="btn-clear-bulk">Clear</button>
+        </div>
+
+        <div id="bulk-import-summary" style="display:none;margin-bottom:12px;"></div>
+        <div id="bulk-import-errors" style="display:none;margin-bottom:12px;"></div>
+
+        <div id="bulk-preview-wrapper" style="display:none;border:1px solid #e2e8f0;border-radius:12px;overflow:auto;max-height:360px;">
+          <table class="data-table" style="min-width:900px;">
+            <thead>
+              <tr>
+                <th>#</th><th>Exam</th><th>Subject</th><th>Topic</th><th>ID</th><th>Order</th><th>Status</th><th>Description</th><th>Validation</th>
+              </tr>
+            </thead>
+            <tbody id="bulk-preview-body"></tbody>
+          </table>
+        </div>
+
+        <div id="bulk-progress" style="display:none;margin-top:16px;">
+          <div style="display:flex;justify-content:space-between;font-size:12px;font-weight:600;margin-bottom:6px;">
+            <span id="bulk-progress-text">Importing...</span><span id="bulk-progress-count">0/0</span>
+          </div>
+          <div style="height:8px;background:#e2e8f0;border-radius:999px;overflow:hidden;">
+            <div id="bulk-progress-bar" style="height:100%;width:0%;background:#2563eb;transition:width .2s ease;"></div>
+          </div>
+        </div>
+      </div>
+
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" id="btn-cancel-bulk-import">Close</button>
+        <button type="button" class="btn btn-primary" id="btn-start-bulk-import" disabled>Import Valid Rows</button>
+      </div>
     </div>
   </div>
 
@@ -332,7 +408,250 @@
       });
     }
 
+    // -------------------- Bulk Import --------------------
+    let bulkRows = [];
+    let bulkValidRows = [];
+
+    function csvEscape(value) {
+      const str = String(value ?? '');
+      return /[",\n\r]/.test(str) ? '"' + str.replace(/"/g, '""') + '"' : str;
+    }
+
+    function parseCSV(text) {
+      const rows = [];
+      let row = [], cell = '', quoted = false;
+      for (let i = 0; i < text.length; i++) {
+        const ch = text[i];
+        const next = text[i + 1];
+        if (ch === '"') {
+          if (quoted && next === '"') { cell += '"'; i++; }
+          else quoted = !quoted;
+        } else if (ch === ',' && !quoted) {
+          row.push(cell); cell = '';
+        } else if ((ch === '\n' || ch === '\r') && !quoted) {
+          if (ch === '\r' && next === '\n') i++;
+          row.push(cell); cell = '';
+          if (row.some(v => String(v).trim() !== '')) rows.push(row);
+          row = [];
+        } else {
+          cell += ch;
+        }
+      }
+      if (cell !== '' || row.length) {
+        row.push(cell);
+        if (row.some(v => String(v).trim() !== '')) rows.push(row);
+      }
+      return rows;
+    }
+
+    function normalizeHeader(header) {
+      return String(header || '').trim().toLowerCase().replace(/\s+/g, '').replace(/-/g, '_');
+    }
+
+    function getBulkCSVText() {
+      return document.getElementById('bulk-csv-text').value.trim();
+    }
+
+    function makeBulkPayload(raw, index) {
+      const examId = String(raw.examId || '').trim();
+      const subjectId = String(raw.subjectId || '').trim();
+      const name = String(raw.name || '').trim();
+      const description = String(raw.description || '').trim();
+      const status = String(raw.status || 'active').trim().toLowerCase() || 'active';
+      const order = Number(raw.order || index + 1);
+      const exam = allExams.find(x => x.id === examId);
+      const sub = allSubjects.find(x => x.id === subjectId);
+      const generatedId = generateIdFromName(name);
+      const id = String(raw.id || raw.code || generatedId || '').trim();
+      const errors = [];
+
+      if (!examId) errors.push('Exam ID is required');
+      else if (!exam) errors.push(`Exam not found: ${examId}`);
+      if (!subjectId) errors.push('Subject ID is required');
+      else if (!sub) errors.push(`Subject not found: ${subjectId}`);
+      if (!name) errors.push('Topic name is required');
+      if (!id) errors.push('Topic ID could not be generated');
+      if (!Number.isFinite(order) || order < 1) errors.push('Order must be a number >= 1');
+      if (!['active', 'inactive'].includes(status)) errors.push('Status must be active or inactive');
+      if (exam && sub && sub.examId && sub.examId !== examId) errors.push('Subject does not belong to selected exam');
+
+      const duplicateExisting = allTopics.some(t => t.id === id && t.examId === examId && t.subjectId === subjectId);
+      if (duplicateExisting) errors.push('Topic already exists');
+
+      const duplicateInFile = bulkRows.some((r, i) => i < index && r.id === id && r.examId === examId && r.subjectId === subjectId);
+      if (duplicateInFile) errors.push('Duplicate row in import');
+
+      return {
+        index: index + 1,
+        id, code: id, examId, examName: exam?.name || '', subjectId, subjectName: sub?.name || '',
+        name, order, status, description, errors
+      };
+    }
+
+    function parseBulkInput() {
+      const text = getBulkCSVText();
+      if (!text) throw new Error('Please upload a CSV or paste CSV data first.');
+      const matrix = parseCSV(text);
+      if (matrix.length < 2) throw new Error('CSV must contain a header row and at least one data row.');
+
+      const headers = matrix[0].map(normalizeHeader);
+      const aliases = {
+        examid: 'examId', exam_id: 'examId',
+        subjectid: 'subjectId', subject_id: 'subjectId',
+        topicid: 'id', topic_id: 'id', code: 'id', id: 'id',
+        topic: 'name', topicname: 'name', topic_name: 'name', name: 'name',
+        order: 'order', displayorder: 'order', display_order: 'order',
+        status: 'status', description: 'description', desc: 'description'
+      };
+      const map = {};
+      headers.forEach((h, i) => { if (aliases[h]) map[aliases[h]] = i; });
+      if (map.examId === undefined || map.subjectId === undefined || map.name === undefined) {
+        throw new Error('Required columns are examId, subjectId and name.');
+      }
+
+      const rawRows = matrix.slice(1).map((cells) => {
+        const get = key => map[key] === undefined ? '' : (cells[map[key]] ?? '');
+        return {
+          examId: get('examId'), subjectId: get('subjectId'), id: get('id'), name: get('name'),
+          order: get('order'), status: get('status'), description: get('description')
+        };
+      });
+      bulkRows = rawRows.map((r, i) => ({ ...r, ...makeBulkPayload(r, i) }));
+      bulkValidRows = bulkRows.filter(r => r.errors.length === 0);
+      renderBulkPreview();
+    }
+
+    function renderBulkPreview() {
+      const wrapper = document.getElementById('bulk-preview-wrapper');
+      const body = document.getElementById('bulk-preview-body');
+      const summary = document.getElementById('bulk-import-summary');
+      const errorsBox = document.getElementById('bulk-import-errors');
+      wrapper.style.display = bulkRows.length ? 'block' : 'none';
+      body.innerHTML = bulkRows.map(r => `
+        <tr>
+          <td>${r.index}</td>
+          <td>${escapeHtml(r.examName || r.examId || '-')}</td>
+          <td>${escapeHtml(r.subjectName || r.subjectId || '-')}</td>
+          <td><strong>${escapeHtml(r.name || '-')}</strong></td>
+          <td><code>${escapeHtml(r.id || '-')}</code></td>
+          <td>${r.order}</td>
+          <td>${escapeHtml(r.status)}</td>
+          <td>${escapeHtml(r.description || '')}</td>
+          <td>${r.errors.length ? `<span class="badge badge-danger">${escapeHtml(r.errors.join('; '))}</span>` : '<span class="badge badge-success">Ready</span>'}</td>
+        </tr>
+      `).join('');
+
+      summary.style.display = 'block';
+      summary.innerHTML = `<div style="padding:12px 14px;border-radius:10px;background:#f1f5f9;color:#334155;font-size:13px;">
+        <strong>${bulkRows.length}</strong> rows found &nbsp;•&nbsp; <strong>${bulkValidRows.length}</strong> ready to import &nbsp;•&nbsp; <strong>${bulkRows.length - bulkValidRows.length}</strong> with errors
+      </div>`;
+
+      const errors = bulkRows.filter(r => r.errors.length).slice(0, 10);
+      errorsBox.style.display = errors.length ? 'block' : 'none';
+      errorsBox.innerHTML = errors.length ? `<div style="padding:12px 14px;border-radius:10px;background:#fef2f2;color:#991b1b;font-size:12px;"><strong>Fix these rows:</strong> ${errors.map(r => `Row ${r.index}: ${escapeHtml(r.errors.join(', '))}`).join(' | ')}</div>` : '';
+      document.getElementById('btn-start-bulk-import').disabled = bulkValidRows.length === 0;
+    }
+
+    function resetBulkImport() {
+      bulkRows = [];
+      bulkValidRows = [];
+      document.getElementById('bulk-csv-file').value = '';
+      document.getElementById('bulk-csv-text').value = '';
+      document.getElementById('bulk-preview-body').innerHTML = '';
+      document.getElementById('bulk-preview-wrapper').style.display = 'none';
+      document.getElementById('bulk-import-summary').style.display = 'none';
+      document.getElementById('bulk-import-errors').style.display = 'none';
+      document.getElementById('bulk-progress').style.display = 'none';
+      document.getElementById('btn-start-bulk-import').disabled = true;
+    }
+
+    function downloadBulkTemplate() {
+      const csv = [
+        'examId,subjectId,name,order,status,description',
+        'ssc,math,Percentage,1,active,Basic percentage',
+        'ssc,math,Profit and Loss,2,active,Profit and loss concepts',
+        'ssc,reasoning,Syllogism,1,active,Basic syllogism'
+      ].join('\n');
+      const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url; a.download = 'topics-import-template.csv'; a.click();
+      URL.revokeObjectURL(url);
+    }
+
+    async function startBulkImport() {
+      if (!bulkValidRows.length) return;
+      const button = document.getElementById('btn-start-bulk-import');
+      const progress = document.getElementById('bulk-progress');
+      const bar = document.getElementById('bulk-progress-bar');
+      const textEl = document.getElementById('bulk-progress-text');
+      const countEl = document.getElementById('bulk-progress-count');
+      button.disabled = true;
+      progress.style.display = 'block';
+
+      let success = 0, failed = 0;
+      for (let i = 0; i < bulkValidRows.length; i++) {
+        const row = bulkValidRows[i];
+        textEl.textContent = `Importing: ${row.name}`;
+        countEl.textContent = `${i + 1}/${bulkValidRows.length}`;
+        bar.style.width = `${Math.round(((i + 1) / bulkValidRows.length) * 100)}%`;
+        try {
+          await saveTopic({
+            id: row.id,
+            examId: row.examId,
+            examName: row.examName,
+            subjectId: row.subjectId,
+            subjectName: row.subjectName,
+            name: row.name,
+            code: row.code,
+            order: row.order,
+            status: row.status,
+            description: row.description
+          });
+          success++;
+        } catch (err) {
+          failed++;
+          console.error(`Bulk import failed for row ${row.index}:`, err);
+        }
+      }
+
+      textEl.textContent = `Import complete — ${success} successful, ${failed} failed.`;
+      countEl.textContent = `${success + failed}/${bulkValidRows.length}`;
+      bar.style.width = '100%';
+      showToast(`Bulk import complete: ${success} imported${failed ? `, ${failed} failed` : ''}.`, failed ? 'error' : 'success');
+      await loadTopics();
+      button.disabled = true;
+    }
+
     function setupEvents() {
+      document.getElementById('btn-open-bulk-import').onclick = () => {
+        resetBulkImport();
+        openModal('bulk-import-modal');
+      };
+
+      document.getElementById('btn-close-bulk-import').onclick = () => closeModal('bulk-import-modal');
+      document.getElementById('btn-cancel-bulk-import').onclick = () => closeModal('bulk-import-modal');
+      document.getElementById('btn-clear-bulk').onclick = resetBulkImport;
+      document.getElementById('btn-download-template').onclick = downloadBulkTemplate;
+      document.getElementById('btn-preview-bulk').onclick = () => {
+        try {
+          parseBulkInput();
+        } catch (err) {
+          showToast(err.message || 'Could not parse CSV', 'error');
+        }
+      };
+      document.getElementById('btn-start-bulk-import').onclick = startBulkImport;
+      document.getElementById('bulk-csv-file').onchange = async (e) => {
+        const file = e.target.files?.[0];
+        if (!file) return;
+        try {
+          document.getElementById('bulk-csv-text').value = await file.text();
+          parseBulkInput();
+        } catch (err) {
+          showToast(err.message || 'Could not read CSV file', 'error');
+        }
+      };
+
       document.getElementById('topic-search').oninput = debounce(applyFilters, 250);
       document.getElementById('filter-exam').onchange = () => {
         updateFilterSubjectDropdown();
