@@ -220,6 +220,48 @@
       }
     }
 
+    .bulk-import-text-box {
+      margin-top: 14px;
+      padding: 16px;
+      border: 1px solid #e2e8f0;
+      border-radius: 10px;
+      background: #fff;
+    }
+
+    .bulk-import-text-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      margin-bottom: 8px;
+    }
+
+    .bulk-import-text-header .form-label {
+      margin-bottom: 0;
+    }
+
+    .bulk-import-text-header span {
+      color: #64748b;
+      font-size: 11px;
+    }
+
+    .bulk-import-textarea {
+      min-height: 160px;
+      resize: vertical;
+      font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+      font-size: 12px;
+      line-height: 1.55;
+      white-space: pre;
+    }
+
+    .bulk-import-text-actions {
+      display: flex;
+      justify-content: flex-end;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin-top: 10px;
+    }
+
     .bulk-import-status {
       margin-top: 12px;
       color: #475569;
@@ -534,6 +576,36 @@
             No file selected.
           </div>
 
+        </div>
+
+        <div class="bulk-import-text-box">
+          <div class="bulk-import-text-header">
+            <label class="form-label" for="bulk-exam-text">
+              Or Paste CSV Text
+            </label>
+            <span>Same CSV format as the downloaded template</span>
+          </div>
+
+          <textarea
+            id="bulk-exam-text"
+            class="form-control bulk-import-textarea"
+            rows="8"
+            spellcheck="false"
+            placeholder="examId,name,shortName,category,description,icon,order,status,stages
+ssc-cgl,SSC CGL,SSC CGL,Central Govt,Staff Selection Commission,,1,active,Tier 1|Tier 2
+ssc-chsl,SSC CHSL,SSC CHSL,Central Govt,Combined Higher Secondary Level,,2,active,Tier 1|Tier 2
+
+Paste your CSV here..."
+          ></textarea>
+
+          <div class="bulk-import-text-actions">
+            <button type="button" class="btn btn-primary" id="btn-use-bulk-text">
+              Use Pasted Text
+            </button>
+            <button type="button" class="btn btn-secondary" id="btn-clear-bulk-text">
+              Clear Text
+            </button>
+          </div>
         </div>
 
         <div
@@ -1446,6 +1518,7 @@
       document.getElementById('bulk-exam-file').value = '';
       document.getElementById('bulk-exam-file-name').textContent =
         'No file selected.';
+      document.getElementById('bulk-exam-text').value = '';
       document.getElementById('bulk-import-status').textContent = '';
       document.getElementById('bulk-import-progress').style.display = 'none';
       document.getElementById('bulk-import-progress-bar').style.width = '0%';
@@ -1496,6 +1569,50 @@
 
     }
 
+
+    async function handleBulkTextImport() {
+
+      const text = document.getElementById('bulk-exam-text').value.trim();
+      const status = document.getElementById('bulk-import-status');
+
+      if (!text) {
+        status.textContent = 'Please paste CSV text first.';
+        showToast('Please paste CSV text first.', 'warning');
+        return;
+      }
+
+      try {
+        const csvRows = parseBulkCsv(text);
+        bulkImportRows = createBulkExamRows(csvRows);
+
+        if (!bulkImportRows.length) {
+          throw new Error('Pasted CSV contains no exam rows.');
+        }
+
+        const unknownColumns = bulkImportRows[0].unknownColumns;
+        status.textContent = unknownColumns.length
+          ? `Pasted text loaded: ${bulkImportRows.length} row(s). Ignored unsupported columns: ${unknownColumns.join(', ')}`
+          : `Pasted text loaded: ${bulkImportRows.length} row(s) ready for import.`;
+
+        bulkImportPage = 1;
+        document.getElementById('bulk-exam-file').value = '';
+        document.getElementById('bulk-exam-file-name').textContent = 'Using pasted CSV text.';
+        document.getElementById('bulk-import-confirm').style.display = 'none';
+        document.getElementById('bulk-import-result').style.display = 'none';
+        renderBulkImportPreview();
+
+      } catch (error) {
+        bulkImportRows = [];
+        status.textContent = error.message || 'Unable to parse pasted CSV text.';
+        renderBulkImportPreview();
+        showToast(error.message || 'Invalid CSV text.', 'error');
+      }
+    }
+
+    function clearBulkText() {
+      document.getElementById('bulk-exam-text').value = '';
+      document.getElementById('bulk-import-status').textContent = '';
+    }
 
     async function handleBulkFileChange(event) {
 
@@ -3021,6 +3138,14 @@
       document.getElementById(
         'bulk-exam-file'
       ).onchange = handleBulkFileChange;
+
+      document.getElementById(
+        'btn-use-bulk-text'
+      ).onclick = handleBulkTextImport;
+
+      document.getElementById(
+        'btn-clear-bulk-text'
+      ).onclick = clearBulkText;
 
       document.getElementById(
         'btn-import-exams'

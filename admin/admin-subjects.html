@@ -1,11 +1,47 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Subjects Management - RankHub Admin</title>
   <link rel="stylesheet" href="./admin.css">
+  <style>
+    .bulk-import-text-box {
+      border: 1px solid #e2e8f0;
+      border-radius: 10px;
+      padding: 14px;
+      background: #f8fafc;
+    }
+    .bulk-import-text-header {
+      display:flex;
+      justify-content:space-between;
+      align-items:center;
+      gap:10px;
+      margin-bottom:10px;
+    }
+    .bulk-import-textarea {
+      width:100%;
+      min-height:170px;
+      resize:vertical;
+      box-sizing:border-box;
+      border:1px solid #cbd5e1;
+      border-radius:8px;
+      padding:12px;
+      font-family:monospace;
+      font-size:12px;
+      line-height:1.5;
+      background:#fff;
+    }
+    .bulk-import-text-actions {
+      display:flex;
+      justify-content:flex-end;
+      gap:8px;
+      margin-top:10px;
+    }
+  </style>
 </head>
+
 <body>
   <div class="admin-layout">
     <main class="admin-main">
@@ -18,8 +54,14 @@
             <p>Define subjects linked to exams (Quantitative Aptitude, Reasoning, General Awareness, English, etc.)</p>
           </div>
           <div class="page-toolbar-actions">
+            <button type="button" class="btn btn-secondary" id="btn-open-bulk-subject-import">
+              <span>⇧</span> Bulk Import
+            </button>
             <button type="button" class="btn btn-primary" id="btn-open-add-subject">
-              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+                <line x1="12" y1="5" x2="12" y2="19" />
+                <line x1="5" y1="12" x2="19" y2="12" />
+              </svg>
               Add New Subject
             </button>
           </div>
@@ -87,11 +129,13 @@
           <div class="form-row">
             <div class="form-group">
               <label class="form-label">Subject Name <span class="required">*</span></label>
-              <input type="text" id="subject-name" class="form-control" placeholder="e.g. Quantitative Aptitude" required>
+              <input type="text" id="subject-name" class="form-control" placeholder="e.g. Quantitative Aptitude"
+                required>
             </div>
             <div class="form-group">
               <label class="form-label">Subject ID <span class="required">*</span></label>
-              <input type="text" id="subject-code" class="form-control" placeholder="Generated from Subject Name" required readonly>
+              <input type="text" id="subject-code" class="form-control" placeholder="Generated from Subject Name"
+                required readonly>
             </div>
           </div>
           <div class="form-row">
@@ -116,6 +160,51 @@
     </div>
   </div>
 
+  <!-- Bulk Import Subjects Modal -->
+  <div class="modal-backdrop" id="bulk-subject-modal">
+    <div class="modal-container" style="max-width:900px;">
+      <div class="modal-header">
+        <h3 class="modal-title">Bulk Import Subjects</h3>
+        <button type="button" class="modal-close" id="btn-close-bulk-subject-modal">✕</button>
+      </div>
+      <div class="modal-body">
+        <div class="bulk-import-text-box">
+          <div class="bulk-import-text-header">
+            <strong>CSV File</strong>
+            <button type="button" class="btn btn-secondary" id="btn-download-subject-template">Download Template</button>
+          </div>
+          <input type="file" id="bulk-subject-file" class="form-control" accept=".csv,text/csv">
+          <small id="bulk-subject-file-name" style="display:block;margin-top:8px;color:#64748b;">No file selected</small>
+        </div>
+
+        <div style="text-align:center;margin:14px 0;color:#94a3b8;font-weight:700;">OR</div>
+
+        <div class="bulk-import-text-box">
+          <div class="bulk-import-text-header">
+            <strong>Paste CSV Text</strong>
+            <span style="font-size:12px;color:#64748b;">One subject per row</span>
+          </div>
+          <textarea id="bulk-subject-text" class="bulk-import-textarea" rows="9"
+            placeholder="examId,subjectId,name,order,status
+ssc-cgl,quantitative-aptitude,Quantitative Aptitude,1,active
+ssc-cgl,reasoning,Reasoning,2,active
+ssc-cgl,english,English,3,active"></textarea>
+          <div class="bulk-import-text-actions">
+            <button type="button" class="btn btn-secondary" id="btn-clear-bulk-subject-text">Clear</button>
+            <button type="button" class="btn btn-primary" id="btn-use-bulk-subject-text">Use Pasted CSV</button>
+          </div>
+        </div>
+
+        <div id="bulk-subject-import-status" style="margin-top:14px;color:#475569;"></div>
+        <div id="bulk-subject-import-preview" style="margin-top:14px;max-height:260px;overflow:auto;"></div>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" id="btn-cancel-bulk-subject">Cancel</button>
+        <button type="button" class="btn btn-primary" id="btn-import-subjects">Import Subjects</button>
+      </div>
+    </div>
+  </div>
+
   <script type="module">
     import { initAdminLayout } from './admin-sidebar.js';
     import { getFirestoreExams, getFirestoreSubjects, saveSubject, deleteFirestoreSubject } from './admin-db.js';
@@ -125,6 +214,7 @@
     let allExams = [];
     let allSubjects = [];
     let filteredSubjects = [];
+    let bulkSubjectRows = [];
 
     window.addEventListener('rankhub:bulk-delete-complete', () => loadSubjects());
 
@@ -147,7 +237,7 @@
       const filterSelect = document.getElementById('filter-exam');
       const modalSelect = document.getElementById('subject-exam-id');
 
-      filterSelect.innerHTML = '<option value="">All Exams</option>' + 
+      filterSelect.innerHTML = '<option value="">All Exams</option>' +
         allExams.map(e => `<option value="${e.id}" ${preselectedExamId === e.id ? 'selected' : ''}>${escapeHtml(e.name)}</option>`).join('');
 
       modalSelect.innerHTML = '<option value="">-- Choose Exam --</option>' +
@@ -290,10 +380,206 @@
       });
     }
 
+    function parseSubjectCsv(text) {
+      const lines = text.split(/\r?\n/).map(line => line.trim()).filter(Boolean);
+      if (!lines.length) throw new Error('CSV is empty.');
+
+      const parseLine = (line) => {
+        const cells = [];
+        let current = '';
+        let quoted = false;
+        for (let i = 0; i < line.length; i++) {
+          const ch = line[i];
+          if (ch === '"') {
+            if (quoted && line[i + 1] === '"') {
+              current += '"';
+              i++;
+            } else {
+              quoted = !quoted;
+            }
+          } else if (ch === ',' && !quoted) {
+            cells.push(current.trim());
+            current = '';
+          } else {
+            current += ch;
+          }
+        }
+        cells.push(current.trim());
+        return cells;
+      };
+
+      const first = parseLine(lines[0]).map(x => x.toLowerCase().replace(/^\uFEFF/, ''));
+      const expected = ['examid', 'subjectid', 'name', 'order', 'status'];
+      const hasHeader = expected.every((key, i) => first[i] === key);
+
+      return lines.slice(hasHeader ? 1 : 0).map((line, index) => {
+        const c = parseLine(line);
+        return {
+          examId: c[0] || '',
+          subjectId: c[1] || '',
+          name: c[2] || '',
+          order: c[3] || '1',
+          status: c[4] || 'active',
+          _row: index + (hasHeader ? 2 : 1)
+        };
+      });
+    }
+
+    function renderBulkSubjectPreview() {
+      const box = document.getElementById('bulk-subject-import-preview');
+      if (!bulkSubjectRows.length) {
+        box.innerHTML = '';
+        return;
+      }
+      box.innerHTML = `
+        <div style="font-weight:700;margin-bottom:8px;">Preview: ${bulkSubjectRows.length} subject(s)</div>
+        <div class="table-responsive">
+          <table class="data-table">
+            <thead><tr><th>Exam ID</th><th>Subject ID</th><th>Name</th><th>Order</th><th>Status</th></tr></thead>
+            <tbody>
+              ${bulkSubjectRows.map(r => `
+                <tr>
+                  <td>${escapeHtml(r.examId)}</td>
+                  <td><code>${escapeHtml(r.subjectId)}</code></td>
+                  <td>${escapeHtml(r.name)}</td>
+                  <td>${escapeHtml(r.order)}</td>
+                  <td>${escapeHtml(r.status)}</td>
+                </tr>
+              `).join('')}
+            </tbody>
+          </table>
+        </div>`;
+    }
+
+    function prepareBulkSubjectImport(text, sourceLabel) {
+      const rows = parseSubjectCsv(text);
+      const invalid = rows.filter(r => !r.examId || !r.name || !r.subjectId);
+      if (invalid.length) {
+        throw new Error(`Invalid CSV: row ${invalid[0]._row} needs examId, subjectId and name.`);
+      }
+      const unknownExam = rows.find(r => !allExams.some(e => e.id === r.examId));
+      if (unknownExam) {
+        throw new Error(`Exam ID "${unknownExam.examId}" was not found in Firestore.`);
+      }
+      bulkSubjectRows = rows;
+      document.getElementById('bulk-subject-import-status').textContent =
+        `${rows.length} subject(s) ready from ${sourceLabel}.`;
+      renderBulkSubjectPreview();
+    }
+
+    async function importBulkSubjects() {
+      if (!bulkSubjectRows.length) {
+        showToast('Please select a CSV file or paste CSV text first.', 'error');
+        return;
+      }
+
+      const btn = document.getElementById('btn-import-subjects');
+      btn.disabled = true;
+      let success = 0;
+      let failed = 0;
+
+      for (const row of bulkSubjectRows) {
+        try {
+          const exam = allExams.find(e => e.id === row.examId);
+          await saveSubject({
+            id: row.subjectId,
+            examId: row.examId,
+            examName: exam ? exam.name : '',
+            name: row.name,
+            code: row.subjectId,
+            order: row.order || '1',
+            status: row.status || 'active'
+          });
+          success++;
+        } catch (err) {
+          console.error('Bulk subject import failed:', row, err);
+          failed++;
+        }
+      }
+
+      btn.disabled = false;
+      showToast(`Imported ${success} subject(s)${failed ? `, ${failed} failed` : ''}.`, failed ? 'error' : 'success');
+      if (failed === 0) {
+        document.getElementById('bulk-subject-modal').classList.remove('active');
+        resetBulkSubjectImport();
+      }
+      await loadSubjects();
+    }
+
+    function resetBulkSubjectImport() {
+      bulkSubjectRows = [];
+      document.getElementById('bulk-subject-file').value = '';
+      document.getElementById('bulk-subject-file-name').textContent = 'No file selected';
+      document.getElementById('bulk-subject-text').value = '';
+      document.getElementById('bulk-subject-import-status').textContent = '';
+      document.getElementById('bulk-subject-import-preview').innerHTML = '';
+    }
+
+    function downloadSubjectTemplate() {
+      const csv = [
+        'examId,subjectId,name,order,status',
+        'ssc-cgl,quantitative-aptitude,Quantitative Aptitude,1,active',
+        'ssc-cgl,reasoning,Reasoning,2,active',
+        'ssc-cgl,english,English,3,active'
+      ].join('\n');
+      const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = 'subjects-import-template.csv';
+      a.click();
+      URL.revokeObjectURL(url);
+    }
+
     function setupEvents() {
       document.getElementById('subject-search').oninput = debounce(applyFilters, 250);
       document.getElementById('filter-exam').onchange = applyFilters;
       document.getElementById('filter-status').onchange = applyFilters;
+
+      document.getElementById('btn-open-bulk-subject-import').onclick = () => {
+        resetBulkSubjectImport();
+        openModal('bulk-subject-modal');
+      };
+
+      document.getElementById('btn-close-bulk-subject-modal').onclick = () => {
+        closeModal('bulk-subject-modal');
+        resetBulkSubjectImport();
+      };
+      document.getElementById('btn-cancel-bulk-subject').onclick = () => {
+        closeModal('bulk-subject-modal');
+        resetBulkSubjectImport();
+      };
+
+      document.getElementById('btn-download-subject-template').onclick = downloadSubjectTemplate;
+
+      document.getElementById('btn-clear-bulk-subject-text').onclick = () => {
+        document.getElementById('bulk-subject-text').value = '';
+        bulkSubjectRows = [];
+        document.getElementById('bulk-subject-import-status').textContent = '';
+        document.getElementById('bulk-subject-import-preview').innerHTML = '';
+      };
+
+      document.getElementById('btn-use-bulk-subject-text').onclick = () => {
+        try {
+          prepareBulkSubjectImport(document.getElementById('bulk-subject-text').value, 'pasted CSV');
+        } catch (err) {
+          showToast(err.message || 'Invalid CSV', 'error');
+        }
+      };
+
+      document.getElementById('bulk-subject-file').onchange = async (e) => {
+        const file = e.target.files?.[0];
+        if (!file) return;
+        document.getElementById('bulk-subject-file-name').textContent = file.name;
+        try {
+          const text = await file.text();
+          prepareBulkSubjectImport(text, 'CSV file');
+        } catch (err) {
+          showToast(err.message || 'Unable to read CSV file', 'error');
+        }
+      };
+
+      document.getElementById('btn-import-subjects').onclick = importBulkSubjects;
 
       document.getElementById('btn-open-add-subject').onclick = () => {
         document.getElementById('subject-form').reset();
@@ -361,4 +647,5 @@
     }
   </script>
 </body>
+
 </html>

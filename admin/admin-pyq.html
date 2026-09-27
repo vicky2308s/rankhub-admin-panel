@@ -48,10 +48,6 @@
       padding-bottom: 120px !important;
     }
 
-    /* =========================================================
-       TABLE SCROLL
-       ========================================================= */
-
     .table-responsive {
       width: 100%;
       max-width: 100%;
@@ -113,24 +109,16 @@
 
     .modal-body {
       flex: 1 1 auto;
-
       min-height: 0;
-
       overflow-y: auto !important;
       overflow-x: hidden !important;
-
       -webkit-overflow-scrolling: touch;
-
       scrollbar-width: thin;
     }
 
     .modal-footer {
       flex: 0 0 auto;
     }
-
-    /* =========================================================
-       FORM SAFETY
-       ========================================================= */
 
     #pyq-form {
       display: flex;
@@ -145,9 +133,143 @@
 
     .form-control,
     select,
-    input {
+    input,
+    textarea {
       max-width: 100%;
       box-sizing: border-box;
+    }
+
+    /* =========================================================
+       BULK IMPORT
+       ========================================================= */
+
+    .bulk-import-container {
+      max-width: 1000px;
+    }
+
+    .bulk-section {
+      margin-bottom: 18px;
+    }
+
+    .bulk-label {
+      display: block;
+      font-weight: 700;
+      font-size: 13px;
+      margin-bottom: 7px;
+      color: #334155;
+    }
+
+    .bulk-help {
+      font-size: 12px;
+      color: #64748b;
+      margin-top: 6px;
+      line-height: 1.5;
+    }
+
+    .bulk-textarea {
+      width: 100%;
+      min-height: 180px;
+      resize: vertical;
+      padding: 12px;
+      border: 1px solid #cbd5e1;
+      border-radius: 8px;
+      font-family: monospace;
+      font-size: 12px;
+      line-height: 1.5;
+      box-sizing: border-box;
+    }
+
+    .bulk-file-box {
+      border: 2px dashed #cbd5e1;
+      border-radius: 10px;
+      padding: 20px;
+      text-align: center;
+      background: #f8fafc;
+    }
+
+    .bulk-file-box input[type="file"] {
+      width: 100%;
+      max-width: 100%;
+    }
+
+    .bulk-preview {
+      max-height: 360px;
+      overflow: auto;
+      border: 1px solid #e2e8f0;
+      border-radius: 8px;
+      margin-top: 12px;
+    }
+
+    .bulk-preview table {
+      width: 100%;
+      border-collapse: collapse;
+      min-width: 900px;
+      font-size: 12px;
+    }
+
+    .bulk-preview th,
+    .bulk-preview td {
+      border-bottom: 1px solid #e2e8f0;
+      padding: 8px;
+      text-align: left;
+      white-space: nowrap;
+    }
+
+    .bulk-preview th {
+      background: #f8fafc;
+      position: sticky;
+      top: 0;
+      z-index: 1;
+    }
+
+    .bulk-status {
+      margin-top: 10px;
+      padding: 10px 12px;
+      border-radius: 7px;
+      background: #f8fafc;
+      color: #475569;
+      font-size: 13px;
+      display: none;
+    }
+
+    .bulk-status.error {
+      display: block;
+      background: #fef2f2;
+      color: #b91c1c;
+      border: 1px solid #fecaca;
+    }
+
+    .bulk-status.success {
+      display: block;
+      background: #f0fdf4;
+      color: #15803d;
+      border: 1px solid #bbf7d0;
+    }
+
+    .bulk-status.info {
+      display: block;
+      background: #eff6ff;
+      color: #1d4ed8;
+      border: 1px solid #bfdbfe;
+    }
+
+    .bulk-actions {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin-top: 10px;
+    }
+
+    .bulk-code {
+      background: #0f172a;
+      color: #e2e8f0;
+      padding: 12px;
+      border-radius: 8px;
+      overflow-x: auto;
+      font-family: monospace;
+      font-size: 11px;
+      white-space: pre;
+      line-height: 1.5;
     }
 
     /* =========================================================
@@ -167,9 +289,7 @@
       .modal-container {
         width: 100% !important;
         max-width: 100% !important;
-
         max-height: calc(100vh - 30px) !important;
-
         margin-bottom: 15px !important;
       }
 
@@ -189,11 +309,15 @@
       .form-row .form-group {
         width: 100%;
       }
-    }
 
-    /* =========================================================
-       EXTRA SAFETY AGAINST ADMIN.CSS OVERFLOW RULES
-       ========================================================= */
+      .bulk-actions {
+        flex-direction: column;
+      }
+
+      .bulk-actions .btn {
+        width: 100%;
+      }
+    }
 
     .admin-layout,
     .admin-main,
@@ -212,7 +336,6 @@
 
   <div class="admin-layout">
 
-    
     <main class="admin-main">
 
       <header class="admin-header"></header>
@@ -223,19 +346,41 @@
         <div class="page-toolbar">
 
           <div class="page-toolbar-info">
+
             <h1>Previous Year Papers (PYQ)</h1>
 
             <p>
               Publish official past question papers, answer keys,
               and shift-wise solved PDFs.
             </p>
+
           </div>
 
           <div class="page-toolbar-actions">
 
-            <button type="button" class="btn btn-primary" id="btn-open-add-pyq">
+            <!-- BULK IMPORT BUTTON -->
+            <button
+              type="button"
+              class="btn btn-secondary"
+              id="btn-open-bulk-pyq">
 
-              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+              📥 Bulk Import
+
+            </button>
+
+            <!-- ADD PYQ -->
+            <button
+              type="button"
+              class="btn btn-primary"
+              id="btn-open-add-pyq">
+
+              <svg
+                width="16"
+                height="16"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2.5">
 
                 <line x1="12" y1="5" x2="12" y2="19" />
                 <line x1="5" y1="12" x2="19" y2="12" />
@@ -252,6 +397,7 @@
 
 
         <!-- PYQ TABLE CARD -->
+
         <div class="card">
 
           <div class="filter-bar">
@@ -260,12 +406,17 @@
 
               <span class="search-icon">🔍</span>
 
-              <input type="text" id="pyq-search" placeholder="Search PYQ papers by exam, year, shift...">
+              <input
+                type="text"
+                id="pyq-search"
+                placeholder="Search PYQ papers by exam, year, shift...">
 
             </div>
 
 
-            <select id="filter-exam" class="filter-select">
+            <select
+              id="filter-exam"
+              class="filter-select">
 
               <option value="">
                 All Exams
@@ -285,19 +436,12 @@
                 <tr>
 
                   <th>Paper Title</th>
-
                   <th>Exam</th>
-
                   <th>Stage / Tier</th>
-
                   <th>Year & Shift</th>
-
                   <th>Questions</th>
-
                   <th>Answer Key</th>
-
                   <th>PDF Link</th>
-
                   <th>Status</th>
 
                   <th style="text-align:right;">
@@ -313,7 +457,9 @@
 
                 <tr>
 
-                  <td colspan="9" class="loading-state">
+                  <td
+                    colspan="9"
+                    class="loading-state">
 
                     <div class="spinner"></div>
 
@@ -336,31 +482,35 @@
       </div>
 
     </main>
-    
 
   </div>
+
 
   <!-- =========================================================
        ADD / EDIT PYQ MODAL
        ========================================================= -->
 
-  <div class="modal-backdrop" id="pyq-modal" style="display:none;">
+  <div
+    class="modal-backdrop"
+    id="pyq-modal"
+    style="display:none;">
 
-    
     <div class="modal-container modal-md">
-
-      <!-- HEADER -->
 
       <div class="modal-header">
 
-        <h3 class="modal-title" id="pyq-modal-title">
+        <h3
+          class="modal-title"
+          id="pyq-modal-title">
 
           Upload Previous Year Paper
 
         </h3>
 
-
-        <button type="button" class="modal-close" id="btn-close-pyq-modal">
+        <button
+          type="button"
+          class="modal-close"
+          id="btn-close-pyq-modal">
 
           ✕
 
@@ -369,21 +519,34 @@
       </div>
 
 
-      <!-- FORM -->
-
       <form id="pyq-form">
-
-        <!-- SCROLLABLE BODY -->
 
         <div class="modal-body">
 
-          <input type="hidden" id="pyq-id">
+          <input
+            type="hidden"
+            id="pyq-id">
+
+
+          <!-- PYQ ID -->
 
           <div class="form-group">
+
             <label class="form-label">
-              PYQ ID <span class="required">*</span>
+
+              PYQ ID
+              <span class="required">*</span>
+
             </label>
-            <input type="text" id="pyq-code" class="form-control" placeholder="Generated from Paper Title" required readonly>
+
+            <input
+              type="text"
+              id="pyq-code"
+              class="form-control"
+              placeholder="Generated from Paper Title"
+              required
+              readonly>
+
           </div>
 
 
@@ -395,14 +558,14 @@
 
               Target Exam
 
-              <span class="required">
-                *
-              </span>
+              <span class="required">*</span>
 
             </label>
 
-
-            <select id="pyq-exam-id" class="form-control" required>
+            <select
+              id="pyq-exam-id"
+              class="form-control"
+              required>
 
               <option value="">
                 -- Select Exam --
@@ -413,7 +576,7 @@
           </div>
 
 
-          <!-- STAGE / TIER (Added to match Mock Test) -->
+          <!-- STAGE -->
 
           <div class="form-group">
 
@@ -421,7 +584,9 @@
               Stage / Tier
             </label>
 
-            <select id="pyq-stage-id" class="form-control">
+            <select
+              id="pyq-stage-id"
+              class="form-control">
 
               <option value="">
                 No Stage / Tier
@@ -429,8 +594,12 @@
 
             </select>
 
-            <div class="field-help" style="margin-top: 5px; font-size: 11.5px; color: #64748b;">
+            <div
+              class="field-help"
+              style="margin-top:5px;font-size:11.5px;color:#64748b;">
+
               Only stages saved for the selected exam are available.
+
             </div>
 
           </div>
@@ -443,16 +612,16 @@
             <label class="form-label">
 
               Paper Title
-
-              <span class="required">
-                *
-              </span>
+              <span class="required">*</span>
 
             </label>
 
-
-            <input type="text" id="pyq-title" class="form-control"
-              placeholder="e.g. SSC CGL 2024 Tier-1 Official Question Paper with Answer Key" required>
+            <input
+              type="text"
+              id="pyq-title"
+              class="form-control"
+              placeholder="e.g. SSC CGL 2024 Tier-1 Official Question Paper with Answer Key"
+              required>
 
           </div>
 
@@ -466,15 +635,18 @@
               <label class="form-label">
 
                 Exam Year
-
-                <span class="required">
-                  *
-                </span>
+                <span class="required">*</span>
 
               </label>
 
-
-              <input type="number" id="pyq-year" class="form-control" value="2024" min="2000" max="2030" required>
+              <input
+                type="number"
+                id="pyq-year"
+                class="form-control"
+                value="2024"
+                min="2000"
+                max="2030"
+                required>
 
             </div>
 
@@ -485,8 +657,11 @@
                 Shift / Slot
               </label>
 
-
-              <input type="text" id="pyq-shift" class="form-control" placeholder="e.g. Shift 1 (9 AM to 10 AM)">
+              <input
+                type="text"
+                id="pyq-shift"
+                class="form-control"
+                placeholder="e.g. Shift 1 (9 AM to 10 AM)">
 
             </div>
 
@@ -503,8 +678,12 @@
                 Total Questions
               </label>
 
-
-              <input type="number" id="pyq-total-q" class="form-control" value="100" min="1">
+              <input
+                type="number"
+                id="pyq-total-q"
+                class="form-control"
+                value="100"
+                min="1">
 
             </div>
 
@@ -515,8 +694,9 @@
                 Answer Key Included?
               </label>
 
-
-              <select id="pyq-has-key" class="form-control">
+              <select
+                id="pyq-has-key"
+                class="form-control">
 
                 <option value="true">
                   Yes, with Official Key
@@ -541,9 +721,11 @@
               PDF Download / Viewer URL
             </label>
 
-
-            <input type="url" id="pyq-pdf-url" class="form-control"
-              placeholder="https://storage.googleapis.com/.../ssc-cgl-2024-shift1.pdf">
+            <input
+              type="url"
+              id="pyq-pdf-url"
+              class="form-control"
+              placeholder="https://storage.googleapis.com/.../paper.pdf">
 
           </div>
 
@@ -556,8 +738,9 @@
               Status
             </label>
 
-
-            <select id="pyq-status" class="form-control">
+            <select
+              id="pyq-status"
+              class="form-control">
 
               <option value="active">
                 Active
@@ -574,18 +757,22 @@
         </div>
 
 
-        <!-- FOOTER -->
-
         <div class="modal-footer">
 
-          <button type="button" class="btn btn-secondary" id="btn-cancel-pyq">
+          <button
+            type="button"
+            class="btn btn-secondary"
+            id="btn-cancel-pyq">
 
             Cancel
 
           </button>
 
 
-          <button type="submit" class="btn btn-primary" id="btn-save-pyq">
+          <button
+            type="submit"
+            class="btn btn-primary"
+            id="btn-save-pyq">
 
             Save Paper
 
@@ -596,9 +783,236 @@
       </form>
 
     </div>
-    
 
   </div>
+
+
+  <!-- =========================================================
+       BULK IMPORT MODAL
+       ========================================================= -->
+
+  <div
+    class="modal-backdrop"
+    id="bulk-pyq-modal"
+    style="display:none;">
+
+    <div
+      class="modal-container bulk-import-container">
+
+      <!-- HEADER -->
+
+      <div class="modal-header">
+
+        <h3 class="modal-title">
+
+          Bulk Import PYQ Papers
+
+        </h3>
+
+        <button
+          type="button"
+          class="modal-close"
+          id="btn-close-bulk-pyq">
+
+          ✕
+
+        </button>
+
+      </div>
+
+
+      <!-- BODY -->
+
+      <div class="modal-body">
+
+        <!-- INFO -->
+
+        <div class="bulk-section">
+
+          <div
+            style="
+              background:#eff6ff;
+              border:1px solid #bfdbfe;
+              color:#1e40af;
+              padding:12px;
+              border-radius:8px;
+              font-size:13px;
+              line-height:1.6;
+            ">
+
+            <strong>Bulk Import:</strong>
+
+            CSV File upload ya CSV text paste karke
+            multiple PYQ papers ek saath Firestore me add karein.
+
+            <br>
+
+            <strong>Required:</strong>
+            examId aur title
+
+          </div>
+
+        </div>
+
+
+        <!-- CSV FILE -->
+
+        <div class="bulk-section">
+
+          <label class="bulk-label">
+            1. Upload CSV File
+          </label>
+
+          <div class="bulk-file-box">
+
+            <input
+              type="file"
+              id="pyq-csv-file"
+              accept=".csv,text/csv">
+
+            <div class="bulk-help">
+
+              CSV file select karein.
+
+            </div>
+
+          </div>
+
+        </div>
+
+
+        <!-- OR TEXT -->
+
+        <div
+          style="
+            text-align:center;
+            color:#94a3b8;
+            margin:10px 0;
+            font-size:12px;
+          ">
+
+          — OR —
+
+        </div>
+
+
+        <!-- CSV TEXT -->
+
+        <div class="bulk-section">
+
+          <label class="bulk-label">
+
+            2. Paste CSV Text
+
+          </label>
+
+          <textarea
+            id="pyq-csv-text"
+            class="bulk-textarea"
+            placeholder="id,examId,stageId,stageName,title,year,shift,totalQuestions,hasAnswerKey,pdfUrl,status
+ssc-cgl-2024-tier-1-shift-1,ssc-cgl,tier-1,Tier 1,SSC CGL 2024 Tier 1 Shift 1,2024,Shift 1,100,true,https://example.com/paper.pdf,active"></textarea>
+
+          <div class="bulk-help">
+
+            Header row ke saath CSV paste karein.
+
+          </div>
+
+        </div>
+
+
+        <!-- ACTIONS -->
+
+        <div class="bulk-actions">
+
+          <button
+            type="button"
+            class="btn btn-secondary"
+            id="btn-download-pyq-template">
+
+            ⬇ Download CSV Template
+
+          </button>
+
+
+          <button
+            type="button"
+            class="btn btn-secondary"
+            id="btn-preview-pyq">
+
+            👁 Preview CSV
+
+          </button>
+
+        </div>
+
+
+        <!-- STATUS -->
+
+        <div
+          id="pyq-bulk-status"
+          class="bulk-status">
+        </div>
+
+
+        <!-- PREVIEW -->
+
+        <div
+          id="pyq-bulk-preview"
+          class="bulk-preview"
+          style="display:none;">
+
+        </div>
+
+
+        <!-- CSV FORMAT -->
+
+        <div
+          class="bulk-section"
+          style="margin-top:20px;">
+
+          <label class="bulk-label">
+            CSV Format
+          </label>
+
+          <div class="bulk-code">id,examId,stageId,stageName,title,year,shift,totalQuestions,hasAnswerKey,pdfUrl,status
+ssc-cgl-2024-tier-1-shift-1,ssc-cgl,tier-1,Tier 1,SSC CGL 2024 Tier 1 Shift 1,2024,Shift 1,100,true,https://example.com/paper.pdf,active
+ssc-cgl-2024-tier-1-shift-2,ssc-cgl,tier-1,Tier 1,SSC CGL 2024 Tier 1 Shift 2,2024,Shift 2,100,true,https://example.com/paper2.pdf,active</div>
+
+        </div>
+
+      </div>
+
+
+      <!-- FOOTER -->
+
+      <div class="modal-footer">
+
+        <button
+          type="button"
+          class="btn btn-secondary"
+          id="btn-cancel-bulk-pyq">
+
+          Cancel
+
+        </button>
+
+
+        <button
+          type="button"
+          class="btn btn-primary"
+          id="btn-import-pyq">
+
+          Import PYQ Papers
+
+        </button>
+
+      </div>
+
+    </div>
+
+  </div>
+
 
   <!-- =========================================================
        JAVASCRIPT
@@ -618,7 +1032,10 @@
       deleteFirestorePYQ
     } from './admin-db.js';
 
-    import { generateIdFromName } from './id-utils.js';
+
+    import {
+      generateIdFromName
+    } from './id-utils.js';
 
 
     import {
@@ -638,7 +1055,13 @@
 
     let filteredPYQ = [];
 
-    window.addEventListener('rankhub:bulk-delete-complete', () => loadPYQ());
+    let bulkRows = [];
+
+
+    window.addEventListener(
+      'rankhub:bulk-delete-complete',
+      () => loadPYQ()
+    );
 
 
     /* =========================================================
@@ -658,97 +1081,300 @@
 
         setupEvents();
 
+        setupBulkImport();
+
       }
     );
 
 
     /* =========================================================
-       STAGE NORMALIZATION (Copied safely from Mock Tests)
+       STAGE NORMALIZATION
        ========================================================= */
 
     function normalizeExamStages(exam) {
+
       let rawStages = [];
+
       if (Array.isArray(exam?.stages)) {
+
         rawStages = exam.stages;
+
       } else if (exam?.stages) {
+
         rawStages = [exam.stages];
-      } else if (exam?.stage ?? exam?.stageName) {
-        rawStages = [exam.stage ?? exam.stageName];
+
+      } else if (
+        exam?.stage ??
+        exam?.stageName
+      ) {
+
+        rawStages = [
+          exam.stage ??
+          exam.stageName
+        ];
+
       }
+
 
       const normalized = [];
-      rawStages.forEach((rawStage, index) => {
-        const stage = typeof rawStage === 'string' ? { name: rawStage } : rawStage && typeof rawStage === 'object' ? rawStage : null;
-        if (!stage) return;
 
-        const status = stage.status ?? (stage.active === false ? 'inactive' : 'active');
-        if (String(status).toLowerCase() === 'inactive') return;
 
-        const name = String(stage.name ?? stage.title ?? stage.stage ?? stage.stageName ?? stage.label ?? '').trim();
-        if (!name) return;
+      rawStages.forEach(
+        (rawStage, index) => {
+
+          const stage =
+            typeof rawStage === 'string'
+              ? { name: rawStage }
+              : rawStage &&
+                typeof rawStage === 'object'
+                ? rawStage
+                : null;
+
+
+          if (!stage) return;
+
+
+          const status =
+            stage.status ??
+            (
+              stage.active === false
+                ? 'inactive'
+                : 'active'
+            );
+
+
+          if (
+            String(status).toLowerCase() ===
+            'inactive'
+          ) return;
+
+
+          const name =
+            String(
+              stage.name ??
+              stage.title ??
+              stage.stage ??
+              stage.stageName ??
+              stage.label ??
+              ''
+            ).trim();
+
+
+          if (!name) return;
+
+
+          normalized.push({
+
+            id:
+              String(
+                stage.id ??
+                stage.stageId ??
+                stage.tierId ??
+                ''
+              ).trim(),
+
+            name,
+
+            code:
+              String(
+                stage.code ?? ''
+              ).trim(),
+
+            order:
+              stage.order ?? index
+
+          });
+
+        }
+      );
+
+
+      const legacyStage =
+        exam?.stageName ??
+        exam?.stage;
+
+
+      if (
+        !normalized.length &&
+        typeof legacyStage === 'string' &&
+        legacyStage.trim()
+      ) {
 
         normalized.push({
-          id: String(stage.id ?? stage.stageId ?? stage.tierId ?? '').trim(),
-          name,
-          code: String(stage.code ?? '').trim(),
-          order: stage.order ?? index
-        });
-      });
 
-      const legacyStage = exam?.stageName ?? exam?.stage;
-      if (!normalized.length && typeof legacyStage === 'string' && legacyStage.trim()) {
-        normalized.push({
-          id: String(exam?.stageId ?? '').trim(),
-          name: legacyStage.trim(),
+          id:
+            String(
+              exam?.stageId ?? ''
+            ).trim(),
+
+          name:
+            legacyStage.trim(),
+
           code: '',
+
           order: 0
+
         });
+
       }
 
-      return normalized.sort((left, right) => Number(left.order) - Number(right.order));
+
+      return normalized.sort(
+        (left, right) =>
+          Number(left.order) -
+          Number(right.order)
+      );
+
     }
+
 
     function getExamStages(examId) {
-      const exam = allExams.find(item => String(item.id) === String(examId));
-      return exam ? normalizeExamStages(exam) : [];
+
+      const exam =
+        allExams.find(
+          item =>
+            String(item.id) ===
+            String(examId)
+        );
+
+
+      return exam
+        ? normalizeExamStages(exam)
+        : [];
+
     }
+
 
     function resolvePYQStage(p) {
-      const stages = getExamStages(p.examId);
-      const stageId = String(p.stageId ?? '').trim();
-      const savedName = String(p.stageName ?? p.stage ?? '').trim();
 
-      const matched = stages.find(stage =>
-        (stageId && stage.id === stageId) ||
-        (savedName && stage.name === savedName) ||
-        (savedName && stage.code === savedName)
-      );
+      const stages =
+        getExamStages(p.examId);
+
+
+      const stageId =
+        String(
+          p.stageId ?? ''
+        ).trim();
+
+
+      const savedName =
+        String(
+          p.stageName ??
+          p.stage ??
+          ''
+        ).trim();
+
+
+      const matched =
+        stages.find(
+          stage =>
+
+            (
+              stageId &&
+              stage.id === stageId
+            )
+
+            ||
+
+            (
+              savedName &&
+              stage.name === savedName
+            )
+
+            ||
+
+            (
+              savedName &&
+              stage.code === savedName
+            )
+        );
+
 
       return {
-        stageId: matched?.id || stageId || null,
-        stageName: matched?.name || savedName || ''
+
+        stageId:
+          matched?.id ||
+          stageId ||
+          null,
+
+        stageName:
+          matched?.name ||
+          savedName ||
+          ''
+
       };
+
     }
 
-    function populateStageDropdown(examId, selectedStageId = '', selectedStageName = '') {
-      const select = document.getElementById('pyq-stage-id');
+
+    function populateStageDropdown(
+      examId,
+      selectedStageId = '',
+      selectedStageName = ''
+    ) {
+
+      const select =
+        document.getElementById(
+          'pyq-stage-id'
+        );
+
+
       if (!select) return;
 
-      const stages = getExamStages(examId);
+
+      const stages =
+        getExamStages(examId);
+
+
       select.innerHTML =
+
         '<option value="">No Stage / Tier</option>' +
-        stages.map(stage => `
-          <option value="${escapeHtml(stage.id || stage.name)}">
-            ${escapeHtml(stage.name)}
-          </option>
-        `).join('');
 
-      const selected = stages.find(stage =>
-        (selectedStageId && stage.id === String(selectedStageId)) ||
-        (selectedStageName && stage.name === String(selectedStageName))
-      );
+        stages
+          .map(
+            stage => `
 
-      select.value = selected ? selected.id || selected.name : '';
+              <option value="${escapeHtml(
+                stage.id || stage.name
+              )}">
+
+                ${escapeHtml(
+                  stage.name
+                )}
+
+              </option>
+
+            `
+          )
+          .join('');
+
+
+      const selected =
+        stages.find(
+          stage =>
+
+            (
+              selectedStageId &&
+              stage.id ===
+              String(selectedStageId)
+            )
+
+            ||
+
+            (
+              selectedStageName &&
+              stage.name ===
+              String(selectedStageName)
+            )
+        );
+
+
+      select.value =
+        selected
+          ? selected.id ||
+            selected.name
+          : '';
+
     }
 
 
@@ -763,12 +1389,15 @@
         allExams =
           await getFirestoreExams();
 
-        if (!Array.isArray(allExams)) {
+
+        if (
+          !Array.isArray(allExams)
+        ) {
+
           allExams = [];
+
         }
 
-
-        /* FILTER EXAM */
 
         const fExam =
           document.getElementById(
@@ -777,19 +1406,26 @@
 
 
         fExam.innerHTML =
+
           '<option value="">All Exams</option>' +
 
           allExams
             .map(
-              e =>
-                `<option value="${escapeHtml(e.id)}">
-                  ${escapeHtml(e.name || e.title)}
-                </option>`
+              e => `
+
+                <option value="${escapeHtml(e.id)}">
+
+                  ${escapeHtml(
+                    e.name ||
+                    e.title
+                  )}
+
+                </option>
+
+              `
             )
             .join('');
 
-
-        /* MODAL EXAM */
 
         const mExam =
           document.getElementById(
@@ -798,19 +1434,29 @@
 
 
         mExam.innerHTML =
+
           '<option value="">-- Select Exam --</option>' +
 
           allExams
             .map(
-              e =>
-                `<option value="${escapeHtml(e.id)}">
-                  ${escapeHtml(e.name || e.title)}
-                </option>`
+              e => `
+
+                <option value="${escapeHtml(e.id)}">
+
+                  ${escapeHtml(
+                    e.name ||
+                    e.title
+                  )}
+
+                </option>
+
+              `
             )
             .join('');
 
 
         await loadPYQ();
+
 
       } catch (error) {
 
@@ -818,6 +1464,7 @@
           'PYQ page initialization failed:',
           error
         );
+
 
         showToast(
           error.message ||
@@ -843,7 +1490,9 @@
 
 
       tbody.innerHTML = `
+
         <tr>
+
           <td
             colspan="9"
             class="loading-state">
@@ -855,7 +1504,9 @@
             </p>
 
           </td>
+
         </tr>
+
       `;
 
 
@@ -863,8 +1514,15 @@
 
         const rawPYQ =
           await getFirestorePYQ(
-            document.getElementById('filter-exam')?.value ||
-            new URLSearchParams(window.location.search).get('examId')
+
+            document.getElementById(
+              'filter-exam'
+            )?.value ||
+
+            new URLSearchParams(
+              window.location.search
+            ).get('examId')
+
           );
 
 
@@ -874,16 +1532,42 @@
             : [];
 
 
-        allPYQ = list.map(p => {
-          const exam = allExams.find(e => String(e.id) === String(p.examId));
-          const resolvedStage = resolvePYQStage(p);
-          return {
-            ...p,
-            examName: p.examName || exam?.name || exam?.title || 'Unknown Exam',
-            resolvedStageId: resolvedStage.stageId,
-            resolvedStageName: resolvedStage.stageName
-          };
-        });
+        allPYQ =
+          list.map(
+            p => {
+
+              const exam =
+                allExams.find(
+                  e =>
+                    String(e.id) ===
+                    String(p.examId)
+                );
+
+
+              const resolvedStage =
+                resolvePYQStage(p);
+
+
+              return {
+
+                ...p,
+
+                examName:
+                  p.examName ||
+                  exam?.name ||
+                  exam?.title ||
+                  'Unknown Exam',
+
+                resolvedStageId:
+                  resolvedStage.stageId,
+
+                resolvedStageName:
+                  resolvedStage.stageName
+
+              };
+
+            }
+          );
 
 
         applyFilters();
@@ -1064,19 +1748,22 @@
 
               const safeTitle =
                 escapeHtml(
-                  p.title || 'Untitled PYQ'
+                  p.title ||
+                  'Untitled PYQ'
                 );
 
 
               const safeExam =
                 escapeHtml(
-                  p.examName || 'Exam'
+                  p.examName ||
+                  'Exam'
                 );
 
 
               const safeShift =
                 escapeHtml(
-                  p.shift || 'General'
+                  p.shift ||
+                  'General'
                 );
 
 
@@ -1100,7 +1787,8 @@
 
               const status =
                 String(
-                  p.status || 'active'
+                  p.status ||
+                  'active'
                 ).toLowerCase();
 
 
@@ -1125,10 +1813,46 @@
 
 
                   <td>
-                    ${p.resolvedStageName
-                      ? `<span class="badge badge-neutral" style="background:#f8fafc; color:#475569; border:1px solid #e2e8f0; font-size:11px;">${escapeHtml(p.resolvedStageName)}</span>`
-                      : '<span style="color:#94a3b8; font-size:12px;">None</span>'
+
+                    ${
+                      p.resolvedStageName
+
+                        ? `
+
+                          <span
+                            class="badge badge-neutral"
+                            style="
+                              background:#f8fafc;
+                              color:#475569;
+                              border:1px solid #e2e8f0;
+                              font-size:11px;
+                            ">
+
+                            ${escapeHtml(
+                              p.resolvedStageName
+                            )}
+
+                          </span>
+
+                        `
+
+                        :
+
+                        `
+
+                          <span
+                            style="
+                              color:#94a3b8;
+                              font-size:12px;
+                            ">
+
+                            None
+
+                          </span>
+
+                        `
                     }
+
                   </td>
 
 
@@ -1159,15 +1883,17 @@
                   <td>
 
                     <span
-                      class="badge ${hasAnswerKey
-                      ? 'badge-success'
-                      : 'badge-neutral'
-                    }">
+                      class="badge ${
+                        hasAnswerKey
+                          ? 'badge-success'
+                          : 'badge-neutral'
+                      }">
 
-                      ${hasAnswerKey
-                      ? '✓ Solved'
-                      : 'Unsolved'
-                    }
+                      ${
+                        hasAnswerKey
+                          ? '✓ Solved'
+                          : 'Unsolved'
+                      }
 
                     </span>
 
@@ -1176,14 +1902,17 @@
 
                   <td>
 
-                    ${p.pdfUrl
+                    ${
+                      p.pdfUrl
 
-                      ? `
+                        ? `
 
                           <a
                             href="${escapeHtml(
-                        String(p.pdfUrl)
-                      )}"
+                              String(
+                                p.pdfUrl
+                              )
+                            )}"
                             target="_blank"
                             rel="noopener noreferrer"
                             style="
@@ -1199,7 +1928,9 @@
 
                         `
 
-                      : `
+                        :
+
+                        `
 
                           <span class="badge badge-neutral">
                             Not provided
@@ -1214,15 +1945,17 @@
                   <td>
 
                     <span
-                      class="badge ${status === 'active'
-                      ? 'badge-success'
-                      : 'badge-neutral'
-                    }">
+                      class="badge ${
+                        status === 'active'
+                          ? 'badge-success'
+                          : 'badge-neutral'
+                      }">
 
-                      ${status === 'active'
-                      ? 'Active'
-                      : 'Draft'
-                    }
+                      ${
+                        status === 'active'
+                          ? 'Active'
+                          : 'Draft'
+                      }
 
                     </span>
 
@@ -1240,8 +1973,8 @@
                         type="button"
                         class="action-btn btn-edit-pyq"
                         data-id="${escapeHtml(
-                        String(p.id)
-                      )}"
+                          String(p.id)
+                        )}"
                         title="Edit PYQ">
 
                         ${ICONS.edit}
@@ -1253,8 +1986,8 @@
                         type="button"
                         class="action-btn delete btn-delete-pyq"
                         data-id="${escapeHtml(
-                        String(p.id)
-                      )}"
+                          String(p.id)
+                        )}"
                         data-title="${safeTitle}"
                         title="Delete PYQ">
 
@@ -1326,8 +2059,18 @@
               ).value =
                 p.id || '';
 
-              document.getElementById('pyq-code').value = p.id || p.code || '';
-              document.getElementById('pyq-code').readOnly = true;
+
+              document.getElementById(
+                'pyq-code'
+              ).value =
+                p.id ||
+                p.code ||
+                '';
+
+
+              document.getElementById(
+                'pyq-code'
+              ).readOnly = true;
 
 
               const examId =
@@ -1343,8 +2086,16 @@
               ).value =
                 examId;
 
-              const resolvedStage = resolvePYQStage(p);
-              populateStageDropdown(examId, resolvedStage.stageId, resolvedStage.stageName);
+
+              const resolvedStage =
+                resolvePYQStage(p);
+
+
+              populateStageDropdown(
+                examId,
+                resolvedStage.stageId,
+                resolvedStage.stageName
+              );
 
 
               document.getElementById(
@@ -1368,7 +2119,8 @@
               document.getElementById(
                 'pyq-total-q'
               ).value =
-                p.totalQuestions || 100;
+                p.totalQuestions ||
+                100;
 
 
               document.getElementById(
@@ -1389,8 +2141,10 @@
                 'pyq-status'
               ).value =
                 String(
-                  p.status || 'active'
-                ).toLowerCase() === 'active'
+                  p.status ||
+                  'active'
+                ).toLowerCase() ===
+                'active'
                   ? 'active'
                   : 'draft';
 
@@ -1431,7 +2185,14 @@
                   'data-title'
                 ) ||
                 'this PYQ';
-              const pyq = allPYQ.find(item => item.id === id);
+
+
+              const pyq =
+                allPYQ.find(
+                  item =>
+                    String(item.id) ===
+                    String(id)
+                );
 
 
               showConfirmDialog({
@@ -1466,6 +2227,7 @@
 
                       await loadPYQ();
 
+
                     } catch (error) {
 
                       console.error(
@@ -1495,7 +2257,7 @@
 
 
     /* =========================================================
-       EVENTS
+       NORMAL EVENTS
        ========================================================= */
 
     function setupEvents() {
@@ -1515,55 +2277,95 @@
         applyFilters;
 
 
-      // Exam change event to update Tiers dynamically
-      document.getElementById('pyq-exam-id').onchange = () => {
-        const examId = document.getElementById('pyq-exam-id').value;
-        populateStageDropdown(examId);
-      };
+      document.getElementById(
+        'pyq-exam-id'
+      ).onchange =
+        () => {
+
+          const examId =
+            document.getElementById(
+              'pyq-exam-id'
+            ).value;
 
 
-      /* ADD */
+          populateStageDropdown(
+            examId
+          );
+
+        };
+
+
+      /* =======================================================
+         ADD PYQ
+         ======================================================= */
 
       document.getElementById(
         'btn-open-add-pyq'
-      ).onclick = () => {
+      ).onclick =
+        () => {
 
-        document.getElementById(
-          'pyq-form'
-        ).reset();
-
-
-        document.getElementById(
-          'pyq-id'
-        ).value =
-          '';
-
-        document.getElementById('pyq-code').value = '';
-        document.getElementById('pyq-code').readOnly = true;
+          document.getElementById(
+            'pyq-form'
+          ).reset();
 
 
-        if (allExams.length > 0) {
-          document.getElementById('pyq-exam-id').value = allExams[0].id;
-          populateStageDropdown(allExams[0].id);
-        } else {
-          populateStageDropdown('');
-        }
+          document.getElementById(
+            'pyq-id'
+          ).value =
+            '';
 
 
-        document.getElementById(
-          'pyq-modal-title'
-        ).textContent =
-          'Upload PYQ Paper';
+          document.getElementById(
+            'pyq-code'
+          ).value =
+            '';
 
 
-        openModal(
-          'pyq-modal'
-        );
+          document.getElementById(
+            'pyq-code'
+          ).readOnly =
+            true;
 
-      };
+
+          if (
+            allExams.length > 0
+          ) {
+
+            document.getElementById(
+              'pyq-exam-id'
+            ).value =
+              allExams[0].id;
 
 
-      /* CLOSE */
+            populateStageDropdown(
+              allExams[0].id
+            );
+
+          } else {
+
+            populateStageDropdown(
+              ''
+            );
+
+          }
+
+
+          document.getElementById(
+            'pyq-modal-title'
+          ).textContent =
+            'Upload PYQ Paper';
+
+
+          openModal(
+            'pyq-modal'
+          );
+
+        };
+
+
+      /* =======================================================
+         CLOSE PYQ MODAL
+         ======================================================= */
 
       document.getElementById(
         'btn-close-pyq-modal'
@@ -1582,15 +2384,40 @@
             'pyq-modal'
           );
 
-      document.getElementById('pyq-title').addEventListener('input', () => {
-        if (document.getElementById('pyq-id').value) return;
-        document.getElementById('pyq-code').value = generateIdFromName(
-          document.getElementById('pyq-title').value
-        );
-      });
+
+      /* =======================================================
+         AUTO GENERATE ID
+         ======================================================= */
+
+      document.getElementById(
+        'pyq-title'
+      ).addEventListener(
+        'input',
+        () => {
+
+          if (
+            document.getElementById(
+              'pyq-id'
+            ).value
+          ) return;
 
 
-      /* SAVE */
+          document.getElementById(
+            'pyq-code'
+          ).value =
+            generateIdFromName(
+              document.getElementById(
+                'pyq-title'
+              ).value
+            );
+
+        }
+      );
+
+
+      /* =======================================================
+         SAVE PYQ
+         ======================================================= */
 
       document.getElementById(
         'pyq-form'
@@ -1612,10 +2439,24 @@
                 x.id === examId
             );
 
-          const stageSelect = document.getElementById('pyq-stage-id');
-          const selectedStage = getExamStages(examId).find(
-            stage => (stage.id || stage.name) === stageSelect?.value
-          );
+
+          const stageSelect =
+            document.getElementById(
+              'pyq-stage-id'
+            );
+
+
+          const selectedStage =
+            getExamStages(
+              examId
+            ).find(
+              stage =>
+                (
+                  stage.id ||
+                  stage.name
+                ) ===
+                stageSelect?.value
+            );
 
 
           const payload = {
@@ -1623,7 +2464,8 @@
             id:
               document.getElementById(
                 'pyq-id'
-              ).value || null,
+              ).value ||
+              null,
 
             code:
               document.getElementById(
@@ -1634,12 +2476,23 @@
 
             examName:
               exam
-                ? (exam.name || exam.title)
+                ? (
+                    exam.name ||
+                    exam.title
+                  )
                 : '',
 
-            stageId: selectedStage?.id || null,
-            stageName: selectedStage?.name || null,
-            stage: selectedStage?.name || null,
+            stageId:
+              selectedStage?.id ||
+              null,
+
+            stageName:
+              selectedStage?.name ||
+              null,
+
+            stage:
+              selectedStage?.name ||
+              null,
 
             title:
               document.getElementById(
@@ -1683,7 +2536,10 @@
           };
 
 
-          if (!examId || !exam) {
+          if (
+            !examId ||
+            !exam
+          ) {
 
             showToast(
               'Select an existing exam before saving the PYQ.',
@@ -1694,34 +2550,83 @@
 
           }
 
-          const existingId = payload.id || '';
-          const generatedPYQId = existingId || generateIdFromName(payload.title);
 
-          if (!generatedPYQId) {
-            showToast('PYQ title is required to generate an ID.', 'error');
+          const existingId =
+            payload.id || '';
+
+
+          const generatedPYQId =
+            existingId ||
+            generateIdFromName(
+              payload.title
+            );
+
+
+          if (
+            !generatedPYQId
+          ) {
+
+            showToast(
+              'PYQ title is required to generate an ID.',
+              'error'
+            );
+
             return;
+
           }
 
-          payload.code = generatedPYQId;
 
-          if (!existingId && allPYQ.some(item => {
-            const itemExamId = item.examId || item.examID || item.exam_id || item.targetExamId;
-            return itemExamId === examId && item.id === generatedPYQId;
-          })) {
-            showToast('An item with this generated ID already exists. Please use a different name.', 'error');
+          payload.code =
+            generatedPYQId;
+
+
+          if (
+            !existingId &&
+            allPYQ.some(
+              item => {
+
+                const itemExamId =
+                  item.examId ||
+                  item.examID ||
+                  item.exam_id ||
+                  item.targetExamId;
+
+
+                return (
+                  itemExamId ===
+                    examId &&
+                  item.id ===
+                    generatedPYQId
+                );
+
+              }
+            )
+          ) {
+
+            showToast(
+              'An item with this generated ID already exists. Please use a different name.',
+              'error'
+            );
+
             return;
+
           }
 
 
           if (
+
             !payload.title ||
+
             !Number.isInteger(
               payload.year
             ) ||
+
             !Number.isInteger(
               payload.totalQuestions
             ) ||
+
             payload.totalQuestions < 1
+
           ) {
 
             showToast(
@@ -1771,6 +2676,7 @@
 
             await loadPYQ();
 
+
           } catch (error) {
 
             console.error(
@@ -1785,12 +2691,1398 @@
               'error'
             );
 
+
           } finally {
 
             saveButton.disabled =
               false;
 
             saveButton.textContent =
+              originalText;
+
+          }
+
+        };
+
+    }
+
+
+    /* =========================================================
+       CSV PARSER
+       ========================================================= */
+
+    function parseCSVLine(line) {
+
+      const result = [];
+
+      let current = '';
+
+      let insideQuotes = false;
+
+
+      for (
+        let i = 0;
+        i < line.length;
+        i++
+      ) {
+
+        const char =
+          line[i];
+
+
+        const next =
+          line[i + 1];
+
+
+        if (
+          char === '"' &&
+          insideQuotes &&
+          next === '"'
+        ) {
+
+          current += '"';
+
+          i++;
+
+          continue;
+
+        }
+
+
+        if (
+          char === '"'
+        ) {
+
+          insideQuotes =
+            !insideQuotes;
+
+          continue;
+
+        }
+
+
+        if (
+          char === ',' &&
+          !insideQuotes
+        ) {
+
+          result.push(
+            current.trim()
+          );
+
+          current = '';
+
+        } else {
+
+          current += char;
+
+        }
+
+      }
+
+
+      result.push(
+        current.trim()
+      );
+
+
+      return result;
+
+    }
+
+
+    function parseCSV(csvText) {
+
+      const text =
+        String(
+          csvText || ''
+        )
+          .replace(
+            /^\uFEFF/,
+            ''
+          )
+          .trim();
+
+
+      if (!text) {
+
+        return [];
+
+      }
+
+
+      const lines =
+        text
+          .split(/\r?\n/)
+          .filter(
+            line =>
+              line.trim() !== ''
+          );
+
+
+      if (
+        lines.length < 2
+      ) {
+
+        throw new Error(
+          'CSV me header aur kam se kam 1 data row hona chahiye.'
+        );
+
+      }
+
+
+      const headers =
+        parseCSVLine(
+          lines[0]
+        ).map(
+          h =>
+            h
+              .trim()
+              .toLowerCase()
+        );
+
+
+      const rows = [];
+
+
+      for (
+        let i = 1;
+        i < lines.length;
+        i++
+      ) {
+
+        const values =
+          parseCSVLine(
+            lines[i]
+          );
+
+
+        if (
+          values.every(
+            value =>
+              !value
+          )
+        ) continue;
+
+
+        const row = {};
+
+
+        headers.forEach(
+          (
+            header,
+            index
+          ) => {
+
+            row[header] =
+              values[index] ??
+              '';
+
+          }
+        );
+
+
+        row.__rowNumber =
+          i + 1;
+
+
+        rows.push(
+          row
+        );
+
+      }
+
+
+      return rows;
+
+    }
+
+
+    /* =========================================================
+       CSV VALUE HELPERS
+       ========================================================= */
+
+    function parseBoolean(
+      value,
+      defaultValue = false
+    ) {
+
+      const v =
+        String(
+          value ?? ''
+        )
+          .trim()
+          .toLowerCase();
+
+
+      if (
+        [
+          'true',
+          '1',
+          'yes',
+          'y'
+        ].includes(v)
+      ) {
+
+        return true;
+
+      }
+
+
+      if (
+        [
+          'false',
+          '0',
+          'no',
+          'n'
+        ].includes(v)
+      ) {
+
+        return false;
+
+      }
+
+
+      return defaultValue;
+
+    }
+
+
+    function csvToPayload(
+      row
+    ) {
+
+      const examId =
+        String(
+          row.examid ??
+          ''
+        ).trim();
+
+
+      const title =
+        String(
+          row.title ??
+          ''
+        ).trim();
+
+
+      const exam =
+        allExams.find(
+          e =>
+            String(e.id) ===
+            examId
+        );
+
+
+      const stageId =
+        String(
+          row.stageid ??
+          ''
+        ).trim();
+
+
+      const stageName =
+        String(
+          row.stagename ??
+          ''
+        ).trim();
+
+
+      const stages =
+        getExamStages(
+          examId
+        );
+
+
+      const matchedStage =
+        stages.find(
+          stage =>
+
+            (
+              stageId &&
+              (
+                stage.id ===
+                stageId ||
+                stage.name ===
+                stageId
+              )
+            )
+
+            ||
+
+            (
+              stageName &&
+              (
+                stage.name ===
+                stageName ||
+                stage.code ===
+                stageName
+              )
+            )
+        );
+
+
+      const finalStageId =
+        matchedStage?.id ||
+        stageId ||
+        null;
+
+
+      const finalStageName =
+        matchedStage?.name ||
+        stageName ||
+        null;
+
+
+      let id =
+        String(
+          row.id ??
+          ''
+        ).trim();
+
+
+      if (!id) {
+
+        id =
+          generateIdFromName(
+            title
+          );
+
+      }
+
+
+      const year =
+        Number(
+          row.year
+        );
+
+
+      const totalQuestions =
+        Number(
+          row.totalquestions
+        );
+
+
+      return {
+
+        id:
+          id || null,
+
+        code:
+          id,
+
+        examId,
+
+        examName:
+          exam
+            ? (
+                exam.name ||
+                exam.title
+              )
+            : '',
+
+        stageId:
+          finalStageId,
+
+        stageName:
+          finalStageName,
+
+        stage:
+          finalStageName,
+
+        title,
+
+        year:
+
+          Number.isInteger(
+            year
+          )
+            ? year
+            : 0,
+
+        shift:
+          String(
+            row.shift ??
+            ''
+          ).trim(),
+
+        totalQuestions:
+
+          Number.isInteger(
+            totalQuestions
+          )
+            ? totalQuestions
+            : 0,
+
+        hasAnswerKey:
+          parseBoolean(
+            row.hasanswerkey,
+            false
+          ),
+
+        pdfUrl:
+          String(
+            row.pdfurl ??
+            ''
+          ).trim(),
+
+        status:
+          String(
+            row.status ??
+            'active'
+          )
+            .trim()
+            .toLowerCase() ||
+          'active'
+
+      };
+
+    }
+
+
+    /* =========================================================
+       VALIDATE BULK ROWS
+       ========================================================= */
+
+    function validateBulkRows(
+      rows
+    ) {
+
+      const errors = [];
+
+      const ids = new Set();
+
+
+      rows.forEach(
+        (
+          row,
+          index
+        ) => {
+
+          const rowNumber =
+            row.__rowNumber ||
+            index + 2;
+
+
+          const payload =
+            csvToPayload(
+              row
+            );
+
+
+          if (
+            !payload.examId
+          ) {
+
+            errors.push(
+              `Row ${rowNumber}: examId required`
+            );
+
+          }
+
+
+          if (
+            !payload.title
+          ) {
+
+            errors.push(
+              `Row ${rowNumber}: title required`
+            );
+
+          }
+
+
+          if (
+            !payload.examId
+          ) {
+
+            return;
+
+          }
+
+
+          const exam =
+            allExams.find(
+              e =>
+                String(e.id) ===
+                String(
+                  payload.examId
+                )
+            );
+
+
+          if (!exam) {
+
+            errors.push(
+              `Row ${rowNumber}: Exam "${payload.examId}" Firestore me nahi mila`
+            );
+
+          }
+
+
+          if (
+            !payload.id
+          ) {
+
+            errors.push(
+              `Row ${rowNumber}: ID generate nahi ho saka`
+            );
+
+          }
+
+
+          if (
+            payload.id
+          ) {
+
+            if (
+              ids.has(
+                payload.id
+              )
+            ) {
+
+              errors.push(
+                `Row ${rowNumber}: Duplicate ID "${payload.id}" CSV me hai`
+              );
+
+            }
+
+
+            ids.add(
+              payload.id
+            );
+
+          }
+
+
+          if (
+            !Number.isInteger(
+              payload.year
+            ) ||
+            payload.year < 2000
+          ) {
+
+            errors.push(
+              `Row ${rowNumber}: valid year required`
+            );
+
+          }
+
+
+          if (
+            !Number.isInteger(
+              payload.totalQuestions
+            ) ||
+            payload.totalQuestions < 1
+          ) {
+
+            errors.push(
+              `Row ${rowNumber}: totalQuestions valid number hona chahiye`
+            );
+
+          }
+
+
+          if (
+            ![
+              'active',
+              'draft'
+            ].includes(
+              payload.status
+            )
+          ) {
+
+            errors.push(
+              `Row ${rowNumber}: status active ya draft hona chahiye`
+            );
+
+          }
+
+        }
+      );
+
+
+      return errors;
+
+    }
+
+
+    /* =========================================================
+       PREVIEW
+       ========================================================= */
+
+    function renderBulkPreview(
+      rows
+    ) {
+
+      const preview =
+        document.getElementById(
+          'pyq-bulk-preview'
+        );
+
+
+      if (!rows.length) {
+
+        preview.style.display =
+          'none';
+
+        preview.innerHTML =
+          '';
+
+        return;
+
+      }
+
+
+      const columns = [
+
+        'id',
+        'examId',
+        'stageId',
+        'stageName',
+        'title',
+        'year',
+        'shift',
+        'totalQuestions',
+        'hasAnswerKey',
+        'pdfUrl',
+        'status'
+
+      ];
+
+
+      let html = `
+
+        <table>
+
+          <thead>
+
+            <tr>
+
+              <th>#</th>
+
+              ${columns
+                .map(
+                  col =>
+                    `<th>${escapeHtml(col)}</th>`
+                )
+                .join('')}
+
+            </tr>
+
+          </thead>
+
+          <tbody>
+
+      `;
+
+
+      rows.forEach(
+        (
+          row,
+          index
+        ) => {
+
+          const payload =
+            csvToPayload(
+              row
+            );
+
+
+          html += `
+
+            <tr>
+
+              <td>
+                ${index + 1}
+              </td>
+
+              ${columns
+                .map(
+                  col => {
+
+                    let value =
+                      '';
+
+
+                    switch (col) {
+
+                      case 'id':
+                        value =
+                          payload.id;
+                        break;
+
+                      case 'examId':
+                        value =
+                          payload.examId;
+                        break;
+
+                      case 'stageId':
+                        value =
+                          payload.stageId ||
+                          '';
+                        break;
+
+                      case 'stageName':
+                        value =
+                          payload.stageName ||
+                          '';
+                        break;
+
+                      case 'title':
+                        value =
+                          payload.title;
+                        break;
+
+                      case 'year':
+                        value =
+                          payload.year;
+                        break;
+
+                      case 'shift':
+                        value =
+                          payload.shift;
+                        break;
+
+                      case 'totalQuestions':
+                        value =
+                          payload.totalQuestions;
+                        break;
+
+                      case 'hasAnswerKey':
+                        value =
+                          payload.hasAnswerKey;
+                        break;
+
+                      case 'pdfUrl':
+                        value =
+                          payload.pdfUrl;
+                        break;
+
+                      case 'status':
+                        value =
+                          payload.status;
+                        break;
+
+                    }
+
+
+                    return `
+                      <td>
+                        ${escapeHtml(
+                          String(
+                            value ??
+                            ''
+                          )
+                        )}
+                      </td>
+                    `;
+
+                  }
+                )
+                .join('')}
+
+            </tr>
+
+          `;
+
+        }
+      );
+
+
+      html += `
+
+          </tbody>
+
+        </table>
+
+      `;
+
+
+      preview.innerHTML =
+        html;
+
+
+      preview.style.display =
+        'block';
+
+    }
+
+
+    /* =========================================================
+       BULK STATUS
+       ========================================================= */
+
+    function setBulkStatus(
+      message,
+      type = 'info'
+    ) {
+
+      const box =
+        document.getElementById(
+          'pyq-bulk-status'
+        );
+
+
+      box.textContent =
+        message;
+
+
+      box.className =
+        `bulk-status ${type}`;
+
+    }
+
+
+    /* =========================================================
+       GET CURRENT CSV
+       ========================================================= */
+
+    function getCurrentCSV() {
+
+      const text =
+        document.getElementById(
+          'pyq-csv-text'
+        ).value.trim();
+
+
+      return text;
+
+    }
+
+
+    /* =========================================================
+       READ FILE
+       ========================================================= */
+
+    function readBulkFile() {
+
+      const input =
+        document.getElementById(
+          'pyq-csv-file'
+        );
+
+
+      const file =
+        input.files?.[0];
+
+
+      if (!file) {
+
+        return Promise.resolve(
+          ''
+        );
+
+      }
+
+
+      return file.text();
+
+    }
+
+
+    /* =========================================================
+       PREPARE BULK CSV
+       ========================================================= */
+
+    async function prepareBulkCSV() {
+
+      let csv =
+        getCurrentCSV();
+
+
+      if (!csv) {
+
+        csv =
+          await readBulkFile();
+
+      }
+
+
+      if (!csv) {
+
+        throw new Error(
+          'CSV file upload karein ya CSV text paste karein.'
+        );
+
+      }
+
+
+      const rows =
+        parseCSV(
+          csv
+        );
+
+
+      if (!rows.length) {
+
+        throw new Error(
+          'CSV me koi data row nahi mili.'
+        );
+
+      }
+
+
+      return rows;
+
+    }
+
+
+    /* =========================================================
+       BULK IMPORT SETUP
+       ========================================================= */
+
+    function setupBulkImport() {
+
+      /* OPEN */
+
+      document.getElementById(
+        'btn-open-bulk-pyq'
+      ).onclick =
+        () => {
+
+          document.getElementById(
+            'pyq-csv-file'
+          ).value =
+            '';
+
+
+          document.getElementById(
+            'pyq-csv-text'
+          ).value =
+            '';
+
+
+          document.getElementById(
+            'pyq-bulk-preview'
+          ).style.display =
+            'none';
+
+
+          document.getElementById(
+            'pyq-bulk-preview'
+          ).innerHTML =
+            '';
+
+
+          document.getElementById(
+            'pyq-bulk-status'
+          ).className =
+            'bulk-status';
+
+
+          document.getElementById(
+            'pyq-bulk-status'
+          ).textContent =
+            '';
+
+
+          bulkRows = [];
+
+
+          openModal(
+            'bulk-pyq-modal'
+          );
+
+        };
+
+
+      /* CLOSE */
+
+      document.getElementById(
+        'btn-close-bulk-pyq'
+      ).onclick =
+        () =>
+          closeModal(
+            'bulk-pyq-modal'
+          );
+
+
+      document.getElementById(
+        'btn-cancel-bulk-pyq'
+      ).onclick =
+        () =>
+          closeModal(
+            'bulk-pyq-modal'
+          );
+
+
+      /* =======================================================
+         FILE SELECT
+         ======================================================= */
+
+      document.getElementById(
+        'pyq-csv-file'
+      ).addEventListener(
+        'change',
+        async () => {
+
+          const file =
+            document.getElementById(
+              'pyq-csv-file'
+            ).files?.[0];
+
+
+          if (!file) return;
+
+
+          try {
+
+            const text =
+              await file.text();
+
+
+            document.getElementById(
+              'pyq-csv-text'
+            ).value =
+              text;
+
+
+            setBulkStatus(
+              `CSV file loaded: ${file.name}`,
+              'success'
+            );
+
+
+          } catch (error) {
+
+            setBulkStatus(
+              error.message ||
+              'CSV file read nahi ho payi.',
+              'error'
+            );
+
+          }
+
+        }
+      );
+
+
+      /* =======================================================
+         PREVIEW
+         ======================================================= */
+
+      document.getElementById(
+        'btn-preview-pyq'
+      ).onclick =
+        async () => {
+
+          try {
+
+            setBulkStatus(
+              'CSV parse ho raha hai...',
+              'info'
+            );
+
+
+            const rows =
+              await prepareBulkCSV();
+
+
+            bulkRows =
+              rows;
+
+
+            const errors =
+              validateBulkRows(
+                rows
+              );
+
+
+            renderBulkPreview(
+              rows
+            );
+
+
+            if (
+              errors.length
+            ) {
+
+              setBulkStatus(
+                `Preview ready, lekin ${errors.length} error mila. ${errors.slice(0, 5).join(' | ')}`,
+                'error'
+              );
+
+              return;
+
+            }
+
+
+            setBulkStatus(
+              `${rows.length} PYQ records ready for import.`,
+              'success'
+            );
+
+
+          } catch (error) {
+
+            console.error(
+              'PYQ CSV preview error:',
+              error
+            );
+
+
+            setBulkStatus(
+              error.message ||
+              'CSV preview failed.',
+              'error'
+            );
+
+          }
+
+        };
+
+
+      /* =======================================================
+         DOWNLOAD TEMPLATE
+         ======================================================= */
+
+      document.getElementById(
+        'btn-download-pyq-template'
+      ).onclick =
+        () => {
+
+          const csv =
+`id,examId,stageId,stageName,title,year,shift,totalQuestions,hasAnswerKey,pdfUrl,status
+ssc-cgl-2024-tier-1-shift-1,ssc-cgl,tier-1,Tier 1,SSC CGL 2024 Tier 1 Shift 1,2024,Shift 1,100,true,https://example.com/paper.pdf,active
+ssc-cgl-2024-tier-1-shift-2,ssc-cgl,tier-1,Tier 1,SSC CGL 2024 Tier 1 Shift 2,2024,Shift 2,100,true,https://example.com/paper2.pdf,active`;
+
+
+          const blob =
+            new Blob(
+              [csv],
+              {
+                type:
+                  'text/csv;charset=utf-8;'
+              }
+            );
+
+
+          const url =
+            URL.createObjectURL(
+              blob
+            );
+
+
+          const a =
+            document.createElement(
+              'a'
+            );
+
+
+          a.href =
+            url;
+
+
+          a.download =
+            'pyq-bulk-import-template.csv';
+
+
+          document.body.appendChild(
+            a
+          );
+
+
+          a.click();
+
+
+          a.remove();
+
+
+          URL.revokeObjectURL(
+            url
+          );
+
+        };
+
+
+      /* =======================================================
+         IMPORT
+         ======================================================= */
+
+      document.getElementById(
+        'btn-import-pyq'
+      ).onclick =
+        async () => {
+
+          const importButton =
+            document.getElementById(
+              'btn-import-pyq'
+            );
+
+
+          const originalText =
+            importButton.textContent;
+
+
+          try {
+
+            importButton.disabled =
+              true;
+
+
+            importButton.textContent =
+              'Importing...';
+
+
+            setBulkStatus(
+              'CSV prepare ho raha hai...',
+              'info'
+            );
+
+
+            let rows =
+              bulkRows;
+
+
+            if (
+              !rows.length
+            ) {
+
+              rows =
+                await prepareBulkCSV();
+
+            }
+
+
+            const errors =
+              validateBulkRows(
+                rows
+              );
+
+
+            if (
+              errors.length
+            ) {
+
+              setBulkStatus(
+                `Import stopped. ${errors.length} error mila: ${errors.slice(0, 10).join(' | ')}`,
+                'error'
+              );
+
+              return;
+
+            }
+
+
+            const payloads =
+              rows.map(
+                row =>
+                  csvToPayload(
+                    row
+                  )
+              );
+
+
+            /*
+             * Existing records check
+             */
+
+            const duplicateExisting =
+              payloads.filter(
+                payload =>
+                  allPYQ.some(
+                    existing =>
+                      String(existing.id) ===
+                      String(payload.id)
+                  )
+              );
+
+
+            if (
+              duplicateExisting.length
+            ) {
+
+              setBulkStatus(
+                `Import stopped. Ye IDs already exist karti hain: ${duplicateExisting.slice(0, 10).map(x => x.id).join(', ')}`,
+                'error'
+              );
+
+              return;
+
+            }
+
+
+            let imported =
+              0;
+
+
+            for (
+              const payload
+              of payloads
+            ) {
+
+              setBulkStatus(
+                `Importing ${imported + 1} / ${payloads.length}: ${payload.title}`,
+                'info'
+              );
+
+
+              await savePYQ(
+                payload
+              );
+
+
+              imported++;
+
+            }
+
+
+            setBulkStatus(
+              `${imported} PYQ papers successfully imported!`,
+              'success'
+            );
+
+
+            showToast(
+              `${imported} PYQ papers imported successfully!`
+            );
+
+
+            await loadPYQ();
+
+
+            setTimeout(
+              () => {
+
+                closeModal(
+                  'bulk-pyq-modal'
+                );
+
+              },
+              900
+            );
+
+
+          } catch (error) {
+
+            console.error(
+              'PYQ bulk import failed:',
+              error
+            );
+
+
+            setBulkStatus(
+              error.message ||
+              'Bulk import failed.',
+              'error'
+            );
+
+
+            showToast(
+              error.message ||
+              'Bulk import failed',
+              'error'
+            );
+
+
+          } finally {
+
+            importButton.disabled =
+              false;
+
+
+            importButton.textContent =
               originalText;
 
           }
